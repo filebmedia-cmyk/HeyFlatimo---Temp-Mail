@@ -62,11 +62,10 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     }, 2500);
   };
 
-  // 1. Inisialisasi Tema & App Name
+  // 1. Inisialisasi Tema & App Name (Default: Light Mode)
   useEffect(() => {
     const savedTheme = localStorage.getItem('tmail_theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    const shouldDark = savedTheme === 'dark';
 
     setIsDark(shouldDark);
     if (shouldDark) {
