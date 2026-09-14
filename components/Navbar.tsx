@@ -4,8 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import {
   Zap,
-  Moon,
-  Sun,
   LayoutPanelLeft,
   Home,
   ShieldCheck,
@@ -16,8 +14,8 @@ import {
 
 interface NavbarProps {
   appName?: string;
-  isDark: boolean;
-  onToggleTheme: () => void;
+  isDark?: boolean;
+  onToggleTheme?: () => void;
   activeView: 'home' | 'split';
   onToggleView: (view: 'home' | 'split') => void;
   unreadCount: number;
@@ -119,20 +117,6 @@ export default function Navbar({
               <span className="sm:hidden">HOME</span>
             </button>
           )}
-
-          {/* Theme Toggle Button */}
-          <button
-            onClick={onToggleTheme}
-            className="brutal-btn-icon bg-[var(--color-yellow)] dark:bg-zinc-800 text-black dark:text-[var(--color-yellow)] w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 flex items-center justify-center font-black group shadow-[1.5px_1.5px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] flex-shrink-0"
-            title="Ganti Tema Gelap / Terang"
-            aria-label="Toggle Dark Mode"
-          >
-            {isDark ? (
-              <Sun className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 text-[var(--color-yellow)] fill-[var(--color-yellow)] group-hover:rotate-90 transition-transform duration-300" />
-            ) : (
-              <Moon className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 text-black group-hover:-rotate-45 transition-transform duration-300" />
-            )}
-          </button>
         </div>
       </div>
     </header>

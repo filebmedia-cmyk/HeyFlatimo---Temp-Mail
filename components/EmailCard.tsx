@@ -69,9 +69,27 @@ export default function EmailCard({
 
   return (
     <div className="brutal-card p-4 xs:p-5 sm:p-7 mb-5 sm:mb-7 relative bg-[var(--card-bg)]">
-      {/* Top-Right Action Controls (Crown VIP + Theme Toggle Side-by-Side) */}
-      <div className="absolute top-2.5 right-2.5 xs:top-3 xs:right-3 sm:top-4 sm:right-4 z-10 flex items-center gap-1.5 xs:gap-2">
-        {/* VIP Crown Icon Button */}
+      {/* Top-Left Action Control: Dark/Light Mode Toggle */}
+      {onToggleTheme && (
+        <div className="absolute top-2.5 left-2.5 xs:top-3 xs:left-3 sm:top-4 sm:left-4 z-10">
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            className="brutal-btn w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] dark:bg-zinc-800 text-black dark:text-[var(--color-yellow)] border-2 sm:border-[2.5px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] group cursor-pointer transition-colors p-0"
+            title="Ganti Tema Gelap / Terang"
+            aria-label="Toggle Dark Mode"
+          >
+            {isDark ? (
+              <Sun className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-4.5 sm:h-4.5 text-[var(--color-yellow)] fill-[var(--color-yellow)] group-hover:rotate-90 transition-transform duration-300" />
+            ) : (
+              <Moon className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-4.5 sm:h-4.5 text-black group-hover:-rotate-45 transition-transform duration-300" />
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Top-Right Action Control: VIP Crown Button */}
+      <div className="absolute top-2.5 right-2.5 xs:top-3 xs:right-3 sm:top-4 sm:right-4 z-10">
         {isVipUnlocked ? (
           <div
             className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] text-black border-2 sm:border-[2.5px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)]"
@@ -89,27 +107,10 @@ export default function EmailCard({
             <Crown className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-4.5 sm:h-4.5 fill-amber-400 group-hover:fill-black group-hover:rotate-12 transition-all duration-200" />
           </button>
         )}
-
-        {/* Theme Dark/Light Toggle Button */}
-        {onToggleTheme && (
-          <button
-            type="button"
-            onClick={onToggleTheme}
-            className="brutal-btn w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] dark:bg-zinc-800 text-black dark:text-[var(--color-yellow)] border-2 sm:border-[2.5px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] group cursor-pointer transition-colors p-0"
-            title="Ganti Tema Gelap / Terang"
-            aria-label="Toggle Dark Mode"
-          >
-            {isDark ? (
-              <Sun className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-4.5 sm:h-4.5 text-[var(--color-yellow)] fill-[var(--color-yellow)] group-hover:rotate-90 transition-transform duration-300" />
-            ) : (
-              <Moon className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-4.5 sm:h-4.5 text-black group-hover:-rotate-45 transition-transform duration-300" />
-            )}
-          </button>
-        )}
       </div>
 
-      {/* Title Header: Clean, Balanced, Protected from Overlap */}
-      <div className="text-center mb-5 sm:mb-6 px-12 xs:px-14 sm:px-16">
+      {/* Title Header: Symmetrically Balanced, Protected from Overlap */}
+      <div className="text-center mb-5 sm:mb-6 px-9 xs:px-11 sm:px-14">
         <div className="inline-flex items-center gap-1.5 brutal-badge bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 sm:px-3 py-0.5 sm:py-1 text-[9px] xs:text-[10px] sm:text-[11px] mb-2 sm:mb-2.5 font-mono-custom uppercase tracking-wide max-w-full truncate">
           <Sparkles className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-[var(--color-orange)] icon-wiggle flex-shrink-0" />
           <span className="truncate">DISPOSABLE INBOX SYSTEM</span>
