@@ -69,9 +69,9 @@ export default function AdminPage() {
   const [showAccessKey, setShowAccessKey] = useState(false);
   const [isSavingAccess, setIsSavingAccess] = useState(false);
 
-  // Admin Credentials State
-  const [adminUserInput, setAdminUserInput] = useState('HeyFlatimo');
-  const [adminPassInput, setAdminPassInput] = useState('TmailFlatimo');
+  // Admin Credentials State (Empty by default for privacy)
+  const [adminUserInput, setAdminUserInput] = useState('');
+  const [adminPassInput, setAdminPassInput] = useState('');
   const [showAdminPass, setShowAdminPass] = useState(false);
   const [isSavingCreds, setIsSavingCreds] = useState(false);
 
@@ -231,7 +231,7 @@ export default function AdminPage() {
         }
         if (data.credentials) {
           if (data.credentials.username) setAdminUserInput(data.credentials.username);
-          if (data.credentials.password) setAdminPassInput(data.credentials.password);
+          setAdminPassInput(''); // Never populate plain password
         }
         if (data.announcement) {
           setAnnouncementEnabled(Boolean(data.announcement.enabled));
@@ -249,7 +249,7 @@ export default function AdminPage() {
   const handleSaveCredentials = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!adminUserInput.trim() || !adminPassInput.trim()) {
-      showToast('Username dan Password admin tidak boleh kosong', 'error');
+      showToast('Username dan Password baru tidak boleh kosong', 'error');
       return;
     }
     setIsSavingCreds(true);
@@ -267,6 +267,7 @@ export default function AdminPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         showToast('Kredensial Login Admin (Username & Password) berhasil disimpan!', 'success');
+        setAdminPassInput(''); // Clear password field after saving
       } else {
         showToast(data.error || 'Gagal mengubah kredensial admin', 'error');
       }
@@ -682,7 +683,8 @@ if (!empty($otpData['found'])) {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Username Admin"
+                      placeholder="Masukkan Username Admin"
+                      autoComplete="off"
                       className="brutal-input w-full pl-9 pr-3 py-2.5 sm:py-3 text-xs sm:text-sm font-mono-custom font-bold"
                       required
                     />
@@ -701,7 +703,8 @@ if (!empty($otpData['found'])) {
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••••••"
+                      placeholder="Masukkan Password Admin"
+                      autoComplete="current-password"
                       className="brutal-input w-full pl-9 pr-3 py-2.5 sm:py-3 text-xs sm:text-sm font-mono-custom font-bold"
                       required
                     />
@@ -1006,7 +1009,8 @@ if (!empty($otpData['found'])) {
                       type="text"
                       value={adminUserInput}
                       onChange={(e) => setAdminUserInput(e.target.value)}
-                      placeholder="HeyFlatimo"
+                      placeholder="Ketik Username Admin Baru"
+                      autoComplete="off"
                       className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
                       required
                     />
@@ -1021,7 +1025,8 @@ if (!empty($otpData['found'])) {
                         type={showAdminPass ? 'text' : 'password'}
                         value={adminPassInput}
                         onChange={(e) => setAdminPassInput(e.target.value)}
-                        placeholder="TmailFlatimo"
+                        placeholder="Ketik Password Admin Baru"
+                        autoComplete="new-password"
                         className="brutal-input w-full pl-3 pr-10 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
                         required
                       />

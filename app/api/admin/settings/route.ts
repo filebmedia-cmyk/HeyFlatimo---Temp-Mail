@@ -21,7 +21,6 @@ export async function GET() {
       announcement,
       credentials: {
         username: creds.username,
-        password: creds.password,
       },
     });
   } catch (error: any) {
@@ -61,12 +60,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Pengaturan berhasil disimpan ke database',
+      message: 'Pengaturan berhasil disimpan',
       access,
       announcement,
       credentials: {
         username: credentials.username,
-        password: credentials.password,
       },
     });
   } catch (error: any) {
