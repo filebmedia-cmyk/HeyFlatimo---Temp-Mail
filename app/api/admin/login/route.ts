@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateAdminCredentials } from '@/lib/auth';
+import { validateAdminCredentials, getCurrentApiKey } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,11 +25,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const apiKey = await getCurrentApiKey();
+
     return NextResponse.json({
       success: true,
       message: 'Login Admin Berhasil',
       admin: {
         username: username,
+        apiKey: apiKey,
       },
     });
   } catch (error: any) {

@@ -148,11 +148,17 @@ export default function AdminPage() {
 
       if (res.ok && data.success) {
         setIsLoggedIn(true);
-        setApiKey(data.admin.apiKey);
+        const loggedKey = data.admin?.apiKey;
+        if (loggedKey) {
+          setApiKey(loggedKey);
+        } else {
+          fetchApiKey();
+        }
         sessionStorage.setItem('heyflatimo_admin_logged', 'true');
         showToast('Login Admin Berhasil! Selamat Datang.', 'success');
+        fetchApiKey();
         fetchDomains();
-        fetchStats();
+        fetchStats(loggedKey);
         fetchSettings();
       } else {
         showToast(data.error || 'Username atau password salah', 'error');
@@ -196,9 +202,14 @@ export default function AdminPage() {
     }
   };
 
-  const fetchStats = async () => {
+  const fetchStats = async (keyToUse?: string) => {
     try {
-      const res = await fetch(`/api/v1/stats?api_key=${apiKey}`);
+      const activeKey = keyToUse || apiKey || 'hfl_key_8899aabbccddeeff00112233';
+      const res = await fetch(`/api/v1/stats`, {
+        headers: {
+          'x-api-key': activeKey,
+        },
+      });
       const data = await res.json();
       if (data.success) {
         setStats(data);
@@ -465,6 +476,8 @@ export default function AdminPage() {
     }
   };
 
+  const safeKey = apiKey || 'hfl_key_8899aabbccddeeff00112233';
+
   const runTest = async (endpoint: string, params: string = '') => {
     setIsTesting(true);
     setTestResult('Memproses request...');
@@ -472,7 +485,7 @@ export default function AdminPage() {
       const fullUrl = `${origin}/api/v1/${endpoint}${params ? '?' + params : ''}`;
       const res = await fetch(fullUrl, {
         headers: {
-          'x-api-key': apiKey,
+          'x-api-key': safeKey,
         },
       });
       const data = await res.json();
@@ -495,7 +508,7 @@ import requests
 import time
 
 BASE_URL = "${origin}"
-API_KEY = "${apiKey}"
+API_KEY = "${safeKey}"
 HEADERS = {"x-api-key": API_KEY}
 
 # 1. Generate Email Baru
@@ -520,7 +533,7 @@ for _ in range(12):  # Polling hingga 60 detik
 const axios = require('axios');
 
 const BASE_URL = '${origin}';
-const API_KEY = '${apiKey}';
+const API_KEY = '${safeKey}';
 const headers = { 'x-api-key': API_KEY };
 
 async function runBot() {
@@ -543,23 +556,23 @@ async function runBot() {
 
 runBot();`,
     curl: `# 1. Dapatkan Daftar Domain
-curl -X GET "${origin}/api/v1/domains" -H "x-api-key: ${apiKey}"
+curl -X GET "${origin}/api/v1/domains" -H "x-api-key: ${safeKey}"
 
 # 2. Generate Email Baru
-curl -X GET "${origin}/api/v1/generate" -H "x-api-key: ${apiKey}"
+curl -X GET "${origin}/api/v1/generate" -H "x-api-key: ${safeKey}"
 
 # 3. Baca Inbox Pesan
-curl -X GET "${origin}/api/v1/inbox?email=user@domain.com" -H "x-api-key: ${apiKey}"
+curl -X GET "${origin}/api/v1/inbox?email=user@domain.com" -H "x-api-key: ${safeKey}"
 
 # 4. Auto-Extract OTP (Keluaran langsung kode angka)
-curl -X GET "${origin}/api/v1/otp?email=user@domain.com" -H "x-api-key: ${apiKey}"
+curl -X GET "${origin}/api/v1/otp?email=user@domain.com" -H "x-api-key: ${safeKey}"
 
 # 5. Auto-Extract Link Verifikasi (Keluaran URL aktivasi)
-curl -X GET "${origin}/api/v1/links?email=user@domain.com" -H "x-api-key: ${apiKey}"`,
+curl -X GET "${origin}/api/v1/links?email=user@domain.com" -H "x-api-key: ${safeKey}"`,
     php: `<?php
 // Contoh Integrasi HeyFlatimo API di PHP
 $baseUrl = "${origin}";
-$apiKey = "${apiKey}";
+$apiKey = "${safeKey}";
 
 function requestApi($endpoint, $apiKey) {
     $ch = curl_init($endpoint);
@@ -573,12 +586,12 @@ function requestApi($endpoint, $apiKey) {
 // 1. Generate Email
 $gen = requestApi("$baseUrl/api/v1/generate", $apiKey);
 $email = $gen['email'];
-echo "Email: $email\n";
+echo "Email: $email\\n";
 
 // 2. Ekstrak OTP
 $otpData = requestApi("$baseUrl/api/v1/otp?email=$email", $apiKey);
 if (!empty($otpData['found'])) {
-    echo "Kode OTP: " . $otpData['otp'] . "\n";
+    echo "Kode OTP: " . $otpData['otp'] . "\\n";
 }
 ?>`,
   };
