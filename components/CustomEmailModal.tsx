@@ -11,6 +11,8 @@ interface CustomEmailModalProps {
   availableDomains: (string | DomainOption)[];
   currentPrefix: string;
   currentDomain: string;
+  isVipUnlocked?: boolean;
+  onRequestVipUnlock?: (domain: string) => void;
 }
 
 export default function CustomEmailModal({
@@ -20,6 +22,8 @@ export default function CustomEmailModal({
   availableDomains,
   currentPrefix,
   currentDomain,
+  isVipUnlocked = false,
+  onRequestVipUnlock,
 }: CustomEmailModalProps) {
   const [prefix, setPrefix] = useState(currentPrefix);
 
@@ -98,6 +102,11 @@ export default function CustomEmailModal({
               domains={availableDomains}
               selectedDomain={selectedDomain}
               onSelect={setSelectedDomain}
+              isVipUnlocked={isVipUnlocked}
+              onRequestVipUnlock={(dom) => {
+                onClose();
+                if (onRequestVipUnlock) onRequestVipUnlock(dom);
+              }}
               className="w-full"
             />
           </div>

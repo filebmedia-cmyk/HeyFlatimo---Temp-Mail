@@ -8,6 +8,7 @@ import SplitInbox from '@/components/SplitInbox';
 import Toast from '@/components/Toast';
 import AccessGateModal from '@/components/AccessGateModal';
 import AnnouncementModal from '@/components/AnnouncementModal';
+import VipCdkModal from '@/components/VipCdkModal';
 import { EmailMessage } from '@/components/MessageReader';
 import { generateRandomPrefix } from '@/lib/generator';
 
@@ -21,6 +22,11 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   const [appName, setAppName] = useState('HeyFlatimo');
   const [isDark, setIsDark] = useState(false);
   const [activeView, setActiveView] = useState<'home' | 'split'>('home');
+
+  // VIP Access State (Resets on page refresh / browser close via sessionStorage)
+  const [isVipUnlocked, setIsVipUnlocked] = useState(false);
+  const [isVipModalOpen, setIsVipModalOpen] = useState(false);
+  const [targetVipDomain, setTargetVipDomain] = useState<string | null>(null);
 
   // Access Gate State
   const [isAccessLocked, setIsAccessLocked] = useState(false);
@@ -63,7 +69,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     }, 2500);
   };
 
-  // 1. Inisialisasi Tema & App Name (Default: Light Mode)
+  // 1. Inisialisasi Tema, App Name, & VIP Session State
   useEffect(() => {
     const savedTheme = localStorage.getItem('tmail_theme');
     const shouldDark = savedTheme === 'dark';
@@ -77,6 +83,12 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
 
     if (process.env.NEXT_PUBLIC_APP_NAME) {
       setAppName(process.env.NEXT_PUBLIC_APP_NAME);
+    }
+
+    // Cek apakah sesi ini sudah pernah membuka VIP (sessionStorage otomatis reset jika refresh / keluar web)
+    const isVipActive = sessionStorage.getItem('tmail_vip_session') === 'true';
+    if (isVipActive) {
+      setIsVipUnlocked(true);
     }
   }, []);
 
@@ -101,17 +113,20 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
 
     async function initDomainsAndEmail() {
       let domainsList: string[] = [];
+      let detailsList: { domain: string; isVip?: boolean }[] = [];
       try {
         const res = await fetch('/api/domains');
         const data = await res.json();
         if (data.domainDetails && Array.isArray(data.domainDetails)) {
-          setDomainDetails(data.domainDetails);
-          domainsList = data.domainDetails.map((d: any) => d.domain);
+          detailsList = data.domainDetails;
+          setDomainDetails(detailsList);
+          domainsList = detailsList.map((d: any) => d.domain);
           setAvailableDomains(domainsList);
         } else if (data.domains && Array.isArray(data.domains)) {
           domainsList = data.domains;
+          detailsList = domainsList.map((d) => ({ domain: d, isVip: false }));
           setAvailableDomains(domainsList);
-          setDomainDetails(domainsList.map((d) => ({ domain: d, isVip: false })));
+          setDomainDetails(detailsList);
         }
       } catch (err) {
         console.error('Error fetching domains:', err);
@@ -167,6 +182,10 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
         return;
       }
 
+      // Daftar domain Free (Biasa) untuk inisialisasi default aman bagi pengunjung biasa
+      const freeDomains = detailsList.filter((d) => !d.isVip).map((d) => d.domain);
+      const safeDefaultPool = freeDomains.length > 0 ? freeDomains : domainsList;
+
       // Prioritas 1: initialSlug dari URL path jika membuka domain.com/emailtemp atau domain.com/slug
       let parsedSlug = '';
       if (initialSlug) {
@@ -174,35 +193,37 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       }
 
       const savedEmail = typeof window !== 'undefined' ? localStorage.getItem('tmail_address') : null;
+      const isSessionVip = sessionStorage.getItem('tmail_vip_session') === 'true';
 
       let initialPrefix = '';
-      let initialDomain = domainsList[0];
+      let initialDomain = safeDefaultPool[0];
 
       if (parsedSlug && parsedSlug.length > 0) {
         if (parsedSlug.includes('@')) {
           const parts = parsedSlug.split('@');
           initialPrefix = parts[0] || generateRandomPrefix();
           const reqDomain = parts[1]?.toLowerCase();
-          initialDomain = domainsList.includes(reqDomain) ? reqDomain : domainsList[0];
+          initialDomain = domainsList.includes(reqDomain) ? reqDomain : safeDefaultPool[0];
         } else {
           initialPrefix = parsedSlug;
-          initialDomain = domainsList[0];
+          initialDomain = safeDefaultPool[0];
         }
       } else if (savedEmail && savedEmail.includes('@')) {
         const parts = savedEmail.split('@');
         const savedDom = parts[1]?.toLowerCase();
-        // Hanya gunakan savedEmail jika domainnya BENAR-BENAR MASIH ADA di domainsList
-        if (domainsList.includes(savedDom)) {
+        const savedIsVip = detailsList.find((d) => d.domain.toLowerCase() === savedDom)?.isVip;
+
+        // Jika domain lama adalah VIP tapi sesi ini belum unlock, beralih ke domain Free
+        if (domainsList.includes(savedDom) && (!savedIsVip || isSessionVip)) {
           initialPrefix = parts[0];
           initialDomain = savedDom;
         } else {
-          // Domain lama sudah dihapus oleh admin! Buat alamat baru dengan domain yang aktif
           initialPrefix = generateRandomPrefix();
-          initialDomain = domainsList[0];
+          initialDomain = safeDefaultPool[0];
         }
       } else {
         initialPrefix = generateRandomPrefix();
-        initialDomain = domainsList[Math.floor(Math.random() * domainsList.length)] || domainsList[0];
+        initialDomain = safeDefaultPool[Math.floor(Math.random() * safeDefaultPool.length)] || safeDefaultPool[0];
       }
 
       setCurrentPrefix(initialPrefix);
@@ -291,8 +312,16 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       return;
     }
     const newPrefix = generateRandomPrefix();
+    // Jika VIP belum terbuka, acak hanya dari domain Free agar domain VIP tidak terpakai otomatis
+    const freePool = domainDetails.filter((d) => !d.isVip).map((d) => d.domain);
+    const candidateDomains = isVipUnlocked
+      ? availableDomains
+      : freePool.length > 0
+      ? freePool
+      : availableDomains;
+
     const newDomain =
-      availableDomains[Math.floor(Math.random() * availableDomains.length)] || availableDomains[0];
+      candidateDomains[Math.floor(Math.random() * candidateDomains.length)] || candidateDomains[0];
     const newEmail = `${newPrefix}@${newDomain}`;
 
     setCurrentPrefix(newPrefix);
@@ -305,6 +334,14 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
 
   const handleChangeDomain = (newDomain: string) => {
     if (!availableDomains.includes(newDomain)) return;
+
+    const isVip = domainDetails.find((d) => d.domain.toLowerCase() === newDomain.toLowerCase())?.isVip;
+    if (isVip && !isVipUnlocked) {
+      setTargetVipDomain(newDomain);
+      setIsVipModalOpen(true);
+      return;
+    }
+
     setCurrentDomain(newDomain);
     const prefix = currentPrefix || generateRandomPrefix();
     setCurrentPrefix(prefix);
@@ -313,7 +350,6 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     localStorage.setItem('tmail_address', newEmail);
     setSelectedMessage(null);
 
-    const isVip = domainDetails.find((d) => d.domain.toLowerCase() === newDomain.toLowerCase())?.isVip;
     if (isVip) {
       showToast(`Domain VIP @${newDomain} Terpilih! Nikmati pengalaman eksklusif.`, 'success');
     } else {
@@ -327,6 +363,14 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       showToast('Pilih domain yang valid dari daftar aktif', 'error');
       return;
     }
+
+    const isVip = domainDetails.find((d) => d.domain.toLowerCase() === validDomain.toLowerCase())?.isVip;
+    if (isVip && !isVipUnlocked) {
+      setTargetVipDomain(validDomain);
+      setIsVipModalOpen(true);
+      return;
+    }
+
     setCurrentPrefix(prefix);
     setCurrentDomain(validDomain);
     const newEmail = `${prefix}@${validDomain}`;
@@ -334,7 +378,6 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     localStorage.setItem('tmail_address', newEmail);
     setSelectedMessage(null);
 
-    const isVip = domainDetails.find((d) => d.domain.toLowerCase() === validDomain.toLowerCase())?.isVip;
     if (isVip) {
       showToast(`Domain VIP @${validDomain} Terpilih! Email aktif: ${newEmail}`, 'success');
     } else {
@@ -422,6 +465,15 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
             onApplyCustom={handleApplyCustom}
             onCopy={handleCopyEmail}
             countdownSeconds={countdown}
+            isVipUnlocked={isVipUnlocked}
+            onOpenVipModal={() => {
+              setTargetVipDomain(null);
+              setIsVipModalOpen(true);
+            }}
+            onRequestVipUnlock={(dom) => {
+              setTargetVipDomain(dom);
+              setIsVipModalOpen(true);
+            }}
           />
 
           {/* Inbox Messages Accordion List */}
@@ -493,6 +545,29 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
           onClose={() => setIsAnnouncementOpen(false)}
         />
       )}
+
+      {/* VIP CDK Passcode Modal */}
+      <VipCdkModal
+        isOpen={isVipModalOpen}
+        targetDomain={targetVipDomain}
+        onClose={() => {
+          setIsVipModalOpen(false);
+          setTargetVipDomain(null);
+        }}
+        onSuccess={(unlockedDomain) => {
+          setIsVipUnlocked(true);
+          showToast('👑 Akses VIP Aktif! Semua domain bermahkota terbuka.', 'success');
+          if (unlockedDomain && availableDomains.includes(unlockedDomain)) {
+            setCurrentDomain(unlockedDomain);
+            const prefix = currentPrefix || generateRandomPrefix();
+            setCurrentPrefix(prefix);
+            const newEmail = `${prefix}@${unlockedDomain}`;
+            setCurrentEmail(newEmail);
+            localStorage.setItem('tmail_address', newEmail);
+            setSelectedMessage(null);
+          }
+        }}
+      />
     </div>
   );
 }

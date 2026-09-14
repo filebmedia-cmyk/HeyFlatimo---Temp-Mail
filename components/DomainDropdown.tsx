@@ -14,6 +14,8 @@ interface DomainDropdownProps {
   onSelect: (domain: string) => void;
   className?: string;
   showLabel?: boolean;
+  isVipUnlocked?: boolean;
+  onRequestVipUnlock?: (domain: string) => void;
 }
 
 export default function DomainDropdown({
@@ -22,6 +24,8 @@ export default function DomainDropdown({
   onSelect,
   className = '',
   showLabel = true,
+  isVipUnlocked = false,
+  onRequestVipUnlock,
 }: DomainDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -79,6 +83,14 @@ export default function DomainDropdown({
   }, [normalizedDomains, searchQuery]);
 
   const handleSelect = (domain: string) => {
+    const selectedItem = normalizedDomains.find((d) => d.domain.toLowerCase() === domain.toLowerCase());
+    if (selectedItem?.isVip && !isVipUnlocked) {
+      setIsOpen(false);
+      if (onRequestVipUnlock) {
+        onRequestVipUnlock(domain);
+      }
+      return;
+    }
     onSelect(domain);
     setIsOpen(false);
   };

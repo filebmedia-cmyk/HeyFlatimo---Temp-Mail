@@ -13,6 +13,7 @@ import {
   Sparkles,
   Layers,
   ChevronRight,
+  Crown,
 } from 'lucide-react';
 import CustomEmailModal from './CustomEmailModal';
 import DomainDropdown, { DomainOption } from './DomainDropdown';
@@ -29,6 +30,9 @@ interface EmailCardProps {
   onApplyCustom: (prefix: string, domain: string) => void;
   onCopy: (email: string) => void;
   countdownSeconds: number;
+  isVipUnlocked?: boolean;
+  onOpenVipModal?: () => void;
+  onRequestVipUnlock?: (domain: string) => void;
 }
 
 export default function EmailCard({
@@ -43,6 +47,9 @@ export default function EmailCard({
   onApplyCustom,
   onCopy,
   countdownSeconds,
+  isVipUnlocked = false,
+  onOpenVipModal,
+  onRequestVipUnlock,
 }: EmailCardProps) {
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,6 +63,28 @@ export default function EmailCard({
 
   return (
     <div className="brutal-card p-4 xs:p-5 sm:p-7 mb-5 sm:mb-7 relative bg-[var(--card-bg)]">
+      {/* Top-Right VIP Crown Button / Badge */}
+      <div className="absolute top-2.5 right-2.5 xs:top-3.5 xs:right-3.5 sm:top-4 sm:right-4 z-10">
+        {isVipUnlocked ? (
+          <div
+            className="brutal-badge bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] px-2 xs:px-2.5 py-1 text-[9px] xs:text-[10px] sm:text-xs font-mono-custom font-black flex items-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)]"
+            title="Akses VIP Aktif pada sesi ini"
+          >
+            <Crown className="w-3.5 h-3.5 xs:w-4 xs:h-4 fill-black text-black animate-pulse flex-shrink-0" />
+            <span className="tracking-wide">VIP ACTIVE</span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onOpenVipModal}
+            className="brutal-btn bg-amber-300 dark:bg-amber-400 hover:bg-amber-400 text-black px-2 xs:px-2.5 py-1 text-[9px] xs:text-[10px] sm:text-xs font-mono-custom font-black flex items-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] group cursor-pointer"
+            title="Klik untuk memasukkan CDK & mengaktifkan Domain VIP"
+          >
+            <Crown className="w-3.5 h-3.5 xs:w-4 xs:h-4 fill-black text-black group-hover:rotate-12 transition-transform flex-shrink-0" />
+            <span className="tracking-wide">VIP ACCESS</span>
+          </button>
+        )}
+      </div>
       {/* Title Header: Clean, Balanced, No Emoji */}
       <div className="text-center mb-5 sm:mb-6">
         <div className="inline-flex items-center gap-1.5 brutal-badge bg-[var(--color-yellow)] text-black px-2.5 xs:px-3 py-0.5 sm:py-1 text-[10px] xs:text-[11px] mb-2 sm:mb-2.5 font-mono-custom uppercase tracking-wide">
@@ -141,6 +170,8 @@ export default function EmailCard({
               domains={availableDomains}
               selectedDomain={currentDomain}
               onSelect={onChangeDomain}
+              isVipUnlocked={isVipUnlocked}
+              onRequestVipUnlock={onRequestVipUnlock}
               className="w-full sm:w-auto flex-1"
             />
           </div>
@@ -191,6 +222,8 @@ export default function EmailCard({
         availableDomains={availableDomains}
         currentPrefix={currentPrefix}
         currentDomain={currentDomain}
+        isVipUnlocked={isVipUnlocked}
+        onRequestVipUnlock={onRequestVipUnlock}
       />
     </div>
   );
