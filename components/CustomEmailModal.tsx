@@ -48,7 +48,7 @@ export default function CustomEmailModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 xs:p-4 bg-black/70 backdrop-blur-xs animate-fadeIn">
-      <div className="brutal-card w-full max-w-md p-4 xs:p-5 sm:p-6 bg-white dark:bg-zinc-900 relative shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[7px_7px_0px_var(--shadow-color)]">
+      <div className="brutal-card w-full max-w-md p-4 xs:p-5 sm:p-6 bg-white dark:bg-zinc-900 relative shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[7px_7px_0px_var(--shadow-color)] motion-modal-in">
         {/* Header Bar with Title & Close Button */}
         <div className="flex items-center justify-between gap-3 mb-3 pb-2.5 border-b-2 border-dashed border-[var(--border-color)]">
           <div className="flex items-center gap-2 min-w-0">

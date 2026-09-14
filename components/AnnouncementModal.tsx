@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { Megaphone, X, CheckCircle, Sparkles } from 'lucide-react';
@@ -35,7 +35,7 @@ export default function AnnouncementModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 xs:p-4 bg-black/75 backdrop-blur-xs animate-fadeIn">
-      <div className="brutal-card w-full max-w-lg p-5 xs:p-6 sm:p-7 bg-white dark:bg-zinc-900 relative shadow-[6px_6px_0px_var(--shadow-color)] sm:shadow-[8px_8px_0px_var(--shadow-color)] border-[3px] sm:border-[4px] border-[var(--border-color)]">
+      <div className="brutal-card w-full max-w-lg p-5 xs:p-6 sm:p-7 bg-white dark:bg-zinc-900 relative shadow-[6px_6px_0px_var(--shadow-color)] sm:shadow-[8px_8px_0px_var(--shadow-color)] border-[3px] sm:border-[4px] border-[var(--border-color)] motion-modal-in">
         {/* Top Header Bar */}
         <div className="flex items-start justify-between gap-3 mb-3.5 sm:mb-4 pb-3 border-b-[2.5px] border-dashed border-[var(--border-color)]">
           <div className="flex items-center gap-2.5 min-w-0">

@@ -59,7 +59,7 @@ export default function AccessGateModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 xs:p-4 bg-black/85 backdrop-blur-sm animate-fadeIn">
-      <div className="brutal-card w-full max-w-md p-5 xs:p-6 sm:p-7 bg-white dark:bg-zinc-900 relative shadow-[6px_6px_0px_var(--shadow-color)] sm:shadow-[8px_8px_0px_var(--shadow-color)] border-[3px] sm:border-[4px] border-[var(--border-color)]">
+      <div className="brutal-card w-full max-w-md p-5 xs:p-6 sm:p-7 bg-white dark:bg-zinc-900 relative shadow-[6px_6px_0px_var(--shadow-color)] sm:shadow-[8px_8px_0px_var(--shadow-color)] border-[3px] sm:border-[4px] border-[var(--border-color)] motion-modal-in">
         {/* Header Badge */}
         <div className="text-center mb-5 sm:mb-6">
           <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[var(--color-yellow)] text-black border-[3px] border-[var(--border-color)] flex items-center justify-center mx-auto mb-3 shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] motion-float">
