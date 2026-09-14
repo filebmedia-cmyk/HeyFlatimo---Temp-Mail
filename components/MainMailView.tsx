@@ -474,6 +474,8 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
               setTargetVipDomain(dom);
               setIsVipModalOpen(true);
             }}
+            isDark={isDark}
+            onToggleTheme={toggleTheme}
           />
 
           {/* Inbox Messages Accordion List */}
