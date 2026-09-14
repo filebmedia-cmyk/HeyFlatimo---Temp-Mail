@@ -1,0 +1,460 @@
+'use client';
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import Navbar from '@/components/Navbar';
+import EmailCard from '@/components/EmailCard';
+import MessageList from '@/components/MessageList';
+import SplitInbox from '@/components/SplitInbox';
+import Toast from '@/components/Toast';
+import AccessGateModal from '@/components/AccessGateModal';
+import AnnouncementModal from '@/components/AnnouncementModal';
+import { EmailMessage } from '@/components/MessageReader';
+import { generateRandomPrefix } from '@/lib/generator';
+
+const AUTO_SYNC_INTERVAL = 3; // 3 Detik Realtime
+
+interface MainMailViewProps {
+  initialSlug?: string;
+}
+
+export default function MainMailView({ initialSlug }: MainMailViewProps) {
+  const [appName, setAppName] = useState('HeyFlatimo');
+  const [isDark, setIsDark] = useState(false);
+  const [activeView, setActiveView] = useState<'home' | 'split'>('home');
+
+  // Access Gate State
+  const [isAccessLocked, setIsAccessLocked] = useState(false);
+  const [accessMessage, setAccessMessage] = useState('Silakan masukkan kode akses untuk menggunakan layanan email.');
+
+  // Announcement State
+  const [announcementData, setAnnouncementData] = useState<{
+    enabled: boolean;
+    id: string;
+    title: string;
+    content: string;
+    tag: string;
+    displayMode: 'always' | 'once_per_session' | 'once_per_device';
+  } | null>(null);
+  const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
+
+  const [availableDomains, setAvailableDomains] = useState<string[]>([]);
+  const [currentPrefix, setCurrentPrefix] = useState<string>('');
+  const [currentDomain, setCurrentDomain] = useState<string>('');
+  const [currentEmail, setCurrentEmail] = useState<string>('');
+
+
+  const [messages, setMessages] = useState<EmailMessage[]>([]);
+  const [selectedMessage, setSelectedMessage] = useState<EmailMessage | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [countdown, setCountdown] = useState<number>(AUTO_SYNC_INTERVAL);
+
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
+
+  const previousCountRef = useRef<number>(0);
+  const initializedRef = useRef<boolean>(false);
+
+  const showToast = (msg: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToastMessage(msg);
+    setToastType(type);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2500);
+  };
+
+  // 1. Inisialisasi Tema & App Name
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('tmail_theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+    setIsDark(shouldDark);
+    if (shouldDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
+    if (process.env.NEXT_PUBLIC_APP_NAME) {
+      setAppName(process.env.NEXT_PUBLIC_APP_NAME);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextDark = !isDark;
+    setIsDark(nextDark);
+    if (nextDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('tmail_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('tmail_theme', 'light');
+    }
+  };
+
+
+
+  // 2. Fetch Available Domains & Initialize Email (Handling / or /[slug])
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    async function initDomainsAndEmail() {
+      let domainsList: string[] = [];
+      try {
+        const res = await fetch('/api/domains');
+        const data = await res.json();
+        if (data.domains && data.domains.length > 0) {
+          domainsList = data.domains;
+          setAvailableDomains(domainsList);
+        }
+      } catch (err) {
+        console.error('Error fetching domains:', err);
+      }
+
+      // Fetch public system config (Access Gate & Announcement)
+      try {
+        const configRes = await fetch('/api/config');
+        const configData = await configRes.json();
+        if (configData.success) {
+          if (configData.accessMessage) {
+            setAccessMessage(configData.accessMessage);
+          }
+
+          if (configData.accessKeyRequired) {
+            // Selalu kunci dan minta kode akses setiap kali buka web / refresh halaman
+            setIsAccessLocked(true);
+          } else {
+            setIsAccessLocked(false);
+          }
+
+          if (configData.announcement && configData.announcement.enabled) {
+            const ann = configData.announcement;
+            setAnnouncementData(ann);
+            const annId = ann.id || 'default';
+            const mode = ann.displayMode || 'once_per_device';
+
+            let shouldShow = true;
+            if (mode === 'once_per_session') {
+              shouldShow = !sessionStorage.getItem(`tmail_seen_ann_${annId}`);
+            } else if (mode === 'once_per_device') {
+              shouldShow = !localStorage.getItem(`tmail_seen_ann_${annId}`);
+            }
+
+            if (shouldShow) {
+              setIsAnnouncementOpen(true);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching config:', err);
+      }
+
+      // Prioritas 1: initialSlug dari URL path jika membuka domain.com/emailtemp atau domain.com/slug
+      let parsedSlug = '';
+      if (initialSlug) {
+        parsedSlug = decodeURIComponent(initialSlug).trim();
+      }
+
+      const savedEmail = typeof window !== 'undefined' ? localStorage.getItem('tmail_address') : null;
+      const fallbackHost = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+        ? window.location.hostname
+        : '';
+
+      let initialPrefix = '';
+      let initialDomain = domainsList[0] || fallbackHost || '';
+
+      if (parsedSlug && parsedSlug.length > 0) {
+        if (parsedSlug.includes('@')) {
+          const parts = parsedSlug.split('@');
+          initialPrefix = parts[0] || generateRandomPrefix();
+          initialDomain = parts[1] || domainsList[0] || fallbackHost;
+        } else {
+          initialPrefix = parsedSlug;
+          initialDomain = domainsList[0] || fallbackHost;
+        }
+      } else if (savedEmail && savedEmail.includes('@')) {
+        const parts = savedEmail.split('@');
+        initialPrefix = parts[0];
+        initialDomain = parts[1];
+      } else {
+        initialPrefix = generateRandomPrefix();
+        initialDomain = domainsList.length > 0
+          ? domainsList[Math.floor(Math.random() * domainsList.length)]
+          : fallbackHost;
+      }
+
+      // Validasi agar domain ada dalam daftar atau didukung
+      if (initialDomain && !domainsList.includes(initialDomain) && domainsList.length > 0) {
+        setAvailableDomains((prev) => (prev.includes(initialDomain) ? prev : [initialDomain, ...prev]));
+      }
+
+      setCurrentPrefix(initialPrefix);
+      setCurrentDomain(initialDomain);
+      const fullEmail = `${initialPrefix}@${initialDomain}`;
+      setCurrentEmail(fullEmail);
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('tmail_address', fullEmail);
+      }
+    }
+
+    initDomainsAndEmail();
+  }, [initialSlug]);
+
+  // 3. Fetch Inbox Messages
+  const fetchMessages = useCallback(
+    async (emailToFetch: string, isSilent = false) => {
+      if (!emailToFetch) return;
+
+      if (!isSilent) setIsRefreshing(true);
+
+      try {
+        const res = await fetch(`/api/messages?email=${encodeURIComponent(emailToFetch)}`);
+        const result = await res.json();
+
+        if (result.success && Array.isArray(result.data)) {
+          const fetchedMessages: EmailMessage[] = result.data;
+          setMessages(fetchedMessages);
+
+          // Jika ada pesan baru masuk, bunyikan alert visual
+          if (fetchedMessages.length > previousCountRef.current && previousCountRef.current > 0) {
+            showToast(`Ada ${fetchedMessages.length - previousCountRef.current} pesan baru diterima!`, 'info');
+          }
+          previousCountRef.current = fetchedMessages.length;
+
+          // Perbarui selected message jika masih dipilih
+          if (selectedMessage) {
+            const updatedSelected = fetchedMessages.find((m) => m.id === selectedMessage.id);
+            if (updatedSelected) {
+              setSelectedMessage(updatedSelected);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching messages:', err);
+      } finally {
+        if (!isSilent) {
+          setTimeout(() => setIsRefreshing(false), 500);
+        }
+      }
+    },
+    [selectedMessage]
+  );
+
+  // Fetch when email changes
+  useEffect(() => {
+    if (currentEmail) {
+      previousCountRef.current = 0;
+      fetchMessages(currentEmail);
+      setCountdown(AUTO_SYNC_INTERVAL);
+    }
+  }, [currentEmail, fetchMessages]);
+
+  // 4. Timer Interval Auto-Sync (Realtime 3 Detik)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          if (currentEmail) {
+            fetchMessages(currentEmail, true);
+          }
+          return AUTO_SYNC_INTERVAL;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [currentEmail, fetchMessages]);
+
+
+
+  // 5. Handler Actions
+  const handleRandomizeEmail = () => {
+    const newPrefix = generateRandomPrefix();
+    const newDomain =
+      availableDomains[Math.floor(Math.random() * availableDomains.length)] || currentDomain;
+    const newEmail = `${newPrefix}@${newDomain}`;
+
+    setCurrentPrefix(newPrefix);
+    setCurrentDomain(newDomain);
+    setCurrentEmail(newEmail);
+    localStorage.setItem('tmail_address', newEmail);
+    setSelectedMessage(null);
+    showToast('Alamat email acak baru dibuat!');
+  };
+
+  const handleChangeDomain = (newDomain: string) => {
+    setCurrentDomain(newDomain);
+    const newEmail = `${currentPrefix}@${newDomain}`;
+    setCurrentEmail(newEmail);
+    localStorage.setItem('tmail_address', newEmail);
+    setSelectedMessage(null);
+    showToast(`Domain diubah ke @${newDomain}`);
+  };
+
+  const handleApplyCustom = (prefix: string, domain: string) => {
+    setCurrentPrefix(prefix);
+    setCurrentDomain(domain);
+    const newEmail = `${prefix}@${domain}`;
+    setCurrentEmail(newEmail);
+    localStorage.setItem('tmail_address', newEmail);
+    setSelectedMessage(null);
+    showToast(`Email diatur ke: ${newEmail}`);
+  };
+
+  const handleCopyEmail = (text: string) => {
+    navigator.clipboard.writeText(text);
+    showToast('Alamat email berhasil disalin!');
+  };
+
+  const handleCopyText = (text: string) => {
+    navigator.clipboard.writeText(text);
+    showToast('Teks berhasil disalin!');
+  };
+
+  const handleManualRefresh = () => {
+    setCountdown(AUTO_SYNC_INTERVAL);
+    fetchMessages(currentEmail);
+  };
+
+  const handleDeleteMessage = async (id: string) => {
+    try {
+      const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setMessages((prev) => prev.filter((m) => m.id !== id));
+        if (selectedMessage?.id === id) {
+          setSelectedMessage(null);
+        }
+        showToast('Pesan berhasil dihapus');
+      }
+    } catch (err) {
+      showToast('Gagal menghapus pesan', 'error');
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (!confirm('Apakah Anda yakin ingin menghapus semua pesan di inbox ini?')) return;
+
+    try {
+      const res = await fetch(`/api/messages?email=${encodeURIComponent(currentEmail)}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setMessages([]);
+        setSelectedMessage(null);
+        showToast('Semua pesan berhasil dibersihkan');
+      }
+    } catch (err) {
+      showToast('Gagal membersihkan pesan', 'error');
+    }
+  };
+
+  const unreadCount = messages.filter((m) => !m.isRead).length;
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Toast Notification */}
+      <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />
+
+      {/* Top Navbar */}
+      <Navbar
+        appName={appName}
+        isDark={isDark}
+        onToggleTheme={toggleTheme}
+        activeView={activeView}
+        onToggleView={setActiveView}
+        unreadCount={unreadCount}
+      />
+
+      {/* Main Content Area */}
+      {activeView === 'home' ? (
+        <main className="max-w-4xl mx-auto px-3 xs:px-4 sm:px-6 py-4 xs:py-5 sm:py-8 md:py-10 w-full flex-1">
+          {/* Email Generator / Address Card */}
+          <EmailCard
+            currentEmail={currentEmail}
+            currentPrefix={currentPrefix}
+            currentDomain={currentDomain}
+            availableDomains={availableDomains}
+            isRefreshing={isRefreshing}
+            onRefresh={handleManualRefresh}
+            onRandomize={handleRandomizeEmail}
+            onChangeDomain={handleChangeDomain}
+            onApplyCustom={handleApplyCustom}
+            onCopy={handleCopyEmail}
+            countdownSeconds={countdown}
+          />
+
+          {/* Inbox Messages Accordion List */}
+          <MessageList
+            messages={messages}
+            currentEmail={currentEmail}
+            onOpenSplitView={() => {
+              if (messages.length > 0 && !selectedMessage) {
+                setSelectedMessage(messages[0]);
+              }
+              setActiveView('split');
+            }}
+            onSelectMessageForSplit={(msg) => {
+              setSelectedMessage(msg);
+              setActiveView('split');
+            }}
+            onDeleteMessage={handleDeleteMessage}
+            onClearAll={handleClearAll}
+          />
+
+          {/* Footer Branding */}
+          <footer className="text-center py-5 sm:py-8 mt-2 sm:mt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 border-t-[2px] border-dashed border-[var(--border-color)] pt-3.5 sm:pt-4">
+              <p className="text-[10px] xs:text-[11px] font-mono-custom font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                &copy; 2026 {appName} &bull; Personal Mail System
+              </p>
+              <span className="hidden sm:inline text-[var(--text-muted)]">&bull;</span>
+              <a
+                href="/admin"
+                className="text-[10px] xs:text-[11px] font-mono-custom font-black text-[var(--color-orange)] hover:underline flex items-center gap-1 uppercase"
+              >
+                <span>⚙️ Menu Admin & API</span>
+              </a>
+            </div>
+          </footer>
+        </main>
+      ) : (
+        /* Full Split-Screen Inbox View */
+        <SplitInbox
+          currentEmail={currentEmail}
+          messages={messages}
+          selectedMessage={selectedMessage}
+          onSelectMessage={(msg) => setSelectedMessage(msg)}
+          onBackToHome={() => setActiveView('home')}
+          onRefresh={handleManualRefresh}
+          isRefreshing={isRefreshing}
+          onDeleteMessage={handleDeleteMessage}
+          onClearAll={handleClearAll}
+          onCopyText={handleCopyText}
+        />
+      )}
+
+      {/* Access Gate Modal Overlay */}
+      <AccessGateModal
+        isOpen={isAccessLocked}
+        message={accessMessage}
+        onUnlockSuccess={() => setIsAccessLocked(false)}
+      />
+
+      {/* Broadcast Announcement Modal */}
+      {announcementData && (
+        <AnnouncementModal
+          isOpen={isAnnouncementOpen && !isAccessLocked}
+          id={announcementData.id}
+          tag={announcementData.tag}
+          title={announcementData.title}
+          content={announcementData.content}
+          displayMode={announcementData.displayMode}
+          onClose={() => setIsAnnouncementOpen(false)}
+        />
+      )}
+    </div>
+  );
+}

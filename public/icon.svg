@@ -1,0 +1,10 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Hard Shadow -->
+  <rect x="8" y="8" width="48" height="48" rx="6" fill="#000000" />
+  <!-- Main Badge -->
+  <rect x="4" y="4" width="48" height="48" rx="6" fill="#0055ff" stroke="#000000" stroke-width="4" stroke-linejoin="round" />
+  <!-- Lightning Bolt / Zap Icon -->
+  <path d="M30 12 L16 34 L28 34 L22 52 L42 28 L30 28 L36 12 Z" fill="#ffe600" stroke="#000000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+  <!-- Accent Sparkle -->
+  <circle cx="39" cy="18" r="2.5" fill="#ffffff" stroke="#000000" stroke-width="1.5" />
+</svg>

@@ -1,0 +1,406 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Work+Sans:wght@700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* LIGHT MODE (Ultra-High Saturation Vibrant Neo-Brutalist Palette) */
+  --bg-color: #f6faff;        /* Ultra bright, fresh, high-contrast canvas */
+  --text-main: #000000;       /* Pitch Black for maximal contrast */
+  --text-muted: #334155;
+  --card-bg: #ffffff;
+  --input-bg: #f8fbff;
+  --border-color: #000000;    /* Solid pitch black borders */
+  --shadow-color: #000000;    /* Solid pitch black hard 3D shadows */
+
+  /* 100% ULTRA-SATURATED PURE VIBRANT POP COLORS */
+  --color-blue: #0055ff;      /* Ultra Pure Electric Blue */
+  --color-yellow: #ffe600;    /* Ultra Pure Cyber Yellow */
+  --color-green: #00c853;     /* Ultra Pure Vivid Lime/Emerald */
+  --color-orange: #ff5500;    /* Ultra Pure Blazing Tangerine */
+  --color-red: #ff003c;       /* Ultra Pure Intense Crimson */
+  --color-purple: #7000ff;    /* Ultra Pure Royal Violet */
+  --color-pink: #ff007f;      /* Ultra Pure Hot Pink */
+  --color-cyan: #00f0ff;      /* Ultra Pure Electric Cyan */
+
+  --brand-primary: var(--color-blue);
+  --brand-secondary: var(--color-green);
+  --brand-accent: var(--color-yellow);
+  --brand-danger: var(--color-red);
+
+  --grid-color: rgba(0, 0, 0, 0.08);
+  --badge-bg: #e6ffed;
+  --badge-text: #00701a;
+}
+
+.dark {
+  /* DARK MODE (High Contrast Crisp White Borders & Pure White 3D Shadows) */
+  --bg-color: #08080c;
+  --text-main: #ffffff;
+  --text-muted: #cbd5e1;
+  --card-bg: #111116;
+  --input-bg: #181820;
+  --border-color: #ffffff;    /* High contrast crisp white border */
+  --shadow-color: #ffffff;    /* Crisp pure white 3D drop shadow */
+
+
+  /* ULTRA-SATURATED NEON GLOW ACCENTS */
+  --color-blue: #00d2ff;
+  --color-yellow: #ffea00;
+  --color-green: #00e676;
+  --color-orange: #ff6d00;
+  --color-red: #ff1744;
+  --color-purple: #a855f7;
+  --color-pink: #ff2d87;
+  --color-cyan: #00f5ff;
+
+  --brand-primary: var(--color-blue);
+  --brand-secondary: var(--color-green);
+  --brand-accent: var(--color-yellow);
+  --brand-danger: var(--color-red);
+
+  --grid-color: rgba(255, 255, 255, 0.07);
+  --badge-bg: #003b14;
+  --badge-text: #00e676;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Work Sans', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  background-image: 
+    linear-gradient(to right, var(--grid-color) 2px, transparent 2px),
+    linear-gradient(to bottom, var(--grid-color) 2px, transparent 2px);
+  background-size: 28px 28px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+.font-mono-custom {
+  font-family: 'Space Mono', monospace;
+}
+
+.font-heading {
+  font-family: 'Work Sans', 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ============================================================
+   NEO-BRUTALISM HIGH-CONTRAST SATURATED COMPONENTS
+   ============================================================ */
+
+/* NEO-BRUTALISM CARD */
+.brutal-card {
+  background-color: var(--card-bg);
+  border: 3px solid var(--border-color);
+  box-shadow: 4px 4px 0px var(--shadow-color);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (min-width: 640px) {
+  .brutal-card {
+    border-width: 3.5px;
+    box-shadow: 6px 6px 0px var(--shadow-color);
+  }
+  .brutal-card:hover {
+    box-shadow: 8px 8px 0px var(--shadow-color);
+  }
+}
+
+/* NEO-BRUTALISM BUTTON */
+.brutal-btn {
+  border: 2.5px solid var(--border-color);
+  box-shadow: 3.5px 3.5px 0px var(--shadow-color);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+@media (min-width: 640px) {
+  .brutal-btn {
+    border-width: 3px;
+    box-shadow: 4px 4px 0px var(--shadow-color);
+  }
+}
+
+@media (hover: hover) {
+  .brutal-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px var(--shadow-color);
+  }
+}
+
+.brutal-btn:active {
+  transform: translate(2.5px, 2.5px);
+  box-shadow: 0px 0px 0px var(--shadow-color);
+}
+
+.brutal-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
+/* NEO-BRUTALISM ICON BUTTON */
+.brutal-btn-icon {
+  background-color: var(--card-bg);
+  color: var(--text-main);
+  border: 2.5px solid var(--border-color);
+  box-shadow: 3px 3px 0px var(--shadow-color);
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+@media (min-width: 640px) {
+  .brutal-btn-icon {
+    border-width: 3px;
+    box-shadow: 4px 4px 0px var(--shadow-color);
+  }
+}
+
+@media (hover: hover) {
+  .brutal-btn-icon:hover {
+    transform: translate(-1.5px, -1.5px);
+    box-shadow: 5px 5px 0px var(--shadow-color);
+  }
+}
+
+.brutal-btn-icon:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px var(--shadow-color);
+}
+
+/* NEO-BRUTALISM INPUT */
+.brutal-input {
+  background-color: var(--input-bg);
+  border: 2.5px solid var(--border-color);
+  color: var(--text-main);
+  box-shadow: 3px 3px 0px var(--shadow-color);
+  transition: all 0.15s ease;
+}
+
+@media (min-width: 640px) {
+  .brutal-input {
+    border-width: 3px;
+    box-shadow: 4px 4px 0px var(--shadow-color);
+  }
+}
+
+.brutal-input:focus {
+  outline: none;
+  background-color: var(--input-bg);
+  box-shadow: 5px 5px 0px var(--shadow-color);
+  border-color: var(--border-color);
+}
+
+/* NEO-BRUTALISM BADGE */
+.brutal-badge {
+  border: 2px solid var(--border-color);
+  font-weight: 900;
+  box-shadow: 2px 2px 0px var(--shadow-color);
+  transition: transform 0.15s ease;
+}
+
+@media (min-width: 640px) {
+  .brutal-badge {
+    border-width: 2.5px;
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+  .brutal-badge:hover {
+    transform: scale(1.02);
+  }
+}
+
+/* ============================================================
+   MICRO-ANIMATIONS & KEYFRAMES FOR ICONS & MOTION
+   ============================================================ */
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+@keyframes radarRipple {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes signalBar {
+  0%, 100% { height: 4px; opacity: 0.4; }
+  50% { height: 14px; opacity: 1; }
+}
+
+@keyframes radarSweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes liveGlow {
+  0%, 100% {
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+  50% {
+    box-shadow: 2px 2px 0px var(--shadow-color), 0 0 12px rgba(0, 200, 83, 0.4);
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideDownToast {
+  from { transform: translate(-50%, -35px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+@keyframes spinFast {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+
+/* Utility animation classes */
+.motion-dropdown-enter {
+  animation: dropdownSlideIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top;
+}
+.motion-float {
+  animation: floatSlow 3s ease-in-out infinite;
+}
+
+.motion-pulse-dot {
+  animation: pulseSubtle 1.2s ease-in-out infinite;
+}
+
+.motion-radar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-color: var(--color-green);
+  animation: radarRipple 1.8s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+  pointer-events: none;
+}
+
+.motion-radar-ring-delayed {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-color: var(--color-green);
+  animation: radarRipple 1.8s cubic-bezier(0, 0.2, 0.8, 1) infinite 0.9s;
+  pointer-events: none;
+}
+
+.motion-radar-sweep {
+  animation: radarSweep 4s linear infinite;
+}
+
+.motion-live-badge {
+  animation: liveGlow 2.5s ease-in-out infinite;
+}
+
+.motion-scale-in {
+  animation: scaleIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.motion-toast-in {
+  animation: slideDownToast 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-spin-fast {
+  animation: spinFast 0.5s linear infinite;
+}
+
+.signal-bar-1 {
+  animation: signalBar 1.2s ease-in-out infinite 0.1s;
+}
+.signal-bar-2 {
+  animation: signalBar 1.2s ease-in-out infinite 0.3s;
+}
+.signal-bar-3 {
+  animation: signalBar 1.2s ease-in-out infinite 0.5s;
+}
+
+/* Hover Icon Motion Effects */
+.group:hover .icon-wiggle {
+  animation: wiggle 0.4s ease-in-out;
+}
+
+.group:hover .icon-spin {
+  transform: rotate(180deg);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.group:hover .icon-bounce {
+  transform: translateY(-3px);
+  transition: transform 0.15s ease;
+}
+
+.group:hover .icon-scale {
+  transform: scale(1.2);
+  transition: transform 0.15s ease;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+  border-left: 3px solid var(--border-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+}
