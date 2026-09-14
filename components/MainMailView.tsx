@@ -315,7 +315,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
 
     const isVip = domainDetails.find((d) => d.domain.toLowerCase() === newDomain.toLowerCase())?.isVip;
     if (isVip) {
-      showToast(`👑 Domain VIP @${newDomain} Terpilih! Nikmati pengalaman eksklusif.`, 'success');
+      showToast(`Domain VIP @${newDomain} Terpilih! Nikmati pengalaman eksklusif.`, 'success');
     } else {
       showToast(`Domain diubah ke @${newDomain}`);
     }
@@ -336,7 +336,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
 
     const isVip = domainDetails.find((d) => d.domain.toLowerCase() === validDomain.toLowerCase())?.isVip;
     if (isVip) {
-      showToast(`👑 Domain VIP @${validDomain} Terpilih! Email kustom aktif: ${newEmail}`, 'success');
+      showToast(`Domain VIP @${validDomain} Terpilih! Email aktif: ${newEmail}`, 'success');
     } else {
       showToast(`Email diatur ke: ${newEmail}`);
     }

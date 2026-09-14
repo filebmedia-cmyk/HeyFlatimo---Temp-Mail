@@ -433,7 +433,7 @@ export default function AdminPage() {
         fetchDomains();
         setNewDomainInput('');
         setIsNewDomainVip(false);
-        const successText = `Domain @${cleanDomain} berhasil ditambahkan ${isVip ? 'sebagai VIP 👑' : ''}!`;
+        const successText = `Domain @${cleanDomain} berhasil ditambahkan ${isVip ? 'sebagai VIP' : ''}!`;
         showToast(successText, 'success');
         setDomainNotice({
           type: 'success',
@@ -475,7 +475,7 @@ export default function AdminPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         fetchDomains();
-        const msg = `Status domain @${domain} diubah ke ${targetVip ? 'VIP 👑' : 'Free'}`;
+        const msg = `Status domain @${domain} diubah ke ${targetVip ? 'VIP' : 'Free'}`;
         showToast(msg, 'success');
         setDomainNotice({
           type: 'success',
@@ -932,8 +932,8 @@ if (!empty($otpData['found'])) {
                       onChange={(e) => setIsNewDomainVip(e.target.checked)}
                       className="w-4 h-4 accent-amber-500 rounded-none border-2 border-[var(--border-color)]"
                     />
-                    <span className="flex items-center gap-1">
-                      Jadikan Domain <strong className="text-amber-600 dark:text-amber-400">VIP / Premium 👑</strong> (Tanda Mahkota)
+                    <span className="flex items-center gap-1.5">
+                      Jadikan Domain <strong className="text-amber-600 dark:text-amber-400 flex items-center gap-1"><Crown className="w-3.5 h-3.5 fill-amber-400 inline" /> VIP / Premium</strong>
                     </span>
                   </label>
                 </div>
@@ -945,7 +945,7 @@ if (!empty($otpData['found'])) {
                   Belum ada domain kustom yang ditambahkan. Menggunakan domain bawaan sistem.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
                   {domains.map((domItem) => {
                     const dom = typeof domItem === 'string' ? domItem : domItem.domain;
                     const isVip = typeof domItem === 'object' ? Boolean(domItem.isVip) : false;
@@ -956,36 +956,37 @@ if (!empty($otpData['found'])) {
                           isVip ? 'border-amber-400 bg-amber-50/40 dark:bg-amber-950/20' : ''
                         }`}
                       >
-                        <div className="min-w-0 flex items-center gap-1.5 xs:gap-2">
+                        <div className="min-w-0 flex items-center gap-1.5 xs:gap-2 flex-1">
                           {isVip ? (
-                            <span className="text-amber-500 font-bold text-sm flex-shrink-0" title="Domain VIP">
-                              👑
-                            </span>
+                            <div className="w-5 h-5 bg-[var(--color-yellow)] border border-black flex items-center justify-center flex-shrink-0" title="Domain VIP">
+                              <Crown className="w-3 h-3 text-black fill-black" />
+                            </div>
                           ) : (
                             <span className="w-2 h-2 rounded-full bg-[var(--color-green)] motion-pulse-dot flex-shrink-0" />
                           )}
-                          <span className="font-mono-custom font-bold text-xs truncate">
+                          <span className="font-mono-custom font-bold text-xs sm:text-sm break-all">
                             @{dom}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
                           {/* 1-Click VIP Toggle Button with Confirmation Modal */}
                           {isVip ? (
                             <button
                               onClick={() => setDomainToToggleVip({ domain: dom, isVip: false })}
-                              className="brutal-btn bg-[var(--color-yellow)] text-black px-2 py-1 text-[10px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-yellow-400 cursor-pointer"
+                              className="brutal-btn bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 text-[10px] xs:text-[11px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-yellow-400 cursor-pointer flex-shrink-0"
                               title="Klik untuk ubah status ke Free"
                             >
-                              👑 VIP
+                              <Crown className="w-3 h-3 fill-black flex-shrink-0" />
+                              <span>VIP</span>
                             </button>
                           ) : (
                             <button
                               onClick={() => setDomainToToggleVip({ domain: dom, isVip: true })}
-                              className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-amber-100 dark:hover:bg-zinc-700 cursor-pointer"
-                              title="Klik untuk jadikan VIP 👑"
+                              className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 xs:px-2.5 py-1 text-[10px] xs:text-[11px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-amber-100 dark:hover:bg-zinc-700 cursor-pointer flex-shrink-0"
+                              title="Klik untuk jadikan VIP"
                             >
-                              FREE
+                              <span>FREE</span>
                             </button>
                           )}
 
@@ -1010,15 +1011,15 @@ if (!empty($otpData['found'])) {
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 xs:p-4">
                 <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-toast-in">
                   <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-amber-500">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 text-lg">
-                      👑
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                      <Crown className="w-5 h-5 fill-black text-black" />
                     </div>
                     <div>
                       <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
                         {domainToToggleVip.isVip ? 'JADIKAN DOMAIN VIP?' : 'HAPUS STATUS VIP?'}
                       </h4>
                       <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
-                        Konfirmasi perubahan status mahkota domain
+                        Konfirmasi perubahan status domain
                       </p>
                     </div>
                   </div>
@@ -1029,7 +1030,7 @@ if (!empty($otpData['found'])) {
                       @{domainToToggleVip.domain}
                     </span>{' '}
                     menjadi{' '}
-                    <strong>{domainToToggleVip.isVip ? '👑 VIP (Mahkota Emas)' : 'FREE (Biasa)'}</strong>?
+                    <strong>{domainToToggleVip.isVip ? 'VIP (Mahkota Emas)' : 'FREE (Biasa)'}</strong>?
                   </p>
 
                   <div className="flex items-center justify-end gap-2">

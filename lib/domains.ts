@@ -79,13 +79,13 @@ export async function addDomainToDb(
   const updatedDomains = await getAllDomainDetails();
   return {
     success: true,
-    message: `Domain @${clean} berhasil ditambahkan ${isVip ? 'sebagai VIP 👑' : ''}`,
+    message: `Domain @${clean} berhasil ditambahkan ${isVip ? 'sebagai VIP' : ''}`,
     domains: updatedDomains,
   };
 }
 
 /**
- * Toggle VIP status (Mahkota 👑) for a domain
+ * Toggle VIP status for a domain
  */
 export async function toggleDomainVip(
   rawDomain: string,
@@ -110,7 +110,7 @@ export async function toggleDomainVip(
   const updatedDomains = await getAllDomainDetails();
   return {
     success: true,
-    message: `Status domain @${clean} diubah menjadi ${newStatus ? 'VIP 👑' : 'Free'}`,
+    message: `Status domain @${clean} diubah menjadi ${newStatus ? 'VIP' : 'Free'}`,
     isVip: newStatus,
     domains: updatedDomains,
   };
