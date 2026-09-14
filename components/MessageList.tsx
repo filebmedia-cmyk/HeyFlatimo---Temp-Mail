@@ -50,7 +50,7 @@ export default function MessageList({
             <Inbox className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
           <span className="text-[var(--text-muted)] font-black flex-shrink-0">INBOX:</span>
-          <span className="text-[var(--color-blue)] font-black truncate max-w-[180px] xs:max-w-[240px] sm:max-w-none">
+          <span className="text-[var(--color-blue)] font-black break-all">
             {currentEmail || '...'}
           </span>
           {/* Animated radar dot */}

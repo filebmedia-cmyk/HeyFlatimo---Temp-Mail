@@ -102,7 +102,7 @@ export default function CustomEmailModal({
             />
           </div>
 
-          <div className="p-2.5 sm:p-3 bg-[var(--color-yellow)] text-black border-2 sm:border-3 border-[var(--border-color)] text-[11px] xs:text-xs font-mono-custom font-black truncate shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)]">
+          <div className="p-2.5 sm:p-3 bg-[var(--color-yellow)] text-black border-2 sm:border-3 border-[var(--border-color)] text-[11px] xs:text-xs font-mono-custom font-black break-all shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)]">
             Hasil: <span className="text-[var(--color-blue)] underline">{prefix || '...'}@{selectedDomain}</span>
           </div>
 

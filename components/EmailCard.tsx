@@ -132,7 +132,7 @@ export default function EmailCard({
         </button>
 
         {/* Animated Custom Domain Dropdown */}
-        {availableDomains.length > 1 && (
+        {availableDomains.length >= 1 && (
           <div className="col-span-2 sm:col-span-1 flex items-center gap-1.5 w-full sm:w-auto">
             <span className="text-[10px] sm:text-[11px] font-mono-custom font-bold text-[var(--text-muted)] uppercase hidden md:inline">
               Domain:
