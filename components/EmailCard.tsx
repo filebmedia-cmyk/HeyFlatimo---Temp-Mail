@@ -63,33 +63,32 @@ export default function EmailCard({
 
   return (
     <div className="brutal-card p-4 xs:p-5 sm:p-7 mb-5 sm:mb-7 relative bg-[var(--card-bg)]">
-      {/* Top-Right VIP Crown Button / Badge */}
-      <div className="absolute top-2.5 right-2.5 xs:top-3.5 xs:right-3.5 sm:top-4 sm:right-4 z-10">
+      {/* Top-Right VIP Crown Icon Button (Compact Icon-Only, No Text Overlap) */}
+      <div className="absolute top-2.5 right-2.5 xs:top-3 xs:right-3 sm:top-4 sm:right-4 z-10">
         {isVipUnlocked ? (
           <div
-            className="brutal-badge bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] px-2 xs:px-2.5 py-1 text-[9px] xs:text-[10px] sm:text-xs font-mono-custom font-black flex items-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)]"
-            title="Akses VIP Aktif pada sesi ini"
+            className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] text-black border-2 sm:border-[2.5px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)]"
+            title="Domain VIP Aktif (Mode Eksklusif)"
           >
-            <Crown className="w-3.5 h-3.5 xs:w-4 xs:h-4 fill-black text-black animate-pulse flex-shrink-0" />
-            <span className="tracking-wide">VIP ACTIVE</span>
+            <Crown className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-4.5 sm:h-4.5 fill-black text-black animate-pulse" />
           </div>
         ) : (
           <button
             type="button"
             onClick={onOpenVipModal}
-            className="brutal-btn bg-amber-300 dark:bg-amber-400 hover:bg-amber-400 text-black px-2 xs:px-2.5 py-1 text-[9px] xs:text-[10px] sm:text-xs font-mono-custom font-black flex items-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] group cursor-pointer"
+            className="brutal-btn w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 bg-white dark:bg-zinc-800 hover:bg-[var(--color-yellow)] dark:hover:bg-[var(--color-yellow)] text-amber-500 hover:text-black dark:hover:text-black border-2 sm:border-[2.5px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] group cursor-pointer transition-colors p-0"
             title="Klik untuk memasukkan CDK & mengaktifkan Domain VIP"
           >
-            <Crown className="w-3.5 h-3.5 xs:w-4 xs:h-4 fill-black text-black group-hover:rotate-12 transition-transform flex-shrink-0" />
-            <span className="tracking-wide">VIP ACCESS</span>
+            <Crown className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-4.5 sm:h-4.5 fill-amber-400 group-hover:fill-black group-hover:rotate-12 transition-all duration-200" />
           </button>
         )}
       </div>
-      {/* Title Header: Clean, Balanced, No Emoji */}
-      <div className="text-center mb-5 sm:mb-6">
-        <div className="inline-flex items-center gap-1.5 brutal-badge bg-[var(--color-yellow)] text-black px-2.5 xs:px-3 py-0.5 sm:py-1 text-[10px] xs:text-[11px] mb-2 sm:mb-2.5 font-mono-custom uppercase tracking-wide">
-          <Sparkles className="w-3.5 h-3.5 text-[var(--color-orange)] icon-wiggle" />
-          <span>DISPOSABLE INBOX SYSTEM</span>
+
+      {/* Title Header: Clean, Balanced, Protected from Overlap */}
+      <div className="text-center mb-5 sm:mb-6 px-8 xs:px-10 sm:px-12">
+        <div className="inline-flex items-center gap-1.5 brutal-badge bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 sm:px-3 py-0.5 sm:py-1 text-[9px] xs:text-[10px] sm:text-[11px] mb-2 sm:mb-2.5 font-mono-custom uppercase tracking-wide max-w-full truncate">
+          <Sparkles className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-[var(--color-orange)] icon-wiggle flex-shrink-0" />
+          <span className="truncate">DISPOSABLE INBOX SYSTEM</span>
         </div>
         <h1 className="font-heading text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black uppercase tracking-tight text-[var(--text-main)] mb-1.5 sm:mb-2">
           TEMPORARY <span className="text-[var(--color-blue)]">INBOX</span>
