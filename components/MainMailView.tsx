@@ -103,7 +103,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       try {
         const res = await fetch('/api/domains');
         const data = await res.json();
-        if (data.domains && data.domains.length > 0) {
+        if (data.domains && Array.isArray(data.domains)) {
           domainsList = data.domains;
           setAvailableDomains(domainsList);
         }
@@ -149,6 +149,18 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
         console.error('Error fetching config:', err);
       }
 
+      // Jika belum ada domain sama sekali yang didaftarkan di admin
+      if (domainsList.length === 0) {
+        setAvailableDomains([]);
+        setCurrentPrefix('');
+        setCurrentDomain('');
+        setCurrentEmail('');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('tmail_address');
+        }
+        return;
+      }
+
       // Prioritas 1: initialSlug dari URL path jika membuka domain.com/emailtemp atau domain.com/slug
       let parsedSlug = '';
       if (initialSlug) {
@@ -156,36 +168,35 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       }
 
       const savedEmail = typeof window !== 'undefined' ? localStorage.getItem('tmail_address') : null;
-      const fallbackHost = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-        ? window.location.hostname
-        : '';
 
       let initialPrefix = '';
-      let initialDomain = domainsList[0] || fallbackHost || '';
+      let initialDomain = domainsList[0];
 
       if (parsedSlug && parsedSlug.length > 0) {
         if (parsedSlug.includes('@')) {
           const parts = parsedSlug.split('@');
           initialPrefix = parts[0] || generateRandomPrefix();
-          initialDomain = parts[1] || domainsList[0] || fallbackHost;
+          const reqDomain = parts[1]?.toLowerCase();
+          initialDomain = domainsList.includes(reqDomain) ? reqDomain : domainsList[0];
         } else {
           initialPrefix = parsedSlug;
-          initialDomain = domainsList[0] || fallbackHost;
+          initialDomain = domainsList[0];
         }
       } else if (savedEmail && savedEmail.includes('@')) {
         const parts = savedEmail.split('@');
-        initialPrefix = parts[0];
-        initialDomain = parts[1];
+        const savedDom = parts[1]?.toLowerCase();
+        // Hanya gunakan savedEmail jika domainnya BENAR-BENAR MASIH ADA di domainsList
+        if (domainsList.includes(savedDom)) {
+          initialPrefix = parts[0];
+          initialDomain = savedDom;
+        } else {
+          // Domain lama sudah dihapus oleh admin! Buat alamat baru dengan domain yang aktif
+          initialPrefix = generateRandomPrefix();
+          initialDomain = domainsList[0];
+        }
       } else {
         initialPrefix = generateRandomPrefix();
-        initialDomain = domainsList.length > 0
-          ? domainsList[Math.floor(Math.random() * domainsList.length)]
-          : fallbackHost;
-      }
-
-      // Validasi agar domain ada dalam daftar atau didukung
-      if (initialDomain && !domainsList.includes(initialDomain) && domainsList.length > 0) {
-        setAvailableDomains((prev) => (prev.includes(initialDomain) ? prev : [initialDomain, ...prev]));
+        initialDomain = domainsList[Math.floor(Math.random() * domainsList.length)] || domainsList[0];
       }
 
       setCurrentPrefix(initialPrefix);
@@ -267,13 +278,15 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     return () => clearInterval(timer);
   }, [currentEmail, fetchMessages]);
 
-
-
   // 5. Handler Actions
   const handleRandomizeEmail = () => {
+    if (availableDomains.length === 0) {
+      showToast('Belum ada domain email aktif. Silakan tambahkan domain di Menu Admin.', 'error');
+      return;
+    }
     const newPrefix = generateRandomPrefix();
     const newDomain =
-      availableDomains[Math.floor(Math.random() * availableDomains.length)] || currentDomain;
+      availableDomains[Math.floor(Math.random() * availableDomains.length)] || availableDomains[0];
     const newEmail = `${newPrefix}@${newDomain}`;
 
     setCurrentPrefix(newPrefix);
@@ -285,8 +298,11 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   };
 
   const handleChangeDomain = (newDomain: string) => {
+    if (!availableDomains.includes(newDomain)) return;
     setCurrentDomain(newDomain);
-    const newEmail = `${currentPrefix}@${newDomain}`;
+    const prefix = currentPrefix || generateRandomPrefix();
+    setCurrentPrefix(prefix);
+    const newEmail = `${prefix}@${newDomain}`;
     setCurrentEmail(newEmail);
     localStorage.setItem('tmail_address', newEmail);
     setSelectedMessage(null);
@@ -294,9 +310,14 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   };
 
   const handleApplyCustom = (prefix: string, domain: string) => {
+    const validDomain = availableDomains.includes(domain) ? domain : (availableDomains[0] || '');
+    if (!validDomain) {
+      showToast('Pilih domain yang valid dari daftar aktif', 'error');
+      return;
+    }
     setCurrentPrefix(prefix);
-    setCurrentDomain(domain);
-    const newEmail = `${prefix}@${domain}`;
+    setCurrentDomain(validDomain);
+    const newEmail = `${prefix}@${validDomain}`;
     setCurrentEmail(newEmail);
     localStorage.setItem('tmail_address', newEmail);
     setSelectedMessage(null);
