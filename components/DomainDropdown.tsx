@@ -1,10 +1,15 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ChevronDown, Check, Server, Search, Sparkles, X } from 'lucide-react';
+import { ChevronDown, Check, Server, Search, Sparkles, X, Crown } from 'lucide-react';
+
+export interface DomainOption {
+  domain: string;
+  isVip?: boolean;
+}
 
 interface DomainDropdownProps {
-  domains: string[];
+  domains: (string | DomainOption)[];
   selectedDomain: string;
   onSelect: (domain: string) => void;
   className?: string;
@@ -23,6 +28,20 @@ export default function DomainDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Normalize domain list to DomainOption[]
+  const normalizedDomains: DomainOption[] = useMemo(() => {
+    return domains.map((d) => {
+      if (typeof d === 'string') {
+        return { domain: d, isVip: false };
+      }
+      return d;
+    });
+  }, [domains]);
+
+  const currentSelectedOption = useMemo(() => {
+    return normalizedDomains.find((d) => d.domain.toLowerCase() === selectedDomain.toLowerCase());
+  }, [normalizedDomains, selectedDomain]);
+
   // Close on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -40,8 +59,7 @@ export default function DomainDropdown({
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleKeyDown);
-      // Auto focus search if more than 4 domains
-      if (domains.length >= 5) {
+      if (normalizedDomains.length >= 5) {
         setTimeout(() => searchInputRef.current?.focus(), 50);
       }
     } else {
@@ -52,13 +70,13 @@ export default function DomainDropdown({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, domains.length]);
+  }, [isOpen, normalizedDomains.length]);
 
   const filteredDomains = useMemo(() => {
-    if (!searchQuery.trim()) return domains;
+    if (!searchQuery.trim()) return normalizedDomains;
     const q = searchQuery.toLowerCase().trim();
-    return domains.filter((d) => d.toLowerCase().includes(q));
-  }, [domains, searchQuery]);
+    return normalizedDomains.filter((d) => d.domain.toLowerCase().includes(q));
+  }, [normalizedDomains, searchQuery]);
 
   const handleSelect = (domain: string) => {
     onSelect(domain);
@@ -76,8 +94,19 @@ export default function DomainDropdown({
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-1.5 min-w-0 truncate">
-          <Server className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--color-blue)] dark:text-[var(--color-cyan)] flex-shrink-0" />
-          <span className="truncate">{selectedDomain || (domains[0] ?? 'pilih domain')}</span>
+          {currentSelectedOption?.isVip ? (
+            <span className="text-amber-500 font-bold flex-shrink-0" title="Domain VIP">
+              👑
+            </span>
+          ) : (
+            <Server className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--color-blue)] dark:text-[var(--color-cyan)] flex-shrink-0" />
+          )}
+          <span className="truncate">{selectedDomain || (normalizedDomains[0]?.domain ?? 'pilih domain')}</span>
+          {currentSelectedOption?.isVip && (
+            <span className="bg-[var(--color-yellow)] text-black text-[8px] font-mono-custom font-black px-1 py-0.2 border border-[var(--border-color)] uppercase ml-1 flex-shrink-0">
+              VIP
+            </span>
+          )}
         </div>
 
         <ChevronDown
@@ -89,17 +118,17 @@ export default function DomainDropdown({
 
       {/* Animated Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 right-0 sm:left-auto sm:right-0 sm:min-w-[240px] md:min-w-[270px] mt-1.5 z-50 brutal-card bg-white dark:bg-zinc-950 border-[2.5px] sm:border-[3px] border-[var(--border-color)] shadow-[4px_4px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] p-2 motion-dropdown-enter">
+        <div className="absolute left-0 right-0 sm:left-auto sm:right-0 sm:min-w-[250px] md:min-w-[280px] mt-1.5 z-50 brutal-card bg-white dark:bg-zinc-950 border-[2.5px] sm:border-[3px] border-[var(--border-color)] shadow-[4px_4px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] p-2 motion-dropdown-enter">
           {/* Header Label inside Dropdown with Domain Counter */}
           <div className="px-2 py-1 text-[9px] xs:text-[10px] font-mono-custom font-black uppercase text-[var(--text-muted)] border-b-[2px] border-dashed border-[var(--border-color)] mb-2 flex items-center justify-between">
             <span>PILIH DOMAIN</span>
             <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.2 border border-[var(--border-color)] font-mono text-[9px]">
-              {domains.length} TOTAL
+              {normalizedDomains.length} TOTAL
             </span>
           </div>
 
           {/* Search Box if domains >= 5 or if searching */}
-          {domains.length >= 5 && (
+          {normalizedDomains.length >= 5 && (
             <div className="relative mb-2">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
               <input
@@ -129,14 +158,14 @@ export default function DomainDropdown({
                 Tidak ada domain &quot;{searchQuery}&quot;
               </li>
             ) : (
-              filteredDomains.map((domain) => {
-                const isSelected = domain === selectedDomain;
+              filteredDomains.map((item) => {
+                const isSelected = item.domain.toLowerCase() === selectedDomain.toLowerCase();
                 return (
                   <li
-                    key={domain}
+                    key={item.domain}
                     role="option"
                     aria-selected={isSelected}
-                    onClick={() => handleSelect(domain)}
+                    onClick={() => handleSelect(item.domain)}
                     className={`px-2.5 py-2 text-xs font-mono-custom font-bold flex items-center justify-between rounded-none border-[1.5px] cursor-pointer transition-all duration-150 ${
                       isSelected
                         ? 'bg-[var(--color-yellow)] text-black border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] -translate-y-0.5'
@@ -144,8 +173,17 @@ export default function DomainDropdown({
                     }`}
                   >
                     <div className="flex items-center gap-1.5 truncate">
-                      <Server className="w-3 h-3 text-[var(--color-blue)] dark:text-[var(--color-cyan)] flex-shrink-0" />
-                      <span className="truncate">{domain}</span>
+                      {item.isVip ? (
+                        <span className="text-amber-500 font-bold flex-shrink-0">👑</span>
+                      ) : (
+                        <Server className="w-3 h-3 text-[var(--color-blue)] dark:text-[var(--color-cyan)] flex-shrink-0" />
+                      )}
+                      <span className="truncate">{item.domain}</span>
+                      {item.isVip && (
+                        <span className="bg-[var(--color-yellow)] text-black text-[8px] font-mono-custom font-black px-1 py-0.2 border border-[var(--border-color)] uppercase flex-shrink-0">
+                          VIP
+                        </span>
+                      )}
                     </div>
 
                     {isSelected && (
@@ -163,5 +201,3 @@ export default function DomainDropdown({
     </div>
   );
 }
-
-

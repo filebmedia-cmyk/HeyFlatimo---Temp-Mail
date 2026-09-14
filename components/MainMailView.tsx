@@ -38,6 +38,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
 
   const [availableDomains, setAvailableDomains] = useState<string[]>([]);
+  const [domainDetails, setDomainDetails] = useState<{ domain: string; isVip?: boolean }[]>([]);
   const [currentPrefix, setCurrentPrefix] = useState<string>('');
   const [currentDomain, setCurrentDomain] = useState<string>('');
   const [currentEmail, setCurrentEmail] = useState<string>('');
@@ -103,9 +104,14 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       try {
         const res = await fetch('/api/domains');
         const data = await res.json();
-        if (data.domains && Array.isArray(data.domains)) {
+        if (data.domainDetails && Array.isArray(data.domainDetails)) {
+          setDomainDetails(data.domainDetails);
+          domainsList = data.domainDetails.map((d: any) => d.domain);
+          setAvailableDomains(domainsList);
+        } else if (data.domains && Array.isArray(data.domains)) {
           domainsList = data.domains;
           setAvailableDomains(domainsList);
+          setDomainDetails(domainsList.map((d) => ({ domain: d, isVip: false })));
         }
       } catch (err) {
         console.error('Error fetching domains:', err);
@@ -306,7 +312,13 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     setCurrentEmail(newEmail);
     localStorage.setItem('tmail_address', newEmail);
     setSelectedMessage(null);
-    showToast(`Domain diubah ke @${newDomain}`);
+
+    const isVip = domainDetails.find((d) => d.domain.toLowerCase() === newDomain.toLowerCase())?.isVip;
+    if (isVip) {
+      showToast(`👑 Domain VIP @${newDomain} Terpilih! Nikmati pengalaman eksklusif.`, 'success');
+    } else {
+      showToast(`Domain diubah ke @${newDomain}`);
+    }
   };
 
   const handleApplyCustom = (prefix: string, domain: string) => {
@@ -321,7 +333,13 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     setCurrentEmail(newEmail);
     localStorage.setItem('tmail_address', newEmail);
     setSelectedMessage(null);
-    showToast(`Email diatur ke: ${newEmail}`);
+
+    const isVip = domainDetails.find((d) => d.domain.toLowerCase() === validDomain.toLowerCase())?.isVip;
+    if (isVip) {
+      showToast(`👑 Domain VIP @${validDomain} Terpilih! Email kustom aktif: ${newEmail}`, 'success');
+    } else {
+      showToast(`Email diatur ke: ${newEmail}`);
+    }
   };
 
   const handleCopyEmail = (text: string) => {
@@ -396,7 +414,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
             currentEmail={currentEmail}
             currentPrefix={currentPrefix}
             currentDomain={currentDomain}
-            availableDomains={availableDomains}
+            availableDomains={domainDetails.length > 0 ? domainDetails : availableDomains}
             isRefreshing={isRefreshing}
             onRefresh={handleManualRefresh}
             onRandomize={handleRandomizeEmail}

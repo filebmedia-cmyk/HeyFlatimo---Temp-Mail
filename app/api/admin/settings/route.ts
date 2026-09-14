@@ -5,12 +5,20 @@ import {
   getAnnouncementSettings,
   saveAnnouncementSettings,
 } from '@/lib/settings';
-import { getAdminCredentials, saveAdminCredentials } from '@/lib/auth';
+import { getAdminCredentials, saveAdminCredentials, verifyAdminRequest } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Akses ditolak. Anda wajib login sebagai admin.' },
+        { status: 401 }
+      );
+    }
+
     const access = await getAccessSettings();
     const announcement = await getAnnouncementSettings();
     const creds = await getAdminCredentials();
@@ -33,6 +41,14 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Akses ditolak. Anda wajib login sebagai admin.' },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     let updatedAccess = null;
     let updatedAnnouncement = null;

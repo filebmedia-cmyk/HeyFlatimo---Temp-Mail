@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKey } from '@/lib/auth';
-import { getAllDomains } from '@/lib/domains';
+import { getAllDomainDetails } from '@/lib/domains';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,17 +14,19 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const domains = await getAllDomains();
+    const details = await getAllDomainDetails();
     return NextResponse.json({
       success: true,
-      count: domains.length,
-      domains: domains,
+      count: details.length,
+      domains: details.map((d) => d.domain),
+      domainDetails: details,
     });
   } catch (err: any) {
     return NextResponse.json({
       success: true,
       count: 0,
       domains: [],
+      domainDetails: [],
     });
   }
 }

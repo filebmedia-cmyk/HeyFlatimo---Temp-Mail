@@ -2,13 +2,13 @@
 
 import React, { useState } from 'react';
 import { X, Check, Edit3, Sparkles } from 'lucide-react';
-import DomainDropdown from './DomainDropdown';
+import DomainDropdown, { DomainOption } from './DomainDropdown';
 
 interface CustomEmailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onApply: (prefix: string, domain: string) => void;
-  availableDomains: string[];
+  availableDomains: (string | DomainOption)[];
   currentPrefix: string;
   currentDomain: string;
 }
@@ -22,9 +22,15 @@ export default function CustomEmailModal({
   currentDomain,
 }: CustomEmailModalProps) {
   const [prefix, setPrefix] = useState(currentPrefix);
-  const [selectedDomain, setSelectedDomain] = useState(
-    currentDomain || availableDomains[0] || ''
-  );
+
+  const initialDomainName =
+    currentDomain ||
+    (typeof availableDomains[0] === 'string'
+      ? availableDomains[0]
+      : (availableDomains[0] as DomainOption)?.domain) ||
+    '';
+
+  const [selectedDomain, setSelectedDomain] = useState(initialDomainName);
 
   if (!isOpen) return null;
 

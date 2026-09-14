@@ -15,13 +15,13 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import CustomEmailModal from './CustomEmailModal';
-import DomainDropdown from './DomainDropdown';
+import DomainDropdown, { DomainOption } from './DomainDropdown';
 
 interface EmailCardProps {
   currentEmail: string;
   currentPrefix: string;
   currentDomain: string;
-  availableDomains: string[];
+  availableDomains: (string | DomainOption)[];
   isRefreshing: boolean;
   onRefresh: () => void;
   onRandomize: () => void;
@@ -158,50 +158,32 @@ export default function EmailCard({
               isRefreshing ? 'animate-spin-fast' : 'group-hover:rotate-180'
             }`}
           />
-          <span className="font-mono-custom font-bold text-[11px] xs:text-xs truncate">
-            REFRESH
+          <span className="hidden xs:inline font-mono-custom font-bold">
+            {isRefreshing ? 'MENYINKRONKAN...' : 'REFRESH'}
           </span>
+          <span className="xs:hidden">SYNC</span>
         </button>
       </div>
 
-      {/* Status Footer: Animated INBOX READY Radar Beacon & Live Timer Sync */}
-      <div className="flex flex-col xs:flex-row items-center justify-between gap-2.5 sm:gap-3 pt-3.5 sm:pt-4 select-none">
-        <div className="flex items-center gap-2">
-          {/* Animated Neo-Brutalist INBOX READY Badge */}
-          <div className="brutal-badge px-2.5 xs:px-3 py-1 sm:py-1.5 text-[10px] xs:text-xs flex items-center gap-1.5 xs:gap-2 bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7] border-[2px] border-[var(--border-color)] motion-live-badge">
-            {/* Pulsing Sonar Rings */}
-            <div className="relative flex items-center justify-center w-3 h-3 flex-shrink-0">
-              <span className="motion-radar-ring" />
-              <span className="motion-radar-ring-delayed" />
-              <span className="relative w-2 h-2 rounded-full bg-[var(--color-green)]" />
-            </div>
-
-            {/* Signal Equalizer Animation */}
-            <div className="flex items-end gap-0.5 h-3 flex-shrink-0">
-              <span className="w-1 bg-[var(--color-green)] rounded-full signal-bar-1" />
-              <span className="w-1 bg-[var(--color-green)] rounded-full signal-bar-2" />
-              <span className="w-1 bg-[var(--color-green)] rounded-full signal-bar-3" />
-            </div>
-
-            <span className="font-mono-custom font-black tracking-wide">INBOX READY</span>
+      {/* Auto-Sync Live Status Indicator Badge */}
+      <div className="mt-3.5 sm:mt-4 flex flex-wrap items-center justify-between gap-2 text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
+        <div className="flex items-center gap-1.5 xs:gap-2">
+          <div className="relative flex items-center justify-center w-2.5 h-2.5">
+            <span className="motion-radar-ring" />
+            <span className="relative w-2 h-2 rounded-full bg-[var(--color-green)]" />
           </div>
-
-          <span className="text-[10px] font-mono-custom font-bold text-[var(--color-green)] uppercase hidden sm:inline-flex items-center gap-1">
-            <span>&bull;</span> Siap Menerima Email
+          <span className="font-bold text-[var(--text-main)]">
+            Auto-Sync Aktif (Setiap {countdownSeconds}s)
           </span>
         </div>
 
-        {/* Realtime Auto-sync Countdown */}
-        <div className="flex items-center gap-1.5 xs:gap-2 text-[10px] xs:text-xs font-mono-custom font-bold text-[var(--text-muted)] uppercase">
-          <Clock className="w-3.5 h-3.5 text-[var(--color-blue)] icon-wiggle flex-shrink-0" />
-          <span>Auto-sync:</span>
-          <span className="bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] px-1.5 xs:px-2 py-0.5 font-black shadow-[1.5px_1.5px_0px_var(--shadow-color)] sm:shadow-[2px_2px_0px_var(--shadow-color)] inline-block min-w-[28px] text-center">
-            {countdownSeconds}s
-          </span>
+        <div className="flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5 text-[var(--color-blue)]" />
+          <span>Masa aktif email: <strong className="text-[var(--text-main)]">24 Jam</strong></span>
         </div>
       </div>
 
-      {/* Modal Custom Email */}
+      {/* Custom Email Modal Dialog */}
       <CustomEmailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

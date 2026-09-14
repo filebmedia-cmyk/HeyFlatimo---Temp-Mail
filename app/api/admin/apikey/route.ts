@@ -2,12 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { connectToDatabase } from '@/lib/mongodb';
 import { Setting } from '@/lib/models/Setting';
-import { getCurrentApiKey } from '@/lib/auth';
+import { getCurrentApiKey, verifyAdminRequest } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Akses ditolak. Anda wajib login sebagai admin.' },
+        { status: 401 }
+      );
+    }
+
     const key = await getCurrentApiKey();
     return NextResponse.json({
       success: true,
@@ -21,9 +29,17 @@ export async function GET() {
   }
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   try {
-    // Generate new secure key: hfl_live_ + 28 chars hex
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Akses ditolak. Anda wajib login sebagai admin.' },
+        { status: 401 }
+      );
+    }
+
+    // Generate new secure key: hfl_live_ + 32 chars hex
     const randomHex = crypto.randomBytes(16).toString('hex');
     const newKey = `hfl_live_${randomHex}`;
 

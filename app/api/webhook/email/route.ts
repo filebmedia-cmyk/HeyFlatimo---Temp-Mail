@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { Message } from '@/lib/models/Message';
+import { safeCompare } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Validasi Keamanan Secret Webhook jika diset di .env
+    // 1. Validasi Keamanan Secret Webhook jika diset di .env (Constant-Time Compare)
     const secretExpected = process.env.WEBHOOK_SECRET;
     if (secretExpected) {
-      const secretHeader = req.headers.get('x-webhook-secret');
-      const authHeader = req.headers.get('authorization');
-      const urlSecret = req.nextUrl.searchParams.get('secret');
+      const secretHeader = req.headers.get('x-webhook-secret') || '';
+      const authHeader = req.headers.get('authorization') || '';
+      const urlSecret = req.nextUrl.searchParams.get('secret') || '';
 
       const isSecretValid =
-        secretHeader === secretExpected ||
-        authHeader === `Bearer ${secretExpected}` ||
-        urlSecret === secretExpected;
+        safeCompare(secretHeader, secretExpected) ||
+        safeCompare(authHeader, `Bearer ${secretExpected}`) ||
+        safeCompare(urlSecret, secretExpected);
 
       if (!isSecretValid) {
         return NextResponse.json(

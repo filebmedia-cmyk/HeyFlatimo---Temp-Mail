@@ -1,30 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { Message } from '@/lib/models/Message';
+import { checkRateLimit } from '@/lib/rateLimiter';
 
 export const dynamic = 'force-dynamic';
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export async function GET(req: NextRequest) {
+  // Public Rate Limit (120 req/minute per IP)
+  const rateLimit = checkRateLimit(req, { maxRequests: 120, windowMs: 60 * 1000, keyPrefix: 'messages_get' });
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: 'Too Many Requests: Permintaan terlalu cepat. Silakan tunggu beberapa detik.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(req.url);
-    const email = searchParams.get('email')?.trim().toLowerCase();
+    const emailRaw = searchParams.get('email')?.trim().toLowerCase();
 
-    if (!email) {
+    if (!emailRaw) {
       return NextResponse.json(
         { error: 'Parameter "email" is required' },
         { status: 400 }
       );
     }
 
+    const email = emailRaw.replace(/[^a-z0-9.@_-]/g, '');
+
     await connectToDatabase();
 
-    // Cari pesan berdasarkan recipient
+    // Cari pesan berdasarkan recipient dengan sanitasi aman
     let query: any = {};
     if (email.includes('@')) {
       query.recipient = email;
     } else {
-      // Jika user hanya memasukkan prefix tanpa domain, cari semua email dengan prefix tersebut
-      query.recipient = { $regex: new RegExp(`^${email}@`, 'i') };
+      query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
     }
 
     const messages = await Message.find(query)
@@ -64,16 +79,26 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const rateLimit = checkRateLimit(req, { maxRequests: 30, windowMs: 60 * 1000, keyPrefix: 'messages_delete' });
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: 'Too Many Requests: Permintaan terlalu sering.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(req.url);
-    const email = searchParams.get('email')?.trim().toLowerCase();
+    const emailRaw = searchParams.get('email')?.trim().toLowerCase();
 
-    if (!email) {
+    if (!emailRaw) {
       return NextResponse.json(
         { error: 'Parameter "email" is required' },
         { status: 400 }
       );
     }
+
+    const email = emailRaw.replace(/[^a-z0-9.@_-]/g, '');
 
     await connectToDatabase();
 
@@ -81,7 +106,7 @@ export async function DELETE(req: NextRequest) {
     if (email.includes('@')) {
       query.recipient = email;
     } else {
-      query.recipient = { $regex: new RegExp(`^${email}@`, 'i') };
+      query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
     }
 
     const result = await Message.deleteMany(query);

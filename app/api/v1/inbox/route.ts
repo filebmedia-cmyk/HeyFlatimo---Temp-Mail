@@ -5,6 +5,10 @@ import { Message } from '@/lib/models/Message';
 
 export const dynamic = 'force-dynamic';
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export async function GET(req: NextRequest) {
   const isValid = await validateApiKey(req);
   if (!isValid) {
@@ -15,14 +19,16 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const email = searchParams.get('email')?.trim().toLowerCase();
+  const emailRaw = searchParams.get('email')?.trim().toLowerCase();
 
-  if (!email) {
+  if (!emailRaw) {
     return NextResponse.json(
       { error: 'Parameter "email" is required' },
       { status: 400 }
     );
   }
+
+  const email = emailRaw.replace(/[^a-z0-9.@_-]/g, '');
 
   try {
     await connectToDatabase();
@@ -31,7 +37,7 @@ export async function GET(req: NextRequest) {
     if (email.includes('@')) {
       query.recipient = email;
     } else {
-      query.recipient = { $regex: new RegExp(`^${email}@`, 'i') };
+      query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
     }
 
     const messages = await Message.find(query)
@@ -81,14 +87,16 @@ export async function DELETE(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const email = searchParams.get('email')?.trim().toLowerCase();
+  const emailRaw = searchParams.get('email')?.trim().toLowerCase();
 
-  if (!email) {
+  if (!emailRaw) {
     return NextResponse.json(
       { error: 'Parameter "email" is required' },
       { status: 400 }
     );
   }
+
+  const email = emailRaw.replace(/[^a-z0-9.@_-]/g, '');
 
   try {
     await connectToDatabase();
@@ -97,7 +105,7 @@ export async function DELETE(req: NextRequest) {
     if (email.includes('@')) {
       query.recipient = email;
     } else {
-      query.recipient = { $regex: new RegExp(`^${email}@`, 'i') };
+      query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
     }
 
     const result = await Message.deleteMany(query);

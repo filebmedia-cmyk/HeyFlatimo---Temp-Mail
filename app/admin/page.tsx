@@ -39,6 +39,7 @@ import {
   BellRing,
   ToggleLeft,
   ToggleRight,
+  Crown,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 
@@ -54,13 +55,24 @@ export default function AdminPage() {
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
   // Domain Management State
-  const [domains, setDomains] = useState<string[]>([]);
+  const [domains, setDomains] = useState<{ domain: string; isVip: boolean; createdAt?: string }[]>([]);
   const [newDomainInput, setNewDomainInput] = useState('');
+  const [isNewDomainVip, setIsNewDomainVip] = useState(false);
   const [isAddingDomain, setIsAddingDomain] = useState(false);
   const [isResettingKey, setIsResettingKey] = useState(false);
   const [domainToAdd, setDomainToAdd] = useState<string | null>(null);
   const [domainToDelete, setDomainToDelete] = useState<string | null>(null);
+  const [domainToToggleVip, setDomainToToggleVip] = useState<{ domain: string; isVip: boolean } | null>(null);
+  const [isTogglingVip, setIsTogglingVip] = useState(false);
   const [domainNotice, setDomainNotice] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const getAdminHeaders = () => {
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem('heyflatimo_admin_session_token') : null;
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { 'x-admin-token': token } : {}),
+    };
+  };
 
   // Access Key Gate State
   const [accessEnabled, setAccessEnabled] = useState(false);
@@ -120,6 +132,7 @@ export default function AdminPage() {
       // Auto logout when leaving web / closing tab
       const handleAutoLogout = () => {
         sessionStorage.removeItem('heyflatimo_admin_logged');
+        sessionStorage.removeItem('heyflatimo_admin_session_token');
         localStorage.removeItem('heyflatimo_admin_logged');
       };
 
@@ -148,11 +161,12 @@ export default function AdminPage() {
 
       if (res.ok && data.success) {
         setIsLoggedIn(true);
+        if (data.sessionToken) {
+          sessionStorage.setItem('heyflatimo_admin_session_token', data.sessionToken);
+        }
         const loggedKey = data.admin?.apiKey;
         if (loggedKey) {
           setApiKey(loggedKey);
-        } else {
-          fetchApiKey();
         }
         sessionStorage.setItem('heyflatimo_admin_logged', 'true');
         showToast('Login Admin Berhasil! Selamat Datang.', 'success');
@@ -173,6 +187,7 @@ export default function AdminPage() {
   const handleLogout = () => {
     setIsLoggedIn(false);
     sessionStorage.removeItem('heyflatimo_admin_logged');
+    sessionStorage.removeItem('heyflatimo_admin_session_token');
     localStorage.removeItem('heyflatimo_admin_logged');
     setPassword('');
     showToast('Berhasil Logout');
@@ -180,7 +195,7 @@ export default function AdminPage() {
 
   const fetchApiKey = async () => {
     try {
-      const res = await fetch('/api/admin/apikey');
+      const res = await fetch('/api/admin/apikey', { headers: getAdminHeaders() });
       const data = await res.json();
       if (data.success && data.apiKey) {
         setApiKey(data.apiKey);
@@ -192,10 +207,16 @@ export default function AdminPage() {
 
   const fetchDomains = async () => {
     try {
-      const res = await fetch('/api/admin/domains');
+      const res = await fetch('/api/admin/domains', { headers: getAdminHeaders() });
       const data = await res.json();
       if (data.success && Array.isArray(data.domains)) {
-        setDomains(data.domains);
+        const normalized = data.domains.map((d: any) => {
+          if (typeof d === 'string') {
+            return { domain: d, isVip: false };
+          }
+          return { domain: d.domain, isVip: Boolean(d.isVip), createdAt: d.createdAt };
+        });
+        setDomains(normalized);
       }
     } catch (err) {
       console.error(err);
@@ -221,7 +242,7 @@ export default function AdminPage() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch('/api/admin/settings');
+      const res = await fetch('/api/admin/settings', { headers: getAdminHeaders() });
       const data = await res.json();
       if (data.success) {
         if (data.access) {
@@ -256,7 +277,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders(),
         body: JSON.stringify({
           credentials: {
             username: adminUserInput.trim(),
@@ -285,7 +306,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders(),
         body: JSON.stringify({
           access: {
             enabled: accessEnabled,
@@ -315,7 +336,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders(),
         body: JSON.stringify({
           announcement: {
             enabled: announcementEnabled,
@@ -355,7 +376,7 @@ export default function AdminPage() {
 
     setIsResettingKey(true);
     try {
-      const res = await fetch('/api/admin/apikey', { method: 'POST' });
+      const res = await fetch('/api/admin/apikey', { method: 'POST', headers: getAdminHeaders() });
       const data = await res.json();
 
       if (data.success && data.apiKey) {
@@ -380,7 +401,7 @@ export default function AdminPage() {
       return;
     }
 
-    if (domains.includes(cleanDomain)) {
+    if (domains.some((d) => d.domain === cleanDomain)) {
       showToast(`Domain @${cleanDomain} sudah terdaftar!`, 'info');
       setDomainNotice({
         type: 'info',
@@ -396,21 +417,23 @@ export default function AdminPage() {
   const confirmAddDomain = async () => {
     if (!domainToAdd) return;
     const cleanDomain = domainToAdd;
+    const isVip = isNewDomainVip;
     setDomainToAdd(null);
     setIsAddingDomain(true);
 
     try {
       const res = await fetch('/api/admin/domains', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ domain: cleanDomain }),
+        headers: getAdminHeaders(),
+        body: JSON.stringify({ domain: cleanDomain, isVip }),
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
-        setDomains(data.domains);
+        fetchDomains();
         setNewDomainInput('');
-        const successText = `Domain @${cleanDomain} berhasil ditambahkan!`;
+        setIsNewDomainVip(false);
+        const successText = `Domain @${cleanDomain} berhasil ditambahkan ${isVip ? 'sebagai VIP 👑' : ''}!`;
         showToast(successText, 'success');
         setDomainNotice({
           type: 'success',
@@ -435,6 +458,44 @@ export default function AdminPage() {
     }
   };
 
+  // 1-Click Toggle VIP Confirmation Action
+  const confirmToggleVipDomain = async () => {
+    if (!domainToToggleVip) return;
+    const { domain, isVip: targetVip } = domainToToggleVip;
+    setDomainToToggleVip(null);
+    setIsTogglingVip(true);
+
+    try {
+      const res = await fetch('/api/admin/domains', {
+        method: 'PATCH',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({ domain, isVip: targetVip }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        fetchDomains();
+        const msg = `Status domain @${domain} diubah ke ${targetVip ? 'VIP 👑' : 'Free'}`;
+        showToast(msg, 'success');
+        setDomainNotice({
+          type: 'success',
+          message: msg,
+        });
+      } else {
+        const errorText = data.error || 'Gagal mengubah status VIP domain';
+        showToast(errorText, 'error');
+        setDomainNotice({
+          type: 'error',
+          message: errorText,
+        });
+      }
+    } catch (err: any) {
+      showToast('Gagal mengubah status VIP', 'error');
+    } finally {
+      setIsTogglingVip(false);
+    }
+  };
+
   // Trigger Delete Confirmation Modal
   const handleDeleteClick = (domain: string) => {
     setDomainToDelete(domain);
@@ -449,11 +510,12 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/admin/domains?domain=${encodeURIComponent(target)}`, {
         method: 'DELETE',
+        headers: getAdminHeaders(),
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
-        setDomains(data.domains);
+        fetchDomains();
         const successText = `Domain @${target} berhasil dihapus!`;
         showToast(successText, 'success');
         setDomainNotice({
@@ -472,7 +534,7 @@ export default function AdminPage() {
       showToast('Gagal menghapus domain', 'error');
       setDomainNotice({
         type: 'error',
-        message: `Terjadi kendala saat menghapus domain @${target}.`,
+        message: 'Koneksi ke database gagal saat menghapus domain.',
       });
     }
   };
@@ -837,28 +899,44 @@ if (!empty($otpData['found'])) {
               )}
 
               {/* Add Domain Form */}
-              <form onSubmit={handleAddDomainSubmit} className="flex flex-col sm:flex-row gap-2 sm:gap-2.5 mb-5 sm:mb-6">
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none font-mono text-xs sm:text-sm font-bold text-[var(--text-muted)]">
-                    @
+              <form onSubmit={handleAddDomainSubmit} className="space-y-2 mb-5 sm:mb-6">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-2.5">
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none font-mono text-xs sm:text-sm font-bold text-[var(--text-muted)]">
+                      @
+                    </div>
+                    <input
+                      type="text"
+                      value={newDomainInput}
+                      onChange={(e) => setNewDomainInput(e.target.value)}
+                      placeholder="mail.domainbaru.com"
+                      className="brutal-input w-full pl-8 pr-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    value={newDomainInput}
-                    onChange={(e) => setNewDomainInput(e.target.value)}
-                    placeholder="mail.domainbaru.com"
-                    className="brutal-input w-full pl-8 pr-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold"
-                  />
+
+                  <button
+                    type="submit"
+                    disabled={isAddingDomain || !newDomainInput.trim()}
+                    className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-4 xs:px-5 py-2 sm:py-2.5 text-xs flex items-center justify-center gap-1.5 disabled:opacity-50 font-black cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{isAddingDomain ? 'MENAMBAHKAN...' : 'TAMBAH DOMAIN'}</span>
+                  </button>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={isAddingDomain || !newDomainInput.trim()}
-                  className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-4 xs:px-5 py-2 sm:py-2.5 text-xs flex items-center justify-center gap-1.5 disabled:opacity-50 font-black cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>{isAddingDomain ? 'MENAMBAHKAN...' : 'TAMBAH DOMAIN'}</span>
-                </button>
+                <div className="flex items-center gap-2 pt-1">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-mono-custom font-bold text-[var(--text-main)] select-none">
+                    <input
+                      type="checkbox"
+                      checked={isNewDomainVip}
+                      onChange={(e) => setIsNewDomainVip(e.target.checked)}
+                      className="w-4 h-4 accent-amber-500 rounded-none border-2 border-[var(--border-color)]"
+                    />
+                    <span className="flex items-center gap-1">
+                      Jadikan Domain <strong className="text-amber-600 dark:text-amber-400">VIP / Premium 👑</strong> (Tanda Mahkota)
+                    </span>
+                  </label>
+                </div>
               </form>
 
               {/* Active Domains List */}
@@ -868,30 +946,111 @@ if (!empty($otpData['found'])) {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3">
-                  {domains.map((dom) => (
-                    <div
-                      key={dom}
-                      className="p-2.5 sm:p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] flex items-center justify-between gap-2"
-                    >
-                      <div className="min-w-0 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-[var(--color-green)] motion-pulse-dot flex-shrink-0" />
-                        <span className="font-mono-custom font-bold text-xs truncate">
-                          @{dom}
-                        </span>
-                      </div>
-
-                      <button
-                        onClick={() => handleDeleteClick(dom)}
-                        className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 p-1.5 text-xs flex-shrink-0 cursor-pointer shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
-                        title={`Hapus domain @${dom}`}
+                  {domains.map((domItem) => {
+                    const dom = typeof domItem === 'string' ? domItem : domItem.domain;
+                    const isVip = typeof domItem === 'object' ? Boolean(domItem.isVip) : false;
+                    return (
+                      <div
+                        key={dom}
+                        className={`p-2.5 sm:p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] flex items-center justify-between gap-2 ${
+                          isVip ? 'border-amber-400 bg-amber-50/40 dark:bg-amber-950/20' : ''
+                        }`}
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
+                        <div className="min-w-0 flex items-center gap-1.5 xs:gap-2">
+                          {isVip ? (
+                            <span className="text-amber-500 font-bold text-sm flex-shrink-0" title="Domain VIP">
+                              👑
+                            </span>
+                          ) : (
+                            <span className="w-2 h-2 rounded-full bg-[var(--color-green)] motion-pulse-dot flex-shrink-0" />
+                          )}
+                          <span className="font-mono-custom font-bold text-xs truncate">
+                            @{dom}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {/* 1-Click VIP Toggle Button with Confirmation Modal */}
+                          {isVip ? (
+                            <button
+                              onClick={() => setDomainToToggleVip({ domain: dom, isVip: false })}
+                              className="brutal-btn bg-[var(--color-yellow)] text-black px-2 py-1 text-[10px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-yellow-400 cursor-pointer"
+                              title="Klik untuk ubah status ke Free"
+                            >
+                              👑 VIP
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setDomainToToggleVip({ domain: dom, isVip: true })}
+                              className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-amber-100 dark:hover:bg-zinc-700 cursor-pointer"
+                              title="Klik untuk jadikan VIP 👑"
+                            >
+                              FREE
+                            </button>
+                          )}
+
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => handleDeleteClick(dom)}
+                            className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 p-1.5 text-xs flex-shrink-0 cursor-pointer shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                            title={`Hapus domain @${dom}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
+
+            {/* TOGGLE VIP CONFIRMATION MODAL */}
+            {domainToToggleVip && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-toast-in">
+                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-amber-500">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 text-lg">
+                      👑
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
+                        {domainToToggleVip.isVip ? 'JADIKAN DOMAIN VIP?' : 'HAPUS STATUS VIP?'}
+                      </h4>
+                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
+                        Konfirmasi perubahan status mahkota domain
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
+                    Apakah Anda yakin ingin mengubah status domain{' '}
+                    <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">
+                      @{domainToToggleVip.domain}
+                    </span>{' '}
+                    menjadi{' '}
+                    <strong>{domainToToggleVip.isVip ? '👑 VIP (Mahkota Emas)' : 'FREE (Biasa)'}</strong>?
+                  </p>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setDomainToToggleVip(null)}
+                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
+                    >
+                      BATAL
+                    </button>
+                    <button
+                      onClick={confirmToggleVipDomain}
+                      disabled={isTogglingVip}
+                      className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>{isTogglingVip ? 'MEMPROSES...' : 'YA, UBAH STATUS'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* ADD DOMAIN CONFIRMATION MODAL */}
             {domainToAdd && (

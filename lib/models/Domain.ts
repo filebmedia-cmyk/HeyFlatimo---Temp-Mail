@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IDomain extends Document {
   domain: string;
+  isVip: boolean;
   createdAt: Date;
 }
 
@@ -14,6 +15,10 @@ const DomainSchema = new Schema<IDomain>(
       lowercase: true,
       trim: true,
       index: true,
+    },
+    isVip: {
+      type: Boolean,
+      default: false,
     },
     createdAt: {
       type: Date,
