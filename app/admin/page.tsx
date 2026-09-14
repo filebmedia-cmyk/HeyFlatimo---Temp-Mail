@@ -610,16 +610,16 @@ if (!empty($otpData['found'])) {
               sessionStorage.removeItem('heyflatimo_admin_logged');
               setIsLoggedIn(false);
             }}
-            className="flex items-center gap-2 xs:gap-2.5 group cursor-pointer min-w-0"
+            className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 group cursor-pointer flex-shrink-0"
           >
-            <div className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 bg-[var(--color-blue)] border-[2.5px] sm:border-[3px] border-[var(--border-color)] flex items-center justify-center shadow-[2.5px_2.5px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] group-hover:rotate-6 transition-transform flex-shrink-0">
-              <Zap className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 text-[var(--color-yellow)] fill-[var(--color-yellow)]" />
+            <div className="w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 bg-[var(--color-blue)] border-[2px] sm:border-[3px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] group-hover:rotate-6 transition-transform flex-shrink-0">
+              <Zap className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-6 sm:h-6 text-[var(--color-yellow)] fill-[var(--color-yellow)]" />
             </div>
-            <div className="min-w-0">
-              <span className="font-heading font-black text-base xs:text-lg sm:text-xl tracking-tight text-[var(--text-main)] uppercase truncate">
+            <div className="flex items-center gap-1">
+              <span className="font-heading font-black text-sm xs:text-base sm:text-xl tracking-tight text-[var(--text-main)] uppercase whitespace-nowrap">
                 HeyFlatimo
               </span>
-              <span className="bg-[var(--color-yellow)] text-black text-[8px] xs:text-[9px] font-mono-custom font-black px-1 xs:px-1.5 py-0.2 border-[1.5px] border-[var(--border-color)] uppercase ml-1">
+              <span className="bg-[var(--color-yellow)] text-black text-[7px] xs:text-[8px] sm:text-[9px] font-mono-custom font-black px-1 py-0.2 border-[1.5px] border-[var(--border-color)] uppercase flex-shrink-0">
                 ADMIN
               </span>
             </div>
