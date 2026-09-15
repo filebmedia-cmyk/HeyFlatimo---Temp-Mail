@@ -118,14 +118,13 @@ export async function POST(req: NextRequest) {
 
       if (body.telegramAction === 'set_webhook') {
         const origin = getCanonicalOrigin(req);
-        const customUrl = (body.webhookUrl || currentTg.customWebhookUrl || '').trim();
-        const webhookUrl = customUrl || `${origin}/api/webhook/telegram`;
+        const webhookUrl = `${origin}/api/webhook/telegram`;
 
         if (!webhookUrl.startsWith('https://')) {
           return NextResponse.json(
             {
               success: false,
-              error: `Telegram API mewajibkan URL Webhook berprotokol HTTPS. URL saat ini: "${webhookUrl}". Jika berjalan di localhost, gunakan Cloudflare Tunnel / Ngrok (contoh: https://xxxx.ngrok-free.app/api/webhook/telegram).`,
+              error: `Telegram API mewajibkan URL Webhook berprotokol HTTPS. URL domain Anda saat ini: "${webhookUrl}". Pastikan website Anda sudah memiliki sertifikat SSL/HTTPS aktif.`,
             },
             { status: 400 }
           );
@@ -148,7 +147,6 @@ export async function POST(req: NextRequest) {
           botUsername,
           enabled: true,
           webhookUrl,
-          customWebhookUrl: customUrl,
         });
 
         return NextResponse.json({
@@ -194,7 +192,6 @@ export async function POST(req: NextRequest) {
       const isEnabled = Boolean(incomingTg.enabled);
       let hookUrl = incomingTg.webhookUrl || '';
       let botUser = incomingTg.botUsername || '';
-      let customUrl = incomingTg.customWebhookUrl || '';
 
       if (cleanToken) {
         // Fetch username from Telegram
@@ -204,7 +201,7 @@ export async function POST(req: NextRequest) {
         }
 
         const origin = getCanonicalOrigin(req);
-        const targetWebhook = customUrl.trim() || `${origin}/api/webhook/telegram`;
+        const targetWebhook = `${origin}/api/webhook/telegram`;
 
         if (isEnabled) {
           if (targetWebhook.startsWith('https://')) {
@@ -225,7 +222,6 @@ export async function POST(req: NextRequest) {
         botUsername: botUser,
         enabled: isEnabled,
         webhookUrl: hookUrl,
-        customWebhookUrl: customUrl,
       });
     }
 

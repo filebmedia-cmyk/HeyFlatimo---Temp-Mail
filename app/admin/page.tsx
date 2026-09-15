@@ -103,7 +103,6 @@ export default function AdminPage() {
   const [telegramBotTokenInput, setTelegramBotTokenInput] = useState('');
   const [telegramBotUsername, setTelegramBotUsername] = useState('');
   const [telegramWebhookUrl, setTelegramWebhookUrl] = useState('');
-  const [telegramCustomWebhookUrl, setTelegramCustomWebhookUrl] = useState('');
   const [telegramWebhookInfo, setTelegramWebhookInfo] = useState<any>(null);
   const [isSavingTelegram, setIsSavingTelegram] = useState(false);
   const [isTestingBot, setIsTestingBot] = useState(false);
@@ -318,7 +317,6 @@ export default function AdminPage() {
           }
           if (data.telegram.botUsername) setTelegramBotUsername(data.telegram.botUsername);
           if (data.telegram.webhookUrl) setTelegramWebhookUrl(data.telegram.webhookUrl);
-          if (data.telegram.customWebhookUrl) setTelegramCustomWebhookUrl(data.telegram.customWebhookUrl);
         }
         if (data.retention) {
           if (typeof data.retention.retentionHours === 'number') {
@@ -371,7 +369,6 @@ export default function AdminPage() {
             enabled: telegramEnabled,
             botUsername: telegramBotUsername,
             webhookUrl: telegramWebhookUrl,
-            customWebhookUrl: telegramCustomWebhookUrl.trim(),
           },
         }),
       });
@@ -437,7 +434,6 @@ export default function AdminPage() {
         body: JSON.stringify({
           telegramAction: 'set_webhook',
           botToken: telegramBotTokenInput.trim(),
-          webhookUrl: telegramCustomWebhookUrl.trim(),
         }),
       });
       const data = await res.json();
@@ -1942,7 +1938,7 @@ if (!empty($otpData['found'])) {
                 </div>
 
                 {/* Webhook Configuration & URL Display */}
-                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)] space-y-3">
+                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)]">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <span className="text-[10px] font-mono-custom font-black uppercase text-[var(--text-muted)] block mb-0.5">
@@ -1988,20 +1984,6 @@ if (!empty($otpData['found'])) {
                         </button>
                       )}
                     </div>
-                  </div>
-
-                  {/* Custom Webhook URL input for tunnel / custom HTTPS domain */}
-                  <div className="pt-2 border-t border-dashed border-[var(--border-color)]">
-                    <label className="block text-[10px] font-bold uppercase font-mono-custom mb-1 text-[var(--text-muted)]">
-                      Custom Webhook URL HTTPS (Opsional jika di Localhost / Tunnel):
-                    </label>
-                    <input
-                      type="text"
-                      value={telegramCustomWebhookUrl}
-                      onChange={(e) => setTelegramCustomWebhookUrl(e.target.value)}
-                      placeholder="https://contoh-tunnel.ngrok-free.app/api/webhook/telegram"
-                      className="brutal-input w-full px-3 py-1.5 text-xs font-mono-custom"
-                    />
                   </div>
                 </div>
 
