@@ -109,12 +109,17 @@ export async function DELETE(req: NextRequest) {
     }
 
     const result = await Message.deleteMany(query);
+    const deletedCount = result.deletedCount || 0;
+    if (deletedCount > 0) {
+      const { recordDeletedEmails } = await import('@/lib/stats');
+      await recordDeletedEmails(deletedCount).catch(() => null);
+    }
 
     return NextResponse.json({
       success: true,
       email: email,
-      deletedCount: result.deletedCount,
-      message: `Berhasil menghapus ${result.deletedCount} pesan`,
+      deletedCount: deletedCount,
+      message: `Berhasil menghapus ${deletedCount} pesan`,
     });
   } catch (err: any) {
     return NextResponse.json(

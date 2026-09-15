@@ -93,6 +93,10 @@ export async function POST(req: NextRequest) {
       expiresAt: expiresAt,
     });
 
+    // Catat ke statistik seumur hidup (lifetime stats)
+    const { recordIncomingEmail } = await import('@/lib/stats');
+    await recordIncomingEmail(1).catch(() => null);
+
     return NextResponse.json({
       success: true,
       message: 'Email successfully received and saved',

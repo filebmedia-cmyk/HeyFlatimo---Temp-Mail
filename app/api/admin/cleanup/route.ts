@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { Message } from '@/lib/models/Message';
 import { getRetentionSettings } from '@/lib/settings';
 import { verifyAdminRequest } from '@/lib/auth';
+import { getSystemStats, recordDeletedEmails } from '@/lib/stats';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,23 +18,26 @@ export async function GET(req: NextRequest) {
     }
 
     await connectToDatabase();
-    const retention = await getRetentionSettings();
-    const totalMessages = await Message.countDocuments();
+    const systemStats = await getSystemStats();
 
     let expiredCount = 0;
-    if (retention.retentionHours > 0) {
-      const expiryDate = new Date(Date.now() - retention.retentionHours * 60 * 60 * 1000);
+    if (systemStats.retentionHours > 0) {
+      const expiryDate = new Date(Date.now() - systemStats.retentionHours * 60 * 60 * 1000);
       expiredCount = await Message.countDocuments({ createdAt: { $lt: expiryDate } });
     }
 
-    const oldestMessage = await Message.findOne().sort({ createdAt: 1 }).select('createdAt').lean();
-
     return NextResponse.json({
       success: true,
-      totalMessages,
+      totalMessages: systemStats.activeMessages,
+      activeMessages: systemStats.activeMessages,
+      totalReceivedAllTime: systemStats.totalReceivedAllTime,
+      totalDeletedAllTime: systemStats.totalDeletedAllTime,
+      totalGeneratedAllTime: systemStats.totalGeneratedAllTime,
+      uniqueActiveMailboxes: systemStats.uniqueActiveMailboxes,
+      unreadMessages: systemStats.unreadMessages,
       expiredCount,
-      oldestCreatedAt: oldestMessage ? (oldestMessage as any).createdAt : null,
-      retentionHours: retention.retentionHours,
+      oldestCreatedAt: systemStats.oldestCreatedAt,
+      retentionHours: systemStats.retentionHours,
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -59,10 +63,14 @@ export async function POST(req: NextRequest) {
 
     if (action === 'clean_all') {
       const result = await Message.deleteMany({});
+      const deletedCount = result.deletedCount || 0;
+      if (deletedCount > 0) {
+        await recordDeletedEmails(deletedCount).catch(() => null);
+      }
       return NextResponse.json({
         success: true,
-        deletedCount: result.deletedCount,
-        message: `Berhasil menghapus seluruh ${result.deletedCount} pesan email dari database.`,
+        deletedCount: deletedCount,
+        message: `Berhasil menghapus seluruh ${deletedCount} pesan email dari database.`,
       });
     }
 
@@ -80,11 +88,15 @@ export async function POST(req: NextRequest) {
 
     const expiryDate = new Date(Date.now() - hours * 60 * 60 * 1000);
     const result = await Message.deleteMany({ createdAt: { $lt: expiryDate } });
+    const deletedCount = result.deletedCount || 0;
+    if (deletedCount > 0) {
+      await recordDeletedEmails(deletedCount).catch(() => null);
+    }
 
     return NextResponse.json({
       success: true,
-      deletedCount: result.deletedCount,
-      message: `Berhasil membersihkan ${result.deletedCount} pesan email yang lebih lama dari ${hours} jam.`,
+      deletedCount: deletedCount,
+      message: `Berhasil membersihkan ${deletedCount} pesan email yang lebih lama dari ${hours} jam.`,
     });
   } catch (error: any) {
     return NextResponse.json(

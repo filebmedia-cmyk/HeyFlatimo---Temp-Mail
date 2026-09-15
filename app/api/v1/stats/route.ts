@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKey } from '@/lib/auth';
-import { connectToDatabase } from '@/lib/mongodb';
-import { Message } from '@/lib/models/Message';
+import { getSystemStats } from '@/lib/stats';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,17 +14,22 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    await connectToDatabase();
-    const totalMessages = await Message.countDocuments();
-    const unreadMessages = await Message.countDocuments({ isRead: false });
+    const stats = await getSystemStats();
 
     return NextResponse.json({
       success: true,
       service: 'HeyFlatimo Developer API',
       status: 'online',
       database: 'connected',
-      totalMessages: totalMessages,
-      unreadMessages: unreadMessages,
+      totalReceivedAllTime: stats.totalReceivedAllTime,
+      totalMessages: stats.activeMessages,
+      activeMessages: stats.activeMessages,
+      unreadMessages: stats.unreadMessages,
+      totalDeletedAllTime: stats.totalDeletedAllTime,
+      totalGeneratedAllTime: stats.totalGeneratedAllTime,
+      uniqueActiveMailboxes: stats.uniqueActiveMailboxes,
+      retentionHours: stats.retentionHours,
+      oldestCreatedAt: stats.oldestCreatedAt,
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
@@ -34,8 +38,15 @@ export async function GET(req: NextRequest) {
       service: 'HeyFlatimo Developer API',
       status: 'online',
       database: 'offline_or_connecting',
+      totalReceivedAllTime: 0,
       totalMessages: 0,
+      activeMessages: 0,
       unreadMessages: 0,
+      totalDeletedAllTime: 0,
+      totalGeneratedAllTime: 0,
+      uniqueActiveMailboxes: 0,
+      retentionHours: 24,
+      oldestCreatedAt: null,
       timestamp: new Date().toISOString(),
       warning: err.message,
     });

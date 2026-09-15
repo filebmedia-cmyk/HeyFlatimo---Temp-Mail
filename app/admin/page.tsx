@@ -118,6 +118,12 @@ export default function AdminPage() {
   const [showCleanAllModal, setShowCleanAllModal] = useState(false);
   const [cleanupStats, setCleanupStats] = useState<{
     totalMessages: number;
+    activeMessages?: number;
+    totalReceivedAllTime?: number;
+    totalDeletedAllTime?: number;
+    totalGeneratedAllTime?: number;
+    uniqueActiveMailboxes?: number;
+    unreadMessages?: number;
     expiredCount: number;
     oldestCreatedAt: string | null;
     retentionHours: number;
@@ -2069,14 +2075,29 @@ if (!empty($otpData['found'])) {
                 </div>
               </div>
 
-              {/* Retention Stats Bar */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 mb-4">
-                <div className="p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
-                  <span className="text-[9px] font-mono-custom font-black uppercase text-[var(--text-muted)] block">
-                    Total Pesan di DB:
+              {/* Retention & Lifetime Email Stats Bar */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-4">
+                <div className="p-3 bg-[#ecfdf5] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <span className="text-[9px] font-mono-custom font-black uppercase text-emerald-700 dark:text-emerald-400 block">
+                    Total Email Masuk (All-Time):
                   </span>
-                  <span className="text-base sm:text-lg font-heading font-black text-[var(--color-blue)]">
+                  <span className="text-base sm:text-lg font-heading font-black text-emerald-700 dark:text-emerald-400 block">
+                    {cleanupStats?.totalReceivedAllTime ?? stats?.totalReceivedAllTime ?? cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
+                  </span>
+                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
+                    Akumulatif (tidak hilang saat dihapus)
+                  </span>
+                </div>
+
+                <div className="p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <span className="text-[9px] font-mono-custom font-black uppercase text-[var(--color-blue)] block">
+                    Pesan Aktif di DB Saat Ini:
+                  </span>
+                  <span className="text-base sm:text-lg font-heading font-black text-[var(--color-blue)] block">
                     {cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
+                  </span>
+                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
+                    {cleanupStats?.uniqueActiveMailboxes ?? 0} Alamat Mailbox Aktif
                   </span>
                 </div>
 
@@ -2084,17 +2105,23 @@ if (!empty($otpData['found'])) {
                   <span className="text-[9px] font-mono-custom font-black uppercase text-red-600 dark:text-red-400 block">
                     Pesan Kadaluwarsa ({retentionHoursInput}h):
                   </span>
-                  <span className="text-base sm:text-lg font-heading font-black text-[var(--color-red)]">
+                  <span className="text-base sm:text-lg font-heading font-black text-[var(--color-red)] block">
                     {cleanupStats?.expiredCount ?? 0} Pesan
+                  </span>
+                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
+                    Melebihi batas retensi waktu
                   </span>
                 </div>
 
-                <div className="p-3 bg-[#ecfdf5] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
-                  <span className="text-[9px] font-mono-custom font-black uppercase text-emerald-600 dark:text-emerald-400 block">
-                    Pesan Tertua:
+                <div className="p-3 bg-[#fdf4ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <span className="text-[9px] font-mono-custom font-black uppercase text-purple-700 dark:text-purple-400 block">
+                    Total Pesan Dihapus (All-Time):
                   </span>
-                  <span className="text-xs font-mono-custom font-bold text-[var(--text-main)] block truncate">
-                    {cleanupStats?.oldestCreatedAt ? new Date(cleanupStats.oldestCreatedAt).toLocaleString('id-ID') : 'Tidak ada'}
+                  <span className="text-base sm:text-lg font-heading font-black text-purple-700 dark:text-purple-400 block">
+                    {cleanupStats?.totalDeletedAllTime ?? 0} Pesan
+                  </span>
+                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
+                    Pesan dibersihkan/dikosongkan
                   </span>
                 </div>
               </div>
@@ -2232,11 +2259,14 @@ if (!empty($otpData['found'])) {
                   <Database className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
-                    TOTAL EMAIL MASUK
+                  <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-emerald-700 dark:text-emerald-400 uppercase block truncate">
+                    TOTAL EMAIL MASUK (ALL-TIME)
                   </span>
                   <span className="font-heading font-black text-base sm:text-lg text-[var(--color-green)] truncate block">
-                    {stats?.totalMessages ?? 0} Pesan
+                    {cleanupStats?.totalReceivedAllTime ?? stats?.totalReceivedAllTime ?? cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
+                  </span>
+                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block truncate">
+                    {cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} aktif di DB ({cleanupStats?.totalDeletedAllTime ?? 0} dibersihkan)
                   </span>
                 </div>
               </div>
