@@ -419,3 +419,25 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--border-color);
 }
+
+/* iOS Safe Area & Mobile Optimization */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+@supports (-webkit-touch-callout: none) {
+  /* Specific iOS Safari Touch Smoothness */
+  .ios-momentum-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+

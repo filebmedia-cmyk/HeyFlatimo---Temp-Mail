@@ -520,8 +520,10 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
             messages={messages}
             currentEmail={currentEmail}
             onOpenSplitView={() => {
-              if (messages.length > 0 && !selectedMessage) {
-                setSelectedMessage(messages[0]);
+              if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+                if (messages.length > 0 && !selectedMessage) {
+                  setSelectedMessage(messages[0]);
+                }
               }
               setActiveView('split');
             }}
