@@ -101,6 +101,24 @@ export async function sendTelegramMessage(
 
     const data = await res.json();
     if (!data.ok) {
+      // If HTML parse mode failed, try sending plain text stripped of HTML tags
+      if (options.parse_mode === 'HTML' || !options.parse_mode) {
+        const plainText = text.replace(/<[^>]+>/g, '');
+        const retryRes = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: plainText,
+            reply_markup: options.reply_markup,
+            disable_web_page_preview: options.disable_web_page_preview ?? true,
+          }),
+        });
+        const retryData = await retryRes.json();
+        if (retryData.ok) {
+          return { success: true, data: retryData };
+        }
+      }
       return { success: false, error: data.description || 'Telegram API error', data };
     }
     return { success: true, data };
@@ -163,6 +181,29 @@ export async function getTelegramBotInfo(botToken: string): Promise<{ success: b
 }
 
 /**
+ * Get Webhook Info from Telegram API to inspect current status
+ */
+export async function getTelegramWebhookInfo(
+  botToken: string
+): Promise<{ success: boolean; webhook?: any; error?: string }> {
+  try {
+    const cleanToken = botToken.trim();
+    if (!cleanToken) return { success: false, error: 'Bot token is empty' };
+
+    const url = `${TELEGRAM_API_BASE}${cleanToken}/getWebhookInfo`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok) {
+      return { success: false, error: data.description || 'Failed to get webhook info' };
+    }
+    return { success: true, webhook: data.result };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to fetch webhook info' };
+  }
+}
+
+/**
  * Register Webhook URL with Telegram Bot API
  */
 export async function setTelegramWebhook(
@@ -173,13 +214,17 @@ export async function setTelegramWebhook(
     const cleanToken = botToken.trim();
     if (!cleanToken) return { success: false, error: 'Bot token is empty' };
 
+    const cleanWebhookUrl = webhookUrl.trim();
+    if (!cleanWebhookUrl) return { success: false, error: 'Webhook URL cannot be empty' };
+
     const url = `${TELEGRAM_API_BASE}${cleanToken}/setWebhook`;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        url: webhookUrl,
+        url: cleanWebhookUrl,
         allowed_updates: ['message', 'callback_query'],
+        drop_pending_updates: false,
       }),
     });
 

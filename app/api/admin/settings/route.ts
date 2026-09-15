@@ -12,11 +12,20 @@ import {
 import { getAdminCredentials, saveAdminCredentials, verifyAdminRequest } from '@/lib/auth';
 import {
   getTelegramBotInfo,
+  getTelegramWebhookInfo,
   setTelegramWebhook,
   deleteTelegramWebhook,
 } from '@/lib/telegram';
 
 export const dynamic = 'force-dynamic';
+
+function getCanonicalOrigin(req: NextRequest): string {
+  const forwardedProto = req.headers.get('x-forwarded-proto');
+  const forwardedHost = req.headers.get('x-forwarded-host');
+  const host = forwardedHost || req.headers.get('host') || req.nextUrl.host;
+  const proto = forwardedProto || (req.nextUrl.protocol ? req.nextUrl.protocol.replace(':', '') : 'http');
+  return `${proto}://${host}`;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -69,7 +78,7 @@ export async function POST(req: NextRequest) {
     let updatedRetention = null;
     let updatedCredentials = null;
 
-    // Handle Telegram Actions (Set Webhook, Delete Webhook, Test Bot)
+    // Handle Telegram Actions (Set Webhook, Delete Webhook, Test Bot, Get Webhook Info)
     if (body.telegramAction) {
       const currentTg = await getTelegramSettings();
       const token = (body.botToken || currentTg.botToken || '').trim();
@@ -96,9 +105,32 @@ export async function POST(req: NextRequest) {
         });
       }
 
+      if (body.telegramAction === 'get_webhook_info') {
+        const infoRes = await getTelegramWebhookInfo(token);
+        const botRes = await getTelegramBotInfo(token);
+        return NextResponse.json({
+          success: true,
+          webhook: infoRes.webhook || null,
+          bot: botRes.bot || null,
+          error: infoRes.error || null,
+        });
+      }
+
       if (body.telegramAction === 'set_webhook') {
-        const origin = req.nextUrl.origin;
-        const webhookUrl = `${origin}/api/webhook/telegram`;
+        const origin = getCanonicalOrigin(req);
+        const customUrl = (body.webhookUrl || currentTg.customWebhookUrl || '').trim();
+        const webhookUrl = customUrl || `${origin}/api/webhook/telegram`;
+
+        if (!webhookUrl.startsWith('https://')) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Telegram API mewajibkan URL Webhook berprotokol HTTPS. URL saat ini: "${webhookUrl}". Jika berjalan di localhost, gunakan Cloudflare Tunnel / Ngrok (contoh: https://xxxx.ngrok-free.app/api/webhook/telegram).`,
+            },
+            { status: 400 }
+          );
+        }
+
         const hookRes = await setTelegramWebhook(token, webhookUrl);
 
         if (!hookRes.success) {
@@ -116,11 +148,12 @@ export async function POST(req: NextRequest) {
           botUsername,
           enabled: true,
           webhookUrl,
+          customWebhookUrl: customUrl,
         });
 
         return NextResponse.json({
           success: true,
-          message: `Webhook Telegram berhasil diset ke: ${webhookUrl}`,
+          message: `Webhook Telegram Berhasil Diaktifkan ke: ${webhookUrl}`,
           telegram: updatedTelegram,
         });
       }
@@ -156,7 +189,44 @@ export async function POST(req: NextRequest) {
     }
 
     if (body.telegram) {
-      updatedTelegram = await saveTelegramSettings(body.telegram);
+      const incomingTg = body.telegram;
+      const cleanToken = (incomingTg.botToken || '').trim();
+      const isEnabled = Boolean(incomingTg.enabled);
+      let hookUrl = incomingTg.webhookUrl || '';
+      let botUser = incomingTg.botUsername || '';
+      let customUrl = incomingTg.customWebhookUrl || '';
+
+      if (cleanToken) {
+        // Fetch username from Telegram
+        const botRes = await getTelegramBotInfo(cleanToken);
+        if (botRes.success && botRes.bot?.username) {
+          botUser = botRes.bot.username;
+        }
+
+        const origin = getCanonicalOrigin(req);
+        const targetWebhook = customUrl.trim() || `${origin}/api/webhook/telegram`;
+
+        if (isEnabled) {
+          if (targetWebhook.startsWith('https://')) {
+            const hookRes = await setTelegramWebhook(cleanToken, targetWebhook);
+            if (hookRes.success) {
+              hookUrl = targetWebhook;
+            }
+          }
+        } else {
+          // If disabled, remove webhook from Telegram
+          await deleteTelegramWebhook(cleanToken).catch(() => null);
+          hookUrl = '';
+        }
+      }
+
+      updatedTelegram = await saveTelegramSettings({
+        botToken: cleanToken,
+        botUsername: botUser,
+        enabled: isEnabled,
+        webhookUrl: hookUrl,
+        customWebhookUrl: customUrl,
+      });
     }
 
     if (body.retention) {

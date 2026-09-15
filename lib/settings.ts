@@ -100,6 +100,7 @@ export interface TelegramSettings {
   botUsername?: string;
   enabled: boolean;
   webhookUrl?: string;
+  customWebhookUrl?: string;
 }
 
 export interface RetentionSettings {
@@ -111,6 +112,7 @@ const DEFAULT_TELEGRAM_SETTINGS: TelegramSettings = {
   botUsername: '',
   enabled: false,
   webhookUrl: '',
+  customWebhookUrl: '',
 };
 
 const DEFAULT_RETENTION_SETTINGS: RetentionSettings = {
@@ -137,6 +139,7 @@ export async function saveTelegramSettings(settings: Partial<TelegramSettings>):
     ...current,
     ...settings,
     botToken: settings.botToken !== undefined ? settings.botToken.trim() : current.botToken,
+    customWebhookUrl: settings.customWebhookUrl !== undefined ? settings.customWebhookUrl.trim() : current.customWebhookUrl,
   };
 
   await Setting.findOneAndUpdate(

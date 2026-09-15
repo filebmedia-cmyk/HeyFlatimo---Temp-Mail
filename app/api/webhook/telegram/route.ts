@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { Message } from '@/lib/models/Message';
-import { Domain } from '@/lib/models/Domain';
+import { getAllDomains } from '@/lib/domains';
 import { getTelegramSettings } from '@/lib/settings';
 import { extractOtp, extractLinks } from '@/lib/otpParser';
 import { formatDateWIB } from '@/lib/formatters';
@@ -22,13 +22,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Telegram Bot is not configured yet' }, { status: 400 });
     }
 
+    if (!settings.enabled) {
+      return NextResponse.json({ ok: true, message: 'Telegram Bot is disabled in settings' });
+    }
+
     const update = await req.json().catch(() => null);
     if (!update) {
       return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
     }
 
     const token = settings.botToken;
-    const origin = req.nextUrl.origin || 'https://heyflatimo.com';
+    let origin = 'https://heyflatimo.com';
+    if (settings.webhookUrl && settings.webhookUrl.startsWith('http')) {
+      try {
+        origin = new URL(settings.webhookUrl).origin;
+      } catch (e) {}
+    } else {
+      const proto = req.headers.get('x-forwarded-proto') || (req.nextUrl.protocol ? req.nextUrl.protocol.replace(':', '') : 'https');
+      const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.host;
+      origin = `${proto}://${host}`;
+    }
 
     await connectToDatabase();
 
@@ -107,8 +120,8 @@ export async function POST(req: NextRequest) {
 
       if (callbackData === 'gen_email') {
         await answerTelegramCallbackQuery(token, cq.id, '⚡ Membuat email baru...');
-        const domainDoc = await Domain.findOne({ isActive: true }).lean();
-        const domainName = domainDoc?.domain || 'mail.heyflatimo.com';
+        const availableDomains = await getAllDomains();
+        const domainName = availableDomains[0] || 'mail.heyflatimo.com';
         const newEmail = `${generateRandomPrefix()}@${domainName}`.toLowerCase();
 
         const formatted = formatTelegramMessage(
@@ -144,9 +157,10 @@ export async function POST(req: NextRequest) {
       const msg = update.message;
       const chatId = msg.chat.id;
       const text = msg.text.trim();
+      const lower = text.toLowerCase();
 
       // Command /start or /help
-      if (text.startsWith('/start') || text.startsWith('/help')) {
+      if (lower.startsWith('/start') || lower.startsWith('/help') || lower === 'help' || lower === 'menu') {
         const welcomeText =
           `Selamat datang di <b>HeyFlatimo Bot Reader</b>!\n\n` +
           `Layanan baca pesan email sementara dan ekstraksi kode OTP otomatis dengan aman dan cepat.\n\n` +
@@ -154,6 +168,7 @@ export async function POST(req: NextRequest) {
           `• <code>/generate</code> - Buat alamat email acak baru\n` +
           `• <code>/otp &lt;email&gt;</code> - Cek kode OTP email masuk terbaru\n` +
           `• <code>/inbox &lt;email&gt;</code> - Baca 3 pesan email terakhir\n` +
+          `• <i>Kirim alamat email langsung</i> - Otomatis cek OTP email tersebut\n` +
           `• <code>/help</code> - Bantuan penggunaan bot`;
 
         const formatted = formatTelegramMessage('⚡ HEYFLATIMO TEMP MAIL BOT', welcomeText);
@@ -170,10 +185,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
-      // Command /generate
-      if (text.startsWith('/generate') || text.toLowerCase() === 'generate') {
-        const domainDoc = await Domain.findOne({ isActive: true }).lean();
-        const domainName = domainDoc?.domain || 'mail.heyflatimo.com';
+      // Command /generate or 'generate' or 'buat email'
+      if (lower.startsWith('/generate') || lower === 'generate' || lower.includes('buat email')) {
+        const availableDomains = await getAllDomains();
+        const domainName = availableDomains[0] || 'mail.heyflatimo.com';
         const newEmail = `${generateRandomPrefix()}@${domainName}`.toLowerCase();
 
         const formatted = formatTelegramMessage(
@@ -200,15 +215,16 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
-      // Command /otp <email>
-      if (text.startsWith('/otp')) {
+      // Command /otp <email> or 'otp <email>' or 'cek otp <email>'
+      if (lower.startsWith('/otp') || lower.startsWith('otp') || lower.startsWith('cek otp')) {
         const parts = text.split(/\s+/);
-        const targetEmail = parts[1]?.toLowerCase()?.trim();
+        // Find part with @
+        let targetEmail = parts.find((p: string) => p.includes('@'))?.toLowerCase()?.trim();
 
-        if (!targetEmail || !targetEmail.includes('@')) {
+        if (!targetEmail) {
           const formatted = formatTelegramMessage(
             '⚠️ FORMAT PERINTAH SALAH',
-            `Mohon sertakan alamat email target.\n\n<b>Contoh Penggunaan:</b>\n<code>/otp user@domain.com</code>\n\nAtau gunakan tombol <b>Generate Email Baru</b> di bawah.`
+            `Mohon sertakan alamat email target.\n\n<b>Contoh Penggunaan:</b>\n<code>/otp user@domain.com</code>\n\nAtau buat email baru dengan tombol di bawah.`
           );
 
           await sendTelegramMessage(token, chatId, formatted, {
@@ -282,12 +298,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
-      // Command /inbox <email>
-      if (text.startsWith('/inbox')) {
+      // Command /inbox <email> or 'inbox <email>'
+      if (lower.startsWith('/inbox') || lower.startsWith('inbox') || lower.startsWith('baca inbox')) {
         const parts = text.split(/\s+/);
-        const targetEmail = parts[1]?.toLowerCase()?.trim();
+        let targetEmail = parts.find((p: string) => p.includes('@'))?.toLowerCase()?.trim();
 
-        if (!targetEmail || !targetEmail.includes('@')) {
+        if (!targetEmail) {
           const formatted = formatTelegramMessage(
             '⚠️ FORMAT PERINTAH SALAH',
             `Mohon sertakan alamat email target.\n\n<b>Contoh Penggunaan:</b>\n<code>/inbox user@domain.com</code>`
@@ -345,25 +361,68 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
-      // Default fallback when user types any email directly
+      // Direct email lookup (e.g. user sends 'abc@domain.com')
       if (text.includes('@')) {
         const potentialEmail = text.replace(/[^a-zA-Z0-9@._-]/g, '').toLowerCase();
-        const formatted = formatTelegramMessage(
-          '🔍 CARI PESAN / OTP',
-          `Apakah Anda ingin mengecek pesan untuk email <code>${escapeTelegramHtml(potentialEmail)}</code>?`,
-          { email: potentialEmail }
-        );
+        const latestMsg = await Message.findOne({ recipient: potentialEmail }).sort({ createdAt: -1 }).lean();
 
-        await sendTelegramMessage(token, chatId, formatted, {
-          reply_markup: {
-            inline_keyboard: [
-              [
-                { text: '📩 Cek OTP Sekarang', callback_data: `otp:${potentialEmail}` },
-                { text: '🌐 Buka di Web', url: `${origin}/${encodeURIComponent(potentialEmail)}` },
+        if (latestMsg) {
+          const otpRes = extractOtp(latestMsg.bodyText || '', latestMsg.bodyHtml || '', latestMsg.subject || '');
+          const linksRes = extractLinks(latestMsg.bodyText || '', latestMsg.bodyHtml || '');
+
+          let contentText = '';
+          if (otpRes.found && otpRes.otp) {
+            contentText = `<b>KODE OTP: <code>${otpRes.otp}</code></b>\n\n📌 <b>Subjek:</b> ${escapeTelegramHtml(
+              latestMsg.subject || '(Tanpa Subjek)'
+            )}`;
+          } else {
+            contentText = `<b>Pesan Diterima</b> (OTP tidak terdeteksi otomatis):\n\n📌 <b>Subjek:</b> ${escapeTelegramHtml(
+              latestMsg.subject || '(Tanpa Subjek)'
+            )}\n\n<i>${escapeTelegramHtml(
+              (latestMsg.bodyText || '').slice(0, 200) || 'Buka website untuk melihat email.'
+            )}</i>`;
+          }
+
+          if (linksRes.found && linksRes.primaryLink) {
+            contentText += `\n\n🔗 <b>Link Verifikasi:</b> ${escapeTelegramHtml(linksRes.primaryLink)}`;
+          }
+
+          const formatted = formatTelegramMessage('📩 HASIL EMAIL MASUK', contentText, {
+            email: potentialEmail,
+            sender: latestMsg.sender,
+            time: formatDateWIB(latestMsg.createdAt),
+          });
+
+          await sendTelegramMessage(token, chatId, formatted, {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  { text: '🔄 Refresh OTP', callback_data: `otp:${potentialEmail}` },
+                  { text: '🌐 Buka Inbox di Web', url: `${origin}/${encodeURIComponent(potentialEmail)}` },
+                ],
               ],
-            ],
-          },
-        });
+            },
+          });
+        } else {
+          const formatted = formatTelegramMessage(
+            '📭 INBOX MASIH KOSONG',
+            `Belum ada email masuk untuk <code>${escapeTelegramHtml(
+              potentialEmail
+            )}</code>.\n\nKirim email ke alamat ini, lalu klik tombol Refresh di bawah.`,
+            { email: potentialEmail }
+          );
+
+          await sendTelegramMessage(token, chatId, formatted, {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  { text: '🔄 Refresh Ulang', callback_data: `otp:${potentialEmail}` },
+                  { text: '🌐 Buka di Web', url: `${origin}/${encodeURIComponent(potentialEmail)}` },
+                ],
+              ],
+            },
+          });
+        }
 
         return NextResponse.json({ ok: true });
       }

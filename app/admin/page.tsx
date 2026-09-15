@@ -101,11 +101,14 @@ export default function AdminPage() {
   const [telegramBotTokenInput, setTelegramBotTokenInput] = useState('');
   const [telegramBotUsername, setTelegramBotUsername] = useState('');
   const [telegramWebhookUrl, setTelegramWebhookUrl] = useState('');
+  const [telegramCustomWebhookUrl, setTelegramCustomWebhookUrl] = useState('');
+  const [telegramWebhookInfo, setTelegramWebhookInfo] = useState<any>(null);
   const [showTelegramToken, setShowTelegramToken] = useState(false);
   const [isSavingTelegram, setIsSavingTelegram] = useState(false);
   const [isTestingBot, setIsTestingBot] = useState(false);
   const [isSettingWebhook, setIsSettingWebhook] = useState(false);
   const [isDeletingWebhook, setIsDeletingWebhook] = useState(false);
+  const [isCheckingWebhookInfo, setIsCheckingWebhookInfo] = useState(false);
 
   // Database Retention & Cleanup State
   const [retentionHoursInput, setRetentionHoursInput] = useState(24);
@@ -302,9 +305,13 @@ export default function AdminPage() {
         }
         if (data.telegram) {
           setTelegramEnabled(Boolean(data.telegram.enabled));
-          if (data.telegram.botToken) setTelegramBotTokenInput(data.telegram.botToken);
+          if (data.telegram.botToken) {
+            setTelegramBotTokenInput(data.telegram.botToken);
+            fetchWebhookInfo(data.telegram.botToken);
+          }
           if (data.telegram.botUsername) setTelegramBotUsername(data.telegram.botUsername);
           if (data.telegram.webhookUrl) setTelegramWebhookUrl(data.telegram.webhookUrl);
+          if (data.telegram.customWebhookUrl) setTelegramCustomWebhookUrl(data.telegram.customWebhookUrl);
         }
         if (data.retention) {
           if (typeof data.retention.retentionHours === 'number') {
@@ -315,6 +322,32 @@ export default function AdminPage() {
       fetchCleanupStats();
     } catch (err) {
       console.error('Error fetching settings:', err);
+    }
+  };
+
+  const fetchWebhookInfo = async (tokenOverride?: string) => {
+    const token = tokenOverride || telegramBotTokenInput.trim();
+    if (!token) return;
+    setIsCheckingWebhookInfo(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({
+          telegramAction: 'get_webhook_info',
+          botToken: token,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (data.webhook) setTelegramWebhookInfo(data.webhook);
+        if (data.bot?.username) setTelegramBotUsername(data.bot.username);
+        if (data.webhook?.url) setTelegramWebhookUrl(data.webhook.url);
+      }
+    } catch (err) {
+      console.error('Error fetching webhook info:', err);
+    } finally {
+      setIsCheckingWebhookInfo(false);
     }
   };
 
@@ -331,12 +364,19 @@ export default function AdminPage() {
             enabled: telegramEnabled,
             botUsername: telegramBotUsername,
             webhookUrl: telegramWebhookUrl,
+            customWebhookUrl: telegramCustomWebhookUrl.trim(),
           },
         }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        if (data.telegram) {
+          setTelegramEnabled(Boolean(data.telegram.enabled));
+          setTelegramWebhookUrl(data.telegram.webhookUrl || '');
+          if (data.telegram.botUsername) setTelegramBotUsername(data.telegram.botUsername);
+        }
         showToast('Pengaturan Bot Telegram berhasil disimpan!', 'success');
+        fetchWebhookInfo(telegramBotTokenInput.trim());
       } else {
         showToast(data.error || 'Gagal menyimpan pengaturan bot', 'error');
       }
@@ -366,6 +406,7 @@ export default function AdminPage() {
       if (res.ok && data.success) {
         setTelegramBotUsername(data.bot?.username || '');
         showToast(data.message || 'Koneksi Bot Telegram Berhasil!', 'success');
+        fetchWebhookInfo(telegramBotTokenInput.trim());
       } else {
         showToast(data.error || 'Token Bot Telegram tidak valid', 'error');
       }
@@ -389,6 +430,7 @@ export default function AdminPage() {
         body: JSON.stringify({
           telegramAction: 'set_webhook',
           botToken: telegramBotTokenInput.trim(),
+          webhookUrl: telegramCustomWebhookUrl.trim(),
         }),
       });
       const data = await res.json();
@@ -399,6 +441,7 @@ export default function AdminPage() {
           if (data.telegram.botUsername) setTelegramBotUsername(data.telegram.botUsername);
         }
         showToast('Webhook Telegram Berhasil Didaftarkan! Bot sekarang siap menerima pesan.', 'success');
+        fetchWebhookInfo(telegramBotTokenInput.trim());
       } else {
         showToast(data.error || 'Gagal mengatur Webhook Telegram', 'error');
       }
@@ -425,6 +468,7 @@ export default function AdminPage() {
       if (res.ok && data.success) {
         setTelegramEnabled(false);
         setTelegramWebhookUrl('');
+        setTelegramWebhookInfo(null);
         showToast('Webhook Telegram berhasil dinonaktifkan.', 'info');
       } else {
         showToast(data.error || 'Gagal menghapus Webhook Telegram', 'error');
@@ -1785,21 +1829,43 @@ if (!empty($otpData['found'])) {
                 {/* Status Badge */}
                 <div
                   className={`text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5 ${
-                    telegramEnabled && telegramWebhookUrl
+                    telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
                       ? 'bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7]'
+                      : telegramEnabled
+                      ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'
                       : 'bg-zinc-200 dark:bg-zinc-800 text-[var(--text-muted)]'
                   }`}
                 >
                   <span
                     className={`w-2 h-2 rounded-full ${
-                      telegramEnabled && telegramWebhookUrl ? 'bg-[var(--color-green)]' : 'bg-zinc-500'
+                      telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
+                        ? 'bg-[var(--color-green)]'
+                        : telegramEnabled
+                        ? 'bg-amber-500'
+                        : 'bg-zinc-500'
                     } motion-pulse-dot`}
                   />
                   <span>
-                    {telegramEnabled && telegramWebhookUrl
+                    {telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
                       ? `BOT AKTIF ${telegramBotUsername ? `(@${telegramBotUsername})` : ''}`
+                      : telegramEnabled
+                      ? 'BOT AKTIF (BELUM SET WEBHOOK HTTPS)'
                       : 'BOT NONAKTIF'}
                   </span>
+                </div>
+              </div>
+
+              {/* Step-by-Step Info Banner */}
+              <div className="p-3 sm:p-4 bg-[#eff6ff] dark:bg-sky-950/40 border-[2px] border-[var(--border-color)] mb-4 space-y-2 shadow-[2px_2px_0px_var(--shadow-color)]">
+                <div className="flex items-center gap-2 font-mono-custom font-black text-xs text-[var(--color-blue)] uppercase">
+                  <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
+                  <span>Panduan Menghubungkan Bot Telegram:</span>
+                </div>
+                <div className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-muted)] space-y-1 pl-6">
+                  <p>1. Buka <strong>@BotFather</strong> di Telegram, kirim perintah <code>/newbot</code> dan ikuti langkah pembuatan bot.</p>
+                  <p>2. Salin <strong>HTTP API Token</strong> yang diberikan dan tempel pada kolom Token Bot di bawah.</p>
+                  <p>3. Ubah saklar status ke <strong>AKTIF (ON)</strong> lalu klik tombol <strong>SET WEBHOOK</strong> atau <strong>SIMPAN PENGATURAN BOT</strong>.</p>
+                  <p>4. Buka bot Anda di Telegram dan kirim pesan <code>/start</code> atau ketik email langsung untuk cek OTP secara instan!</p>
                 </div>
               </div>
 
@@ -1873,19 +1939,19 @@ if (!empty($otpData['found'])) {
                   </div>
                 </div>
 
-                {/* Webhook Status / URL Display */}
-                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)]">
+                {/* Webhook Configuration & URL Display */}
+                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)] space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <span className="text-[10px] font-mono-custom font-black uppercase text-[var(--text-muted)] block mb-0.5">
-                        Webhook Endpoint URL:
+                        Webhook Endpoint Otomatis:
                       </span>
-                      <code className="text-xs font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                      <code className="text-xs font-mono-custom font-bold text-[var(--color-blue)] break-all block">
                         {origin}/api/webhook/telegram
                       </code>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                       <button
                         type="button"
                         onClick={handleSetWebhook}
@@ -1896,7 +1962,18 @@ if (!empty($otpData['found'])) {
                         <span>{isSettingWebhook ? 'MENDAFTAR...' : 'SET WEBHOOK'}</span>
                       </button>
 
-                      {telegramWebhookUrl && (
+                      <button
+                        type="button"
+                        onClick={() => fetchWebhookInfo(telegramBotTokenInput.trim())}
+                        disabled={isCheckingWebhookInfo || !telegramBotTokenInput.trim()}
+                        className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
+                        title="Cek Status Webhook Langsung dari Telegram API"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${isCheckingWebhookInfo ? 'animate-spin-fast' : ''}`} />
+                        <span>CEK LIVE</span>
+                      </button>
+
+                      {(telegramWebhookUrl || telegramWebhookInfo?.url) && (
                         <button
                           type="button"
                           onClick={handleDeleteWebhook}
@@ -1910,7 +1987,51 @@ if (!empty($otpData['found'])) {
                       )}
                     </div>
                   </div>
+
+                  {/* Custom Webhook URL input for tunnel / custom HTTPS domain */}
+                  <div className="pt-2 border-t border-dashed border-[var(--border-color)]">
+                    <label className="block text-[10px] font-bold uppercase font-mono-custom mb-1 text-[var(--text-muted)]">
+                      Custom Webhook URL HTTPS (Opsional jika di Localhost / Tunnel):
+                    </label>
+                    <input
+                      type="text"
+                      value={telegramCustomWebhookUrl}
+                      onChange={(e) => setTelegramCustomWebhookUrl(e.target.value)}
+                      placeholder="https://contoh-tunnel.ngrok-free.app/api/webhook/telegram"
+                      className="brutal-input w-full px-3 py-1.5 text-xs font-mono-custom"
+                    />
+                  </div>
                 </div>
+
+                {/* Live Webhook Diagnostics Card */}
+                {telegramWebhookInfo && (
+                  <div className="p-3 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 space-y-1.5 text-xs font-mono-custom shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in">
+                    <div className="flex items-center justify-between gap-2 border-b border-dashed border-emerald-300 dark:border-emerald-800 pb-1">
+                      <span className="font-black text-emerald-800 dark:text-emerald-300 uppercase flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>STATUS WEBHOOK DI TELEGRAM SERVER</span>
+                      </span>
+                      {telegramWebhookInfo.url ? (
+                        <span className="bg-emerald-200 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 px-1.5 py-0.2 text-[10px] font-bold border border-emerald-400">
+                          TERDAFTAR
+                        </span>
+                      ) : (
+                        <span className="bg-amber-200 dark:bg-amber-950 text-amber-900 dark:text-amber-200 px-1.5 py-0.2 text-[10px] font-bold border border-amber-400">
+                          BELUM TERDAFTAR
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-[var(--text-main)] space-y-0.5">
+                      <p><strong>URL Terdaftar:</strong> {telegramWebhookInfo.url || '(Belum diset ke Telegram)'}</p>
+                      <p><strong>Pending Updates:</strong> {telegramWebhookInfo.pending_update_count ?? 0} pesan</p>
+                      {telegramWebhookInfo.last_error_message && (
+                        <div className="p-2 bg-red-100 dark:bg-red-950/60 border border-red-400 text-red-800 dark:text-red-300 mt-1">
+                          <strong>Error Terakhir dari Telegram:</strong> {telegramWebhookInfo.last_error_message}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Save button */}
                 <div className="flex justify-end pt-1">
