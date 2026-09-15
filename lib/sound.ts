@@ -71,19 +71,8 @@ if (typeof window !== 'undefined') {
 
 /**
  * Play a bright, clean, mobile-optimized two-tone notification chime.
- * Also triggers haptic vibration on supported Android / mobile devices.
  */
 export function playNotificationSound(): void {
-  // 1. Haptic Vibration Feedback for Mobile Devices
-  try {
-    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      navigator.vibrate([100, 50, 150]);
-    }
-  } catch (e) {
-    // Vibration ignored if unsupported
-  }
-
-  // 2. Synthesize High-Clarity Notification Chime
   try {
     const ctx = getAudioContext();
     if (!ctx) return;

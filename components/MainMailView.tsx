@@ -114,7 +114,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     setSoundEnabled(next);
     if (next) {
       playNotificationSound();
-      showToast('Suara Notifikasi Diaktifkan (Bunyi & Getar)', 'info');
+      showToast('Suara Notifikasi Diaktifkan', 'info');
     } else {
       showToast('Suara Notifikasi Dinonaktifkan (Mute)', 'info');
     }
