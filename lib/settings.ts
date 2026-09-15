@@ -116,7 +116,7 @@ const DEFAULT_TELEGRAM_SETTINGS: TelegramSettings = {
 };
 
 const DEFAULT_RETENTION_SETTINGS: RetentionSettings = {
-  retentionHours: 24,
+  retentionHours: 72, // 3 Hari (72 Jam Standar WIB)
 };
 
 export async function getTelegramSettings(): Promise<TelegramSettings> {

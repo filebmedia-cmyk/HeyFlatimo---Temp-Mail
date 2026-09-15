@@ -111,7 +111,7 @@ export default function AdminPage() {
   const [isCheckingWebhookInfo, setIsCheckingWebhookInfo] = useState(false);
 
   // Database Retention & Cleanup State
-  const [retentionHoursInput, setRetentionHoursInput] = useState(24);
+  const [retentionHoursInput, setRetentionHoursInput] = useState(72);
   const [isSavingRetention, setIsSavingRetention] = useState(false);
   const [isCleaningExpired, setIsCleaningExpired] = useState(false);
   const [isCleaningAll, setIsCleaningAll] = useState(false);
@@ -2137,13 +2137,13 @@ if (!empty($otpData['found'])) {
                       onChange={(e) => setRetentionHoursInput(Number(e.target.value))}
                       className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold bg-white dark:bg-zinc-900 cursor-pointer"
                     >
-                      <option value={1}>1 Jam (Sangat Cepat)</option>
-                      <option value={6}>6 Jam</option>
-                      <option value={12}>12 Jam</option>
-                      <option value={24}>24 Jam (Standar HeyFlatimo - Rekomendasi)</option>
+                      <option value={72}>72 Jam (3 Hari - Rekomendasi Standar WIB)</option>
+                      <option value={24}>24 Jam (1 Hari)</option>
                       <option value={48}>48 Jam (2 Hari)</option>
-                      <option value={72}>72 Jam (3 Hari)</option>
-                      <option value={168}>168 Jam (7 Hari)</option>
+                      <option value={168}>168 Jam (7 Hari / 1 Minggu)</option>
+                      <option value={12}>12 Jam</option>
+                      <option value={6}>6 Jam</option>
+                      <option value={1}>1 Jam (Sangat Cepat)</option>
                       <option value={0}>0 (Simpan Selamanya / Tanpa Auto-Delete)</option>
                     </select>
                   </div>

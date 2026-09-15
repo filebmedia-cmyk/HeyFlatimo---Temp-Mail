@@ -70,8 +70,10 @@ export async function POST(req: NextRequest) {
     const finalBodyText = text || bodyText || '';
     const finalBodyHtml = html || bodyHtml || '';
 
-    // Hitung waktu kadaluarsa TTL (default 24 jam)
-    const ttlHours = parseInt(process.env.EMAIL_TTL_HOURS || '24', 10);
+    // Hitung waktu kadaluarsa TTL (Default 72 jam / 3 hari standar WIB)
+    const { getRetentionSettings } = await import('@/lib/settings');
+    const retention = await getRetentionSettings();
+    const ttlHours = retention.retentionHours > 0 ? retention.retentionHours : 72;
     const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000);
 
     // 3. Simpan ke MongoDB

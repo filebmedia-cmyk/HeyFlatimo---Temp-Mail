@@ -128,6 +128,25 @@ export async function getSystemStats(): Promise<SystemStats> {
       } catch (e) {}
     }
 
+    // Auto-purge expired messages if retention is active (e.g. 72h / 3 days)
+    if (retention.retentionHours > 0) {
+      const expiryDate = new Date(Date.now() - retention.retentionHours * 60 * 60 * 1000);
+      const purgeResult = await Message.deleteMany({
+        $or: [
+          { expiresAt: { $lte: new Date() } },
+          { createdAt: { $lt: expiryDate } },
+        ],
+      });
+      if (purgeResult.deletedCount && purgeResult.deletedCount > 0) {
+        metrics.totalDeletedAllTime += purgeResult.deletedCount;
+        await Setting.findOneAndUpdate(
+          { key: 'system_metrics' },
+          { value: JSON.stringify(metrics), updatedAt: new Date() },
+          { upsert: true }
+        ).catch(() => null);
+      }
+    }
+
     // Live counts from MongoDB
     const activeMessages = await Message.countDocuments();
     const unreadMessages = await Message.countDocuments({ isRead: false });
