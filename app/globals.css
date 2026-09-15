@@ -67,15 +67,11 @@
 
 body {
   font-family: 'Plus Jakarta Sans', 'Work Sans', sans-serif;
-  background-color: var(--bg-color);
+  background-color: #050508;
   color: var(--text-main);
-  background-image: 
-    linear-gradient(to right, var(--grid-color) 2px, transparent 2px),
-    linear-gradient(to bottom, var(--grid-color) 2px, transparent 2px);
-  background-size: 28px 28px;
   min-height: 100vh;
   min-height: 100dvh;
-  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
   text-rendering: optimizeLegibility;
@@ -440,4 +436,120 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* ============================================================
+   PLAYSTATION BUTTON PARTICLES & CYBER GRID ANIMATIONS
+   ============================================================ */
+
+.ps-float-1 {
+  animation: psFloat1 linear infinite;
+}
+
+.ps-float-2 {
+  animation: psFloat2 ease-in-out infinite;
+}
+
+.ps-float-3 {
+  animation: psFloat3 ease-in-out infinite;
+}
+
+.ps-float-4 {
+  animation: psFloat4 cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.ps-spin-cw {
+  animation: psSpinCw linear infinite;
+}
+
+.ps-spin-ccw {
+  animation: psSpinCcw linear infinite;
+}
+
+@keyframes psFloat1 {
+  0% {
+    transform: translate3d(0px, 0px, 0px) scale(1);
+  }
+  25% {
+    transform: translate3d(24px, -35px, 0px) scale(1.05);
+  }
+  50% {
+    transform: translate3d(-18px, -60px, 0px) scale(0.98);
+  }
+  75% {
+    transform: translate3d(-28px, -25px, 0px) scale(1.03);
+  }
+  100% {
+    transform: translate3d(0px, 0px, 0px) scale(1);
+  }
+}
+
+@keyframes psFloat2 {
+  0% {
+    transform: translate3d(0px, 0px, 0px) scale(1);
+  }
+  30% {
+    transform: translate3d(-25px, -40px, 0px) scale(1.08);
+  }
+  60% {
+    transform: translate3d(20px, -70px, 0px) scale(0.95);
+  }
+  85% {
+    transform: translate3d(15px, -30px, 0px) scale(1.02);
+  }
+  100% {
+    transform: translate3d(0px, 0px, 0px) scale(1);
+  }
+}
+
+@keyframes psFloat3 {
+  0% {
+    transform: translate3d(0px, 0px, 0px) scale(1);
+  }
+  35% {
+    transform: translate3d(30px, 35px, 0px) scale(0.95);
+  }
+  70% {
+    transform: translate3d(-25px, -35px, 0px) scale(1.06);
+  }
+  100% {
+    transform: translate3d(0px, 0px, 0px) scale(1);
+  }
+}
+
+@keyframes psFloat4 {
+  0% {
+    transform: translate3d(0px, 0px, 0px) scale(1);
+  }
+  25% {
+    transform: translate3d(-30px, -25px, 0px) scale(1.04);
+  }
+  50% {
+    transform: translate3d(25px, -50px, 0px) scale(0.96);
+  }
+  75% {
+    transform: translate3d(35px, -20px, 0px) scale(1.02);
+  }
+  100% {
+    transform: translate3d(0px, 0px, 0px) scale(1);
+  }
+}
+
+@keyframes psSpinCw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes psSpinCcw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
 

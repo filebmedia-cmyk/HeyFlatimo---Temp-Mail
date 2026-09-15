@@ -916,7 +916,7 @@ if (!empty($otpData['found'])) {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-color)] flex flex-col selection:bg-[var(--color-blue)] selection:text-white">
+    <div className="min-h-screen bg-transparent flex flex-col selection:bg-[var(--color-blue)] selection:text-white">
       <Toast message={toastMsg} type={toastType} onClose={() => setToastMsg(null)} />
 
       {/* Top Navbar */}
