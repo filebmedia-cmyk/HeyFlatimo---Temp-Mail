@@ -240,10 +240,14 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   }, [initialSlug]);
 
   // 3. Fetch Inbox Messages
+  const isFetchingRef = useRef(false);
+
   const fetchMessages = useCallback(
     async (emailToFetch: string, isSilent = false) => {
       if (!emailToFetch) return;
+      if (isFetchingRef.current) return;
 
+      isFetchingRef.current = true;
       if (!isSilent) setIsRefreshing(true);
 
       try {
@@ -260,42 +264,42 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
           }
           previousCountRef.current = fetchedMessages.length;
 
-          // Perbarui selected message jika masih dipilih
-          if (selectedMessage) {
-            const updatedSelected = fetchedMessages.find((m) => m.id === selectedMessage.id);
-            if (updatedSelected) {
-              setSelectedMessage(updatedSelected);
-            }
-          }
+          // Perbarui selected message secara fungsional tanpa memicu re-trigger dependency
+          setSelectedMessage((prev) => {
+            if (!prev) return null;
+            const updated = fetchedMessages.find((m) => m.id === prev.id);
+            return updated || prev;
+          });
         }
       } catch (err) {
         console.error('Error fetching messages:', err);
       } finally {
+        isFetchingRef.current = false;
         if (!isSilent) {
-          setTimeout(() => setIsRefreshing(false), 500);
+          setTimeout(() => setIsRefreshing(false), 400);
         }
       }
     },
-    [selectedMessage]
+    []
   );
 
-  // Fetch when email changes
+  // Fetch when email changes (Silent background load to prevent spinning button)
   useEffect(() => {
     if (currentEmail) {
       previousCountRef.current = 0;
-      fetchMessages(currentEmail);
+      fetchMessages(currentEmail, true);
       setCountdown(AUTO_SYNC_INTERVAL);
     }
   }, [currentEmail, fetchMessages]);
 
-  // 4. Timer Interval Auto-Sync (Realtime 3 Detik)
+  // 4. Timer Interval Auto-Sync (Realtime 3 Detik di latar belakang)
   useEffect(() => {
+    if (!currentEmail) return;
+
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          if (currentEmail) {
-            fetchMessages(currentEmail, true);
-          }
+          fetchMessages(currentEmail, true);
           return AUTO_SYNC_INTERVAL;
         }
         return prev - 1;
