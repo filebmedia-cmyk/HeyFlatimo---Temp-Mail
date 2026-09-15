@@ -105,7 +105,6 @@ export default function AdminPage() {
   const [telegramWebhookUrl, setTelegramWebhookUrl] = useState('');
   const [telegramCustomWebhookUrl, setTelegramCustomWebhookUrl] = useState('');
   const [telegramWebhookInfo, setTelegramWebhookInfo] = useState<any>(null);
-  const [showTelegramToken, setShowTelegramToken] = useState(false);
   const [isSavingTelegram, setIsSavingTelegram] = useState(false);
   const [isTestingBot, setIsTestingBot] = useState(false);
   const [isSettingWebhook, setIsSettingWebhook] = useState(false);
@@ -1920,19 +1919,14 @@ if (!empty($otpData['found'])) {
                   <div className="flex flex-col sm:flex-row gap-2">
                     <div className="relative flex-1">
                       <input
-                        type={showTelegramToken ? 'text' : 'password'}
+                        type="text"
                         value={telegramBotTokenInput}
                         onChange={(e) => setTelegramBotTokenInput(e.target.value)}
                         placeholder="Contoh: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
-                        className="brutal-input w-full pl-3 pr-10 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
+                        className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
+                        autoComplete="off"
+                        spellCheck="false"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowTelegramToken(!showTelegramToken)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-muted)] hover:text-black dark:hover:text-white"
-                      >
-                        {showTelegramToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
                     </div>
 
                     <button
