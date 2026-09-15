@@ -40,6 +40,8 @@ import {
   ToggleLeft,
   ToggleRight,
   Crown,
+  Clock,
+  Timer,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 
@@ -2127,23 +2129,58 @@ if (!empty($otpData['found'])) {
               </div>
 
               <form onSubmit={handleSaveRetention} className="space-y-4">
+                {/* Quick-Select Preset Pills */}
+                <div>
+                  <span className="block text-[10px] xs:text-[11px] font-black uppercase font-mono-custom mb-1.5 text-[var(--text-muted)]">
+                    Pilihan Cepat Durasi Penyimpanan (Standar WIB):
+                  </span>
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                    {[
+                      { hours: 72, label: '72 Jam (3 Hari) ★ Rekomendasi WIB', color: 'bg-[var(--color-yellow)] text-black' },
+                      { hours: 24, label: '24 Jam (1 Hari)', color: 'bg-white dark:bg-zinc-800 text-[var(--text-main)]' },
+                      { hours: 48, label: '48 Jam (2 Hari)', color: 'bg-white dark:bg-zinc-800 text-[var(--text-main)]' },
+                      { hours: 168, label: '168 Jam (7 Hari)', color: 'bg-white dark:bg-zinc-800 text-[var(--text-main)]' },
+                      { hours: 12, label: '12 Jam', color: 'bg-white dark:bg-zinc-800 text-[var(--text-main)]' },
+                      { hours: 1, label: '1 Jam', color: 'bg-white dark:bg-zinc-800 text-[var(--text-main)]' },
+                      { hours: 0, label: '0 (Simpan Selamanya)', color: 'bg-white dark:bg-zinc-800 text-[var(--text-main)]' },
+                    ].map((preset) => {
+                      const isSelected = retentionHoursInput === preset.hours;
+                      return (
+                        <button
+                          key={preset.hours}
+                          type="button"
+                          onClick={() => setRetentionHoursInput(preset.hours)}
+                          className={`px-2.5 xs:px-3 py-1 text-[10px] xs:text-[11px] font-mono-custom font-black border-2 border-[var(--border-color)] transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-[var(--color-green)] text-white shadow-[2px_2px_0px_var(--shadow-color)] scale-[1.02]'
+                              : `${preset.color} hover:bg-slate-100 dark:hover:bg-zinc-700 shadow-[1px_1px_0px_var(--shadow-color)]`
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 items-end">
                   <div>
-                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
-                      Batas Waktu Retensi Penyimpanan (Auto-Expire):
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-blue)] dark:text-[var(--color-cyan)] flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>Pilih Batas Waktu Auto-Delete Pesan (WIB):</span>
                     </label>
                     <select
                       value={retentionHoursInput}
                       onChange={(e) => setRetentionHoursInput(Number(e.target.value))}
-                      className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold bg-white dark:bg-zinc-900 cursor-pointer"
+                      className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold bg-white dark:bg-zinc-900 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
                     >
                       <option value={72}>72 Jam (3 Hari - Rekomendasi Standar WIB)</option>
-                      <option value={24}>24 Jam (1 Hari)</option>
                       <option value={48}>48 Jam (2 Hari)</option>
-                      <option value={168}>168 Jam (7 Hari / 1 Minggu)</option>
-                      <option value={12}>12 Jam</option>
+                      <option value={24}>24 Jam (1 Hari)</option>
+                      <option value={12}>12 Jam (Setengah Hari)</option>
                       <option value={6}>6 Jam</option>
-                      <option value={1}>1 Jam (Sangat Cepat)</option>
+                      <option value={1}>1 Jam (Sangat Singkat)</option>
+                      <option value={168}>168 Jam (7 Hari / 1 Minggu)</option>
                       <option value={0}>0 (Simpan Selamanya / Tanpa Auto-Delete)</option>
                     </select>
                   </div>
@@ -2152,7 +2189,7 @@ if (!empty($otpData['found'])) {
                     <button
                       type="submit"
                       disabled={isSavingRetention}
-                      className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-4 py-2 sm:py-2.5 text-xs font-black flex-1 flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)]"
+                      className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-4 py-2 sm:py-2.5 text-xs font-black flex-1 flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
                     >
                       <Save className="w-4 h-4" />
                       <span>{isSavingRetention ? 'MENYIMPAN...' : 'SIMPAN RETENSI'}</span>
@@ -2162,12 +2199,44 @@ if (!empty($otpData['found'])) {
                       type="button"
                       onClick={handleCleanExpired}
                       disabled={isCleaningExpired}
-                      className="brutal-btn bg-[var(--color-orange)] text-white hover:bg-orange-600 px-4 py-2 sm:py-2.5 text-xs font-black flex-1 flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)]"
+                      className="brutal-btn bg-[var(--color-orange)] text-white hover:bg-orange-600 px-4 py-2 sm:py-2.5 text-xs font-black flex-1 flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
                       title="Hapus pesan yang umurnya sudah melewati batas retensi"
                     >
                       <Trash2 className="w-4 h-4" />
                       <span>{isCleaningExpired ? 'MEMBERSIHKAN...' : 'BERSIHKAN KADALUWARSA'}</span>
                     </button>
+                  </div>
+                </div>
+
+                {/* Live Simulation Card of Expiration Schedule in WIB */}
+                <div className="p-3 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in">
+                  <div className="flex items-center gap-1.5 text-xs font-mono-custom font-black text-emerald-800 dark:text-emerald-300 uppercase mb-1">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>SIMULASI JADWAL AUTO-DELETE (ZONA WAKTU WIB / UTC+7)</span>
+                  </div>
+                  <div className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-main)] space-y-0.5">
+                    {retentionHoursInput > 0 ? (
+                      <>
+                        <p>
+                          <strong>Durasi Penyimpanan:</strong> {retentionHoursInput} Jam ({retentionHoursInput / 24 >= 1 ? `${(retentionHoursInput / 24).toFixed(retentionHoursInput % 24 === 0 ? 0 : 1)} Hari` : `${retentionHoursInput} Jam`})
+                        </p>
+                        <p className="text-emerald-700 dark:text-emerald-400">
+                          <strong>Jadwal Hapus Otomatis:</strong> Email yang masuk saat ini akan otomatis dihapus permanen oleh MongoDB TTL pada:{' '}
+                          <code className="bg-white dark:bg-zinc-950 px-1.5 py-0.2 border border-emerald-400 font-bold">
+                            {new Date(Date.now() + retentionHoursInput * 3600000).toLocaleString('id-ID', {
+                              timeZone: 'Asia/Jakarta',
+                              dateStyle: 'full',
+                              timeStyle: 'medium',
+                            })}{' '}
+                            WIB
+                          </code>
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-amber-700 dark:text-amber-400">
+                        <strong>Mode Penyimpanan:</strong> Simpan Selamanya (Pesan tidak akan pernah dihapus otomatis sampai dibersihkan manual).
+                      </p>
+                    )}
                   </div>
                 </div>
 
