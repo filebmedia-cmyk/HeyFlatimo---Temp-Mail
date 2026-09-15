@@ -38,7 +38,7 @@ export function escapeTelegramHtml(text: string): string {
 }
 
 /**
- * Formats a message with Bold Title and Quote content as requested by user
+ * Formats a message with Bold Title and Quote content (strictly NO EMOJIS)
  */
 export function formatTelegramMessage(
   title: string,
@@ -49,13 +49,13 @@ export function formatTelegramMessage(
 
   if (meta) {
     if (meta.email) {
-      message += `📧 <b>Email:</b> <code>${escapeTelegramHtml(meta.email)}</code>\n`;
+      message += `<b>Email:</b> <code>${escapeTelegramHtml(meta.email)}</code>\n`;
     }
     if (meta.sender) {
-      message += `👤 <b>Pengirim:</b> ${escapeTelegramHtml(meta.sender)}\n`;
+      message += `<b>Pengirim:</b> ${escapeTelegramHtml(meta.sender)}\n`;
     }
     if (meta.time) {
-      message += `🕒 <b>Waktu:</b> ${escapeTelegramHtml(meta.time)}\n`;
+      message += `<b>Waktu:</b> ${escapeTelegramHtml(meta.time)}\n`;
     }
     if (meta.extra) {
       message += `${meta.extra}\n`;
@@ -116,6 +116,70 @@ export async function sendTelegramMessage(
         });
         const retryData = await retryRes.json();
         if (retryData.ok) {
+          return { success: true, data: retryData };
+        }
+      }
+      return { success: false, error: data.description || 'Telegram API error', data };
+    }
+    return { success: true, data };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Connection error to Telegram' };
+  }
+}
+
+/**
+ * Edit an existing message text in Telegram (keeps chat clean and prevents spam)
+ */
+export async function editTelegramMessageText(
+  botToken: string,
+  chatId: number | string,
+  messageId: number,
+  text: string,
+  options: {
+    parse_mode?: 'HTML' | 'MarkdownV2' | 'Markdown';
+    reply_markup?: InlineKeyboardMarkup;
+    disable_web_page_preview?: boolean;
+  } = {}
+): Promise<{ success: boolean; data?: any; error?: string }> {
+  try {
+    const cleanToken = botToken.trim();
+    if (!cleanToken) return { success: false, error: 'Bot token is empty' };
+
+    const url = `${TELEGRAM_API_BASE}${cleanToken}/editMessageText`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        parse_mode: options.parse_mode || 'HTML',
+        reply_markup: options.reply_markup,
+        disable_web_page_preview: options.disable_web_page_preview ?? true,
+      }),
+    });
+
+    const data = await res.json();
+    if (!data.ok) {
+      if (data.description && data.description.includes('message is not modified')) {
+        return { success: true, data };
+      }
+      // Fallback: If HTML parse mode failed, retry with stripped plain text
+      if (options.parse_mode === 'HTML' || !options.parse_mode) {
+        const plainText = text.replace(/<[^>]+>/g, '');
+        const retryRes = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            message_id: messageId,
+            text: plainText,
+            reply_markup: options.reply_markup,
+            disable_web_page_preview: options.disable_web_page_preview ?? true,
+          }),
+        });
+        const retryData = await retryRes.json();
+        if (retryData.ok || (retryData.description && retryData.description.includes('message is not modified'))) {
           return { success: true, data: retryData };
         }
       }
