@@ -11,7 +11,19 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: `${process.env.NEXT_PUBLIC_APP_NAME || 'HeyFlatimo'} | Personal Temp Mail`,
-  description: 'Fast, secure & private temporary disposable email service powered by Cloudflare and MongoDB.',
+  description: 'Layanan email sementara (disposable temp mail) cepat, aman, dan privat untuk menerima kode OTP & link verifikasi secara instan.',
+  openGraph: {
+    title: `${process.env.NEXT_PUBLIC_APP_NAME || 'HeyFlatimo'} | Personal Temp Mail`,
+    description: 'Layanan email sementara (disposable temp mail) cepat, aman, dan privat untuk menerima kode OTP & link verifikasi secara instan.',
+    siteName: process.env.NEXT_PUBLIC_APP_NAME || 'HeyFlatimo',
+    locale: 'id_ID',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: `${process.env.NEXT_PUBLIC_APP_NAME || 'HeyFlatimo'} | Personal Temp Mail`,
+    description: 'Layanan email sementara (disposable temp mail) cepat, aman, dan privat untuk menerima kode OTP & link verifikasi secara instan.',
+  },
   icons: {
     icon: [
       { url: '/icon.svg', type: 'image/svg+xml' },
