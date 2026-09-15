@@ -266,10 +266,15 @@ export default function MessageList({
                                   <Sparkles className="w-3.5 h-3.5 text-white" />
                                 </div>
                                 <div className="min-w-0">
-                                  <div className="flex items-center gap-1">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
                                     <span className="text-[10px] font-mono-custom font-black text-emerald-800 dark:text-emerald-300 uppercase">
                                       VERIFICATION LINK
                                     </span>
+                                    {linksRes.primaryLabel && (
+                                      <span className="bg-emerald-200 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-200 border border-emerald-500 text-[9px] font-mono-custom font-black px-1.5 py-0.2 rounded-none">
+                                        &quot;{linksRes.primaryLabel}&quot;
+                                      </span>
+                                    )}
                                     <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                                   </div>
                                   <p className="font-mono-custom text-[10px] xs:text-[11px] text-zinc-600 dark:text-zinc-300 truncate max-w-xs sm:max-w-sm">
