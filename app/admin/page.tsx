@@ -110,9 +110,7 @@ export default function AdminPage() {
   const [isDeletingWebhook, setIsDeletingWebhook] = useState(false);
   const [isCheckingWebhookInfo, setIsCheckingWebhookInfo] = useState(false);
 
-  // Database Retention & Cleanup State
-  const [retentionHoursInput, setRetentionHoursInput] = useState(72);
-  const [isSavingRetention, setIsSavingRetention] = useState(false);
+  // Database Retention & Cleanup State (Auto-Delete 3 Hari / 72 Jam WIB Paten)
   const [isCleaningExpired, setIsCleaningExpired] = useState(false);
   const [isCleaningAll, setIsCleaningAll] = useState(false);
   const [showCleanAllModal, setShowCleanAllModal] = useState(false);
@@ -279,9 +277,6 @@ export default function AdminPage() {
       const data = await res.json();
       if (data.success) {
         setCleanupStats(data);
-        if (typeof data.retentionHours === 'number') {
-          setRetentionHoursInput(data.retentionHours);
-        }
       }
     } catch (err) {
       console.error('Error fetching cleanup stats:', err);
@@ -317,11 +312,6 @@ export default function AdminPage() {
           }
           if (data.telegram.botUsername) setTelegramBotUsername(data.telegram.botUsername);
           if (data.telegram.webhookUrl) setTelegramWebhookUrl(data.telegram.webhookUrl);
-        }
-        if (data.retention) {
-          if (typeof data.retention.retentionHours === 'number') {
-            setRetentionHoursInput(data.retention.retentionHours);
-          }
         }
       }
       fetchCleanupStats();
@@ -483,33 +473,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleSaveRetention = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setIsSavingRetention(true);
-    try {
-      const res = await fetch('/api/admin/settings', {
-        method: 'POST',
-        headers: getAdminHeaders(),
-        body: JSON.stringify({
-          retention: {
-            retentionHours: Number(retentionHoursInput),
-          },
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        showToast('Setelan Retensi Database berhasil disimpan!', 'success');
-        fetchCleanupStats();
-      } else {
-        showToast(data.error || 'Gagal menyimpan retensi database', 'error');
-      }
-    } catch (err) {
-      showToast('Gagal menyimpan retensi database', 'error');
-    } finally {
-      setIsSavingRetention(false);
-    }
-  };
-
   const handleCleanExpired = async () => {
     setIsCleaningExpired(true);
     try {
@@ -518,12 +481,12 @@ export default function AdminPage() {
         headers: getAdminHeaders(),
         body: JSON.stringify({
           action: 'clean_expired',
-          hours: Number(retentionHoursInput),
+          hours: 72,
         }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast(data.message || 'Berhasil membersihkan pesan kadaluwarsa!', 'success');
+        showToast(data.message || 'Berhasil membersihkan pesan yang berusia lebih dari 3 hari!', 'success');
         fetchCleanupStats();
         fetchStats();
       } else {
@@ -2031,7 +1994,7 @@ if (!empty($otpData['found'])) {
               </form>
             </div>
 
-            {/* DATABASE RETENTION & AUTO-DELETE CLEANER SECTION */}
+            {/* DATABASE & AUTO-DELETE 3 HARI (WIB) CLEANER SECTION */}
             <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
@@ -2040,16 +2003,17 @@ if (!empty($otpData['found'])) {
                   </div>
                   <div>
                     <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
-                      MANAJEMEN RETENSI & BERSIHKAN DATABASE
+                      DATABASE & AUTO-DELETE (3 HARI WIB)
                     </h3>
                     <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
-                      Atur batas waktu penyimpanan email otomatis dan lakukan pembersihan pesan kadaluwarsa secara instan.
+                      Sistem menghapus email otomatis setelah 3 hari dan menyediakan opsi pembersihan manual kapan saja.
                     </p>
                   </div>
                 </div>
 
-                <div className="text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5">
-                  <span>RETENSI: {retentionHoursInput > 0 ? `${retentionHoursInput} JAM` : 'SELAMANYA'}</span>
+                <div className="text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 bg-[var(--color-green)] text-white border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>AUTO-DELETE 3 HARI (72 JAM WIB) AKTIF</span>
                 </div>
               </div>
 
@@ -2063,7 +2027,7 @@ if (!empty($otpData['found'])) {
                     {cleanupStats?.totalReceivedAllTime ?? stats?.totalReceivedAllTime ?? cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
                   </span>
                   <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
-                    Akumulatif (tidak hilang saat dihapus)
+                    Akumulatif (tetap tercatat aman)
                   </span>
                 </div>
 
@@ -2081,13 +2045,13 @@ if (!empty($otpData['found'])) {
 
                 <div className="p-3 bg-[#fef2f2] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
                   <span className="text-[9px] font-mono-custom font-black uppercase text-red-600 dark:text-red-400 block">
-                    Pesan Kadaluwarsa ({retentionHoursInput}h):
+                    Pesan Kadaluwarsa (&gt; 3 Hari):
                   </span>
                   <span className="text-base sm:text-lg font-heading font-black text-[var(--color-red)] block">
                     {cleanupStats?.expiredCount ?? 0} Pesan
                   </span>
                   <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
-                    Melebihi batas retensi waktu
+                    Melebihi batas 72 jam
                   </span>
                 </div>
 
@@ -2099,144 +2063,79 @@ if (!empty($otpData['found'])) {
                     {cleanupStats?.totalDeletedAllTime ?? 0} Pesan
                   </span>
                   <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
-                    Pesan dibersihkan/dikosongkan
+                    Total dibersihkan seumur hidup
                   </span>
                 </div>
               </div>
 
-              <form onSubmit={handleSaveRetention} className="space-y-4">
-                {/* Quick-Select Preset Pills */}
-                <div>
-                  <span className="block text-[10px] xs:text-[11px] font-black uppercase font-mono-custom mb-1.5 text-[var(--text-muted)]">
-                    Pilihan Cepat Durasi Penyimpanan (Standar WIB):
-                  </span>
-                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                    {[
-                      { hours: 72, label: '72 Jam (3 Hari) ★ Rekomendasi WIB', color: 'bg-[var(--color-yellow)] text-black' },
-                      { hours: 24, label: '24 Jam (1 Hari)', color: 'bg-white dark:bg-zinc-800 text-[var(--text-main)]' },
-                      { hours: 48, label: '48 Jam (2 Hari)', color: 'bg-white dark:bg-zinc-800 text-[var(--text-main)]' },
-                      { hours: 168, label: '168 Jam (7 Hari)', color: 'bg-white dark:bg-zinc-800 text-[var(--text-main)]' },
-                      { hours: 12, label: '12 Jam', color: 'bg-white dark:bg-zinc-800 text-[var(--text-main)]' },
-                      { hours: 1, label: '1 Jam', color: 'bg-white dark:bg-zinc-800 text-[var(--text-main)]' },
-                      { hours: 0, label: '0 (Simpan Selamanya)', color: 'bg-white dark:bg-zinc-800 text-[var(--text-main)]' },
-                    ].map((preset) => {
-                      const isSelected = retentionHoursInput === preset.hours;
-                      return (
-                        <button
-                          key={preset.hours}
-                          type="button"
-                          onClick={() => setRetentionHoursInput(preset.hours)}
-                          className={`px-2.5 xs:px-3 py-1 text-[10px] xs:text-[11px] font-mono-custom font-black border-2 border-[var(--border-color)] transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-[var(--color-green)] text-white shadow-[2px_2px_0px_var(--shadow-color)] scale-[1.02]'
-                              : `${preset.color} hover:bg-slate-100 dark:hover:bg-zinc-700 shadow-[1px_1px_0px_var(--shadow-color)]`
-                          }`}
-                        >
-                          {preset.label}
-                        </button>
-                      );
-                    })}
-                  </div>
+              {/* Information & WIB Schedule Card */}
+              <div className="p-3.5 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 shadow-[2px_2px_0px_var(--shadow-color)] space-y-2 mb-4">
+                <div className="flex items-center gap-1.5 text-xs font-mono-custom font-black text-emerald-800 dark:text-emerald-300 uppercase">
+                  <Clock className="w-4 h-4 text-emerald-600" />
+                  <span>KEBIJAKAN RETENSI OTOMATIS 3 HARI (ZONA WAKTU WIB / UTC+7)</span>
                 </div>
+                <div className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-main)] space-y-1">
+                  <p>
+                    Setiap email yang masuk ke sistem HeyFlatimo Temp Mail akan <strong>otomatis terhapus permanen setelah 3 hari (72 jam)</strong> oleh background task MongoDB TTL.
+                  </p>
+                  <p className="text-emerald-700 dark:text-emerald-400">
+                    <strong>Simulasi Jadwal:</strong> Email yang masuk saat ini akan otomatis dimusnahkan pada:{' '}
+                    <code className="bg-white dark:bg-zinc-950 px-1.5 py-0.5 border border-emerald-400 font-bold">
+                      {new Date(Date.now() + 72 * 3600000).toLocaleString('id-ID', {
+                        timeZone: 'Asia/Jakarta',
+                        dateStyle: 'full',
+                        timeStyle: 'medium',
+                      })}{' '}
+                      WIB
+                    </code>
+                  </p>
+                </div>
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 items-end">
+              {/* Action Buttons: Clean >3 Days and Clean All */}
+              <div className="space-y-3">
+                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div>
-                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-blue)] dark:text-[var(--color-cyan)] flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>Pilih Batas Waktu Auto-Delete Pesan (WIB):</span>
-                    </label>
-                    <select
-                      value={retentionHoursInput}
-                      onChange={(e) => setRetentionHoursInput(Number(e.target.value))}
-                      className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold bg-white dark:bg-zinc-900 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
-                    >
-                      <option value={72}>72 Jam (3 Hari - Rekomendasi Standar WIB)</option>
-                      <option value={48}>48 Jam (2 Hari)</option>
-                      <option value={24}>24 Jam (1 Hari)</option>
-                      <option value={12}>12 Jam (Setengah Hari)</option>
-                      <option value={6}>6 Jam</option>
-                      <option value={1}>1 Jam (Sangat Singkat)</option>
-                      <option value={168}>168 Jam (7 Hari / 1 Minggu)</option>
-                      <option value={0}>0 (Simpan Selamanya / Tanpa Auto-Delete)</option>
-                    </select>
+                    <span className="text-xs font-mono-custom font-black text-[var(--text-main)] block">
+                      Pembersihan Manual Email Kadaluwarsa (&gt; 3 Hari)
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
+                      Paksa hapus pesan yang usianya sudah lebih dari 72 jam sekarang tanpa menunggu background worker.
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="submit"
-                      disabled={isSavingRetention}
-                      className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-4 py-2 sm:py-2.5 text-xs font-black flex-1 flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
-                    >
-                      <Save className="w-4 h-4" />
-                      <span>{isSavingRetention ? 'MENYIMPAN...' : 'SIMPAN RETENSI'}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleCleanExpired}
-                      disabled={isCleaningExpired}
-                      className="brutal-btn bg-[var(--color-orange)] text-white hover:bg-orange-600 px-4 py-2 sm:py-2.5 text-xs font-black flex-1 flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
-                      title="Hapus pesan yang umurnya sudah melewati batas retensi"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>{isCleaningExpired ? 'MEMBERSIHKAN...' : 'BERSIHKAN KADALUWARSA'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Live Simulation Card of Expiration Schedule in WIB */}
-                <div className="p-3 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in">
-                  <div className="flex items-center gap-1.5 text-xs font-mono-custom font-black text-emerald-800 dark:text-emerald-300 uppercase mb-1">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>SIMULASI JADWAL AUTO-DELETE (ZONA WAKTU WIB / UTC+7)</span>
-                  </div>
-                  <div className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-main)] space-y-0.5">
-                    {retentionHoursInput > 0 ? (
-                      <>
-                        <p>
-                          <strong>Durasi Penyimpanan:</strong> {retentionHoursInput} Jam ({retentionHoursInput / 24 >= 1 ? `${(retentionHoursInput / 24).toFixed(retentionHoursInput % 24 === 0 ? 0 : 1)} Hari` : `${retentionHoursInput} Jam`})
-                        </p>
-                        <p className="text-emerald-700 dark:text-emerald-400">
-                          <strong>Jadwal Hapus Otomatis:</strong> Email yang masuk saat ini akan otomatis dihapus permanen oleh MongoDB TTL pada:{' '}
-                          <code className="bg-white dark:bg-zinc-950 px-1.5 py-0.2 border border-emerald-400 font-bold">
-                            {new Date(Date.now() + retentionHoursInput * 3600000).toLocaleString('id-ID', {
-                              timeZone: 'Asia/Jakarta',
-                              dateStyle: 'full',
-                              timeStyle: 'medium',
-                            })}{' '}
-                            WIB
-                          </code>
-                        </p>
-                      </>
-                    ) : (
-                      <p className="text-amber-700 dark:text-amber-400">
-                        <strong>Mode Penyimpanan:</strong> Simpan Selamanya (Pesan tidak akan pernah dihapus otomatis sampai dibersihkan manual).
-                      </p>
-                    )}
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCleanExpired}
+                    disabled={isCleaningExpired}
+                    className="brutal-btn bg-[var(--color-orange)] text-white hover:bg-orange-600 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>{isCleaningExpired ? 'MEMBERSIHKAN...' : 'BERSIHKAN EMAIL > 3 HARI'}</span>
+                  </button>
                 </div>
 
                 {/* Emergency Clear All Action */}
-                <div className="p-3 bg-red-50 dark:bg-red-950/40 border-[2px] border-dashed border-red-300 dark:border-red-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mt-4">
+                <div className="p-3 bg-red-50 dark:bg-red-950/40 border-[2px] border-dashed border-red-300 dark:border-red-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div>
                     <span className="text-xs font-mono-custom font-black text-red-700 dark:text-red-300 block">
-                      Zona Berbahaya: Kosongkan Seluruh Database Email
+                      Pembersihan Total: Hapus Semua Pesan Saat Ini
                     </span>
                     <span className="text-[10px] sm:text-[11px] font-mono-custom text-zinc-500 block">
-                      Menghapus semua pesan email tanpa terkecuali untuk menghemat ruang MongoDB.
+                      Menghapus seluruh pesan email yang ada di database saat ini, termasuk yang baru masuk (&lt; 1 hari atau &lt; 3 hari).
                     </span>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setShowCleanAllModal(true)}
-                    className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-700 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0"
+                    className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-700 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 cursor-pointer"
                   >
                     <AlertTriangle className="w-3.5 h-3.5" />
                     <span>HAPUS SEMUA PESAN</span>
                   </button>
                 </div>
-              </form>
+              </div>
             </div>
 
             {/* CONFIRM CLEAN ALL MODAL */}
@@ -2257,15 +2156,19 @@ if (!empty($otpData['found'])) {
                     </div>
                   </div>
 
-                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
-                    Apakah Anda yakin ingin menghapus <strong>seluruh pesan email</strong> dari database? Semua data inbox pengguna akan terhapus total.
+                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-3 leading-relaxed">
+                    Apakah Anda yakin ingin menghapus <strong>seluruh pesan email</strong> yang ada di database saat ini?
                   </p>
+
+                  <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-[11px] font-mono-custom text-amber-900 dark:text-amber-200 mb-5">
+                    <strong>Perhatian:</strong> Pesan yang baru masuk (walaupun belum sampai 1 hari atau 3 hari) juga akan <strong>langsung ikut terhapus</strong>. Namun total statistik email masuk all-time Anda tetap aman.
+                  </div>
 
                   <div className="flex items-center justify-end gap-2">
                     <button
                       type="button"
                       onClick={() => setShowCleanAllModal(false)}
-                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
+                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold cursor-pointer"
                     >
                       BATAL
                     </button>
