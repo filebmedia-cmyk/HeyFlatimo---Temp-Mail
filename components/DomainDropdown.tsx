@@ -32,13 +32,21 @@ export default function DomainDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Normalize domain list to DomainOption[]
+  // Normalize domain list to DomainOption[] and sort VIP domains on top
   const normalizedDomains: DomainOption[] = useMemo(() => {
-    return domains.map((d) => {
+    const list = domains.map((d) => {
       if (typeof d === 'string') {
         return { domain: d, isVip: false };
       }
       return d;
+    });
+
+    return list.sort((a, b) => {
+      // 1. VIP domains always on top
+      if (a.isVip && !b.isVip) return -1;
+      if (!a.isVip && b.isVip) return 1;
+      // 2. Alphabetical sort within the same VIP status
+      return a.domain.localeCompare(b.domain);
     });
   }, [domains]);
 

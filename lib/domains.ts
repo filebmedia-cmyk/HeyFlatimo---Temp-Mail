@@ -40,7 +40,13 @@ export async function getAllDomainDetails(): Promise<DomainItem[]> {
     // Continue with env domains if DB offline
   }
 
-  return Array.from(domainMap.values());
+  return Array.from(domainMap.values()).sort((a, b) => {
+    // 1. VIP domains always on top
+    if (a.isVip && !b.isVip) return -1;
+    if (!a.isVip && b.isVip) return 1;
+    // 2. Alphabetical sort within the same VIP status
+    return a.domain.localeCompare(b.domain);
+  });
 }
 
 /**
