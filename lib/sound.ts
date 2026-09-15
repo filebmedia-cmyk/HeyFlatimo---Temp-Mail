@@ -1,9 +1,10 @@
 /**
- * Web Audio API synthesizer for clean notification chimes without external audio assets.
- * Default sound state: MUTE / SILENT (false)
+ * Web Audio API synthesizer for clean notification chimes with full iOS & Android mobile support.
+ * Includes user-interaction audio context unlocking, crisp mobile frequency tuning, and haptic vibration.
  */
 
 let audioCtx: AudioContext | null = null;
+let isAudioUnlocked = false;
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -14,45 +15,111 @@ function getAudioContext(): AudioContext | null {
         audioCtx = new AudioCtxClass();
       }
     }
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume().catch(() => {});
-    }
     return audioCtx;
   } catch (e) {
     return null;
   }
 }
 
-export function playNotificationSound(): void {
+/**
+ * Explicitly unlock Web Audio stack on iOS Safari & Android mobile browsers.
+ * Must be triggered by a user gesture (touch, click, pointerdown).
+ */
+export function unlockAudio(): void {
+  if (typeof window === 'undefined') return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
 
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(() => {
+        isAudioUnlocked = true;
+      }).catch(() => {});
+    }
+
+    // Play an inaudible 1-sample buffer to satisfy iOS WebKit autoplay policy
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+
+    if (ctx.state === 'running') {
+      isAudioUnlocked = true;
+    }
+  } catch (e) {
+    // Ignore unlock errors
+  }
+}
+
+// Auto-register touch/click interaction listeners to unlock audio on first mobile interaction
+if (typeof window !== 'undefined') {
+  const unlockEvents = ['touchstart', 'touchend', 'click', 'pointerdown', 'keydown'];
+  const handleFirstInteraction = () => {
+    unlockAudio();
+    if (isAudioUnlocked) {
+      unlockEvents.forEach((evt) => {
+        window.removeEventListener(evt, handleFirstInteraction, true);
+      });
+    }
+  };
+
+  unlockEvents.forEach((evt) => {
+    window.addEventListener(evt, handleFirstInteraction, { passive: true, capture: true });
+  });
+}
+
+/**
+ * Play a bright, clean, mobile-optimized two-tone notification chime.
+ * Also triggers haptic vibration on supported Android / mobile devices.
+ */
+export function playNotificationSound(): void {
+  // 1. Haptic Vibration Feedback for Mobile Devices
+  try {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate([100, 50, 150]);
+    }
+  } catch (e) {
+    // Vibration ignored if unsupported
+  }
+
+  // 2. Synthesize High-Clarity Notification Chime
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    // Ensure context is resumed
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+
     const now = ctx.currentTime;
 
-    // Tone 1: Melodic intro beep (587.33 Hz - D5)
+    // Tone 1: Bright Crisp Intro Note (880.00 Hz - A5)
     const osc1 = ctx.createOscillator();
     const gain1 = ctx.createGain();
     osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(587.33, now);
-    gain1.gain.setValueAtTime(0.18, now);
+    osc1.frequency.setValueAtTime(880, now);
+    gain1.gain.setValueAtTime(0.001, now);
+    gain1.gain.linearRampToValueAtTime(0.28, now + 0.02);
     gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
     osc1.connect(gain1);
     gain1.connect(ctx.destination);
     osc1.start(now);
     osc1.stop(now + 0.22);
 
-    // Tone 2: Harmonious high chime (880.00 Hz - A5)
+    // Tone 2: Melodic High Harmonic Bell (1318.51 Hz - E6) - Crystal clear on phone speakers
     const osc2 = ctx.createOscillator();
     const gain2 = ctx.createGain();
     osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(880, now + 0.1);
-    gain2.gain.setValueAtTime(0.22, now + 0.1);
-    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+    osc2.frequency.setValueAtTime(1318.51, now + 0.09);
+    gain2.gain.setValueAtTime(0.001, now + 0.09);
+    gain2.gain.linearRampToValueAtTime(0.32, now + 0.11);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
     osc2.connect(gain2);
     gain2.connect(ctx.destination);
-    osc2.start(now + 0.1);
-    osc2.stop(now + 0.6);
+    osc2.start(now + 0.09);
+    osc2.stop(now + 0.65);
   } catch (err) {
     console.debug('Audio chime playback omitted:', err);
   }
@@ -69,3 +136,4 @@ export function setSoundEnabled(enabled: boolean): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(SOUND_STORAGE_KEY, enabled ? 'true' : 'false');
 }
+

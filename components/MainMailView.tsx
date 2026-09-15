@@ -12,7 +12,7 @@ import VipCdkModal from '@/components/VipCdkModal';
 import QrCodeModal from '@/components/QrCodeModal';
 import { EmailMessage } from '@/components/MessageReader';
 import { generateRandomPrefix } from '@/lib/generator';
-import { playNotificationSound, getSoundEnabled, setSoundEnabled } from '@/lib/sound';
+import { playNotificationSound, unlockAudio, getSoundEnabled, setSoundEnabled } from '@/lib/sound';
 
 const AUTO_SYNC_INTERVAL = 3; // 3 Detik Realtime
 
@@ -107,13 +107,14 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   }, []);
 
   const handleToggleSound = () => {
+    unlockAudio();
     const next = !isSoundEnabled;
     setIsSoundEnabled(next);
     isSoundEnabledRef.current = next;
     setSoundEnabled(next);
     if (next) {
       playNotificationSound();
-      showToast('Suara Notifikasi Diaktifkan', 'info');
+      showToast('Suara Notifikasi Diaktifkan (Bunyi & Getar)', 'info');
     } else {
       showToast('Suara Notifikasi Dinonaktifkan (Mute)', 'info');
     }
