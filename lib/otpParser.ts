@@ -21,199 +21,132 @@ export interface ExtractedLinksResult {
   allLinks: string[];
 }
 
-const STOP_WORDS = new Set([
-  'WHATSAPP',
-  'TELEGRAM',
-  'GOOGLE',
-  'FACEBOOK',
-  'INSTAGRAM',
-  'VERIFY',
-  'ACCOUNT',
-  'SECURITY',
-  'CONFIRM',
-  'ACCESS',
-  'LOGIN',
-  'SIGNIN',
-  'SIGNUP',
-  'PASSWORD',
-  'PASSCODE',
-  'BERIKAN',
-  'RAHASIA',
-  'KODE',
-  'CODE',
-  'VERIFIKASI',
-  'KEAMANAN',
-  'KONFIRMASI',
-  'AKTIVASI',
-  'MASUK',
-  'DAFTAR',
-  'JANGAN',
-  'EMAIL',
-  'NOMOR',
-  'NUMBER',
-  'DEVICE',
-  'PERANGKAT',
-  'UNTUK',
-  'ADALAH',
-  'YOUR',
-  'THIS',
-  'KAMI',
-  'ANDA',
-  'KAMU',
-  'SYSTEM',
-  'TERIMA',
-  'KASIH',
-]);
-
 /**
- * Pembersih Teks: Menghapus tanggal, waktu, format mata uang, nomor resi/pesanan,
- * dan pola angka non-OTP agar tidak salah mendeteksi angka tersebut sebagai kode OTP.
+ * Pembersih Teks: Menghapus tanggal, waktu, format mata uang, dan pola angka non-OTP
+ * agar tidak salah mendeteksi tanggal (misal: 15/09/2026, 2026, 10:45:30) sebagai kode OTP.
  */
-export function cleanTextForOtp(input: string): string {
+function cleanTextForOtp(input: string): string {
   if (!input) return '';
 
-  return (
-    input
-      // 1. Hapus URL lengkap dan email terlebih dahulu agar angka di URL/email tidak dianggap OTP
-      .replace(/https?:\/\/[^\s<>"']+/gi, ' ')
-      .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, ' ')
+  return input
+    // 1. Hapus URL lengkap dan email terlebih dahulu agar angka di URL/email tidak dianggap OTP
+    .replace(/https?:\/\/[^\s<>"']+/gi, ' ')
+    .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, ' ')
 
-      // 2. Hapus format Tanggal ISO (2026-09-15T18:30:00Z)
-      .replace(/\b\d{4}-\d{2}-\d{2}(?:T|\s+)\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?Z?\b/gi, ' ')
+    // 2. Hapus format Tanggal ISO (2026-09-15T10:45:00Z)
+    .replace(/\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\b/gi, ' ')
 
-      // 3. Hapus Tanggal Standar (YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY, YYYY/MM/DD)
-      .replace(/\b\d{4}[-/.]\d{1,2}[-/.]\d{1,2}\b/g, ' ')
-      .replace(/\b\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}\b/g, ' ')
+    // 3. Hapus Tanggal Standar (YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY, YYYY/MM/DD, DD.MM.YYYY)
+    .replace(/\b\d{4}[-/.]\d{1,2}[-/.]\d{1,2}\b/g, ' ')
+    .replace(/\b\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}\b/g, ' ')
 
-      // 4. Hapus Tanggal Nama Bulan (misal: "15 September 2026", "15 Sep 2026", "September 15, 2026", "15-Sep-2026")
-      .replace(
-        /\b\d{1,2}[-\s]+(?:Jan(?:uari)?|Feb(?:ruari)?|Mar(?:et)?|Apr(?:il)?|Mei|May|Jun(?:i)?|Jul(?:i)?|Agu(?:stus)?|Aug(?:ust)?|Sep(?:tember)?|Okt(?:ober)?|Oct(?:ober)?|Nov(?:ember)?|Des(?:ember)?|Dec(?:ember)?)[-\s]+\d{2,4}\b/gi,
-        ' '
-      )
-      .replace(
-        /\b(?:Jan(?:uari)?|Feb(?:ruari)?|Mar(?:et)?|Apr(?:il)?|Mei|May|Jun(?:i)?|Jul(?:i)?|Agu(?:stus)?|Aug(?:ust)?|Sep(?:tember)?|Okt(?:ober)?|Oct(?:ober)?|Nov(?:ember)?|Des(?:ember)?|Dec(?:ember)?)\s+\d{1,2},?\s+\d{2,4}\b/gi,
-        ' '
-      )
+    // 4. Hapus Tanggal Nama Bulan (misal: "15 September 2026", "15 Sep 2026", "September 15, 2026")
+    .replace(
+      /\b\d{1,2}\s+(?:Jan(?:uari)?|Feb(?:ruari)?|Mar(?:et)?|Apr(?:il)?|Mei|May|Jun(?:i)?|Jul(?:i)?|Agu(?:stus)?|Aug(?:ust)?|Sep(?:tember)?|Okt(?:ober)?|Oct(?:ober)?|Nov(?:ember)?|Des(?:ember)?|Dec(?:ember)?)\s+\d{2,4}\b/gi,
+      ' '
+    )
+    .replace(
+      /\b(?:Jan(?:uari)?|Feb(?:ruari)?|Mar(?:et)?|Apr(?:il)?|Mei|May|Jun(?:i)?|Jul(?:i)?|Agu(?:stus)?|Aug(?:ust)?|Sep(?:tember)?|Okt(?:ober)?|Oct(?:ober)?|Nov(?:ember)?|Des(?:ember)?|Dec(?:ember)?)\s+\d{1,2},?\s+\d{2,4}\b/gi,
+      ' '
+    )
 
-      // 5. Hapus Waktu/Jam (18:45:00, 18:45, 18.45 WIB, 08:30 PM)
-      .replace(/\b\d{1,2}[:.]\d{2}(?::\d{2})?(?:\s*(?:WIB|WITA|WIT|AM|PM|UTC|GMT))?\b/gi, ' ')
+    // 5. Hapus Waktu/Jam (HH:MM:SS, HH:MM WIB/AM/PM)
+    .replace(/\b\d{1,2}:\d{2}(?::\d{2})?(?:\s*(?:WIB|WITA|WIT|AM|PM|UTC|GMT))?\b/gi, ' ')
 
-      // 6. Hapus Nominal Uang / Rupiah (Rp 250.000, Rp. 250.000,00, $100.00, IDR 50.000)
-      .replace(/(?:Rp\.?|IDR|\$|€|£|¥|USD|EUR)\s*[\d.,]+/gi, ' ')
-      .replace(/\b[\d.,]+(?:\s*,-|\s*rupiah|\s*dollars?)\b/gi, ' ')
+    // 6. Hapus Nominal Uang / Rupiah (Rp 250.000, $100.00)
+    .replace(/(?:Rp|IDR|\$|€|£|¥)\s*[\d.,]+/gi, ' ')
 
-      // 7. Hapus Nomor Resi / Order / Invoice / Telepon / Kode Pos
-      .replace(/\b(?:INV|ORDER|RESI|TRX|TXN|NO|NOMOR|REF|TICKET|ID|PESANAN)[-:#\s]*[A-Z0-9-]+\b/gi, ' ')
-      .replace(/\b(?:kodepos|postal\s*code|zip\s*code)[\s:]*\d{4,6}\b/gi, ' ')
-      .replace(/(?:\+?62|08|\+1|\+44|\+60)\d{8,13}\b/g, ' ')
-      .replace(/\(?0\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,5}\b/g, ' ')
+    // 7. Hapus Tahun umum 1900 - 2099 jika berdiri sendiri tanpa kata kunci
+    .replace(/\b(19\d\d|20[0-9]\d)\b/g, ' ')
 
-      // 8. Hapus Tahun umum 1900 - 2099 jika berdiri sendiri
-      .replace(/\b(19\d\d|20[0-9]\d)\b/g, ' ')
+    // 8. Hapus format nomor telepon / seluler (+628..., 0812..., (021)...)
+    .replace(/(?:\+62|62|08)\d{8,12}\b/g, ' ')
+    .replace(/\(?0\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,5}\b/g, ' ')
 
-      // 9. Hapus tag HTML
-      .replace(/<[^>]*>/g, ' ')
-  );
-}
-
-/**
- * Validasi apakah kode adalah format OTP yang sah
- */
-export function isValidOtpCode(code: string): boolean {
-  if (!code) return false;
-  const clean = code.trim().toUpperCase();
-  if (STOP_WORDS.has(clean)) return false;
-
-  // Kode berformat awalan huruf atau pemisah tanda hubung (misal: G-492018 atau 849-201)
-  if (/^[A-Z0-9]{1,3}-[0-9]{3,6}$/.test(clean)) return true;
-
-  // Kode angka murni: 4 hingga 8 digit
-  if (/^[0-9]{4,8}$/.test(clean)) {
-    const num = parseInt(clean, 10);
-    // Tolak tahun umum 1950 - 2050 jika 4 digit
-    if (clean.length === 4 && num >= 1950 && num <= 2050) return false;
-    return true;
-  }
-
-  // Kode alfanumerik: 4 hingga 8 karakter dan wajib memiliki setidaknya 1 angka (misal: X9K2P4)
-  if (/^[A-Z0-9]{4,8}$/.test(clean) && /\d/.test(clean)) {
-    return true;
-  }
-
-  return false;
+    // 9. Hapus tag HTML
+    .replace(/<[^>]*>/g, ' ');
 }
 
 export function extractOtp(text: string = '', html: string = '', subject: string = ''): ExtractedOtpResult {
   const candidates: string[] = [];
 
+  // Bersihkan subject dan konten dari tanggal/waktu
   const cleanSubject = cleanTextForOtp(subject);
   const cleanBody = cleanTextForOtp(`${text} ${html}`);
   const combined = `${cleanSubject}\n${cleanBody}`;
 
-  const fullRaw = `${subject} ${text} ${html}`;
-  const hasAuthContext =
-    /(?:otp|one[- ]time\s+pass(?:word|code)|kode\s+verifikasi|verification\s+code|security\s+code|kode\s+keamanan|confirmation\s+code|kode\s+konfirmasi|login\s+code|kode\s+masuk|passcode|auth\s+code|aktivasi|activate|verifikasi|verify|2fa|two[- ]factor)/i.test(
-      fullRaw
-    );
-
-  // 1. Pola RegEx OTP Berpresisi Tinggi
+  // 1. PRIORITY TIER 1: Pola Kontekstual Kuat (Indonesian & English)
   const highConfidenceRegexes = [
-    // Pola Frasa Kode Verifikasi / Keamanan / Konfirmasi dengan kata perantara terbatas
-    /(?:kode\s+(?:verifikasi|keamanan|konfirmasi|otp|akses|rahasia|masuk|login|otentikasi)|verification\s+code|security\s+code|confirmation\s+code|otp\s+code|login\s+code|passcode|auth(?:entication)?\s+code)(?:\s+(?:is|your|for|to|adalah|ini|anda|kamu|berikut)){0,4}[\s:=#]*([A-Z]-[0-9]{4,8}|[0-9]{3,4}-[0-9]{3,4}|[0-9]{4,8}|(?=[A-Z0-9]*\d)[A-Z0-9]{4,8})\b/i,
-
-    // Pola Aksi: "masukkan kode 123456", "use code 123456", "your code is 123456", "kode anda adalah 123456"
-    /(?:kode\s+(?:anda|kamu|ini)\s+(?:adalah|:)|your\s+(?:code|otp|passcode|pin)\s+(?:is|:)|use\s+(?:code|otp|passcode)|enter\s+(?:code|otp|passcode)|masukkan\s+kode|gunakan\s+kode)[\s:=#]*([A-Z]-[0-9]{4,8}|[0-9]{3,4}-[0-9]{3,4}|[0-9]{4,8}|(?=[A-Z0-9]*\d)[A-Z0-9]{4,8})\b/i,
-
-    // Pola Sufiks: "G-492018 is your Google verification code" atau "123456 is your verification code"
-    /(?:^|\s)([A-Z]-[0-9]{4,8}|[0-9]{3,4}-[0-9]{3,4}|[0-9]{4,8}|(?=[A-Z0-9]*\d)[A-Z0-9]{4,8})\s+(?:is\s+your\s+(?:verification|security|login|otp|confirmation|access|auth|google|whatsapp)\s+code|adalah\s+kode\s+(?:verifikasi|keamanan|otp|akses|masuk|konfirmasi)|is\s+your\s+(?:code|otp|passcode)|untuk\s+verifikasi\s+akun|to\s+verify\s+your\s+account)/i,
-
-    // Standalone OTP label
-    /\b(?:otp|one[- ]time\s+pass(?:word|code))[\s:=#]*([A-Z]-[0-9]{4,8}|[0-9]{3,4}-[0-9]{3,4}|[0-9]{4,8}|(?=[A-Z0-9]*\d)[A-Z0-9]{4,8})\b/i,
+    // Subjek spesifik OTP
+    /\b([0-9]{4,8})\b[\s\S]{0,30}(?:is\s+your|adalah\s+kode|adalah\s+OTP|verification\s+code|kode\s+verifikasi)/i,
+    // Pola Frasa Kode Verifikasi / Keamanan / Konfirmasi
+    /(?:kode\s+(?:verifikasi|keamanan|konfirmasi|otp|akses|rahasia|masuk|login)(?:\s+(?:anda|kamu|ini))?(?:\s+(?:adalah|:))?|verification\s+code|security\s+code|confirmation\s+code|otp\s+code|login\s+code|passcode)[\s:=#\-\.]*([0-9]{4,8})\b/i,
+    // Pola "kode anda adalah: 123456" atau "your code is: 123456"
+    /(?:kode\s+(?:anda|kamu|ini)\s+(?:adalah|:)|your\s+(?:code|otp|passcode)\s+(?:is|:)|use\s+code|enter\s+code|masukkan\s+kode|gunakan\s+kode)[\s:=#\-\.]*([0-9]{4,8})\b/i,
+    // Pola angka yang diikuti keterangan verifikasi
+    /\b([0-9]{4,8})\b[\s\S]{0,35}(?:is\s+your\s+(?:verification|security|login|otp|confirmation|access)\s+code|adalah\s+kode\s+(?:verifikasi|keamanan|otp|akses|masuk)|is\s+your\s+code|to\s+verify\s+your\s+account|untuk\s+verifikasi\s+akun)/i,
+    // Pola label OTP/Kode murni
+    /(?:one[- ]time\s+password|passcode)[\s:=#\-\.]*([0-9]{4,8})\b/i,
+    /\botp[\s:=#\-\.]*([0-9]{4,8})\b/i,
+    /\bkode[\s:=#\-\.]*([0-9]{4,8})\b/i,
   ];
 
+  // Cari di Subject terlebih dahulu jika ada context kata kunci
+  const hasSubjectKeyword = /(?:otp|code|kode|verif|confirm|passcode|pin|auth|security|keamanan)/i.test(subject);
+  if (hasSubjectKeyword) {
+    const subjMatch = cleanSubject.match(/\b([0-9]{4,8})\b/);
+    if (subjMatch && !candidates.includes(subjMatch[1])) {
+      candidates.push(subjMatch[1]);
+    }
+  }
+
+  // Cari pola high confidence di seluruh konten bersih
   for (const regex of highConfidenceRegexes) {
     let match;
     const globalRegex = new RegExp(regex.source, 'gi');
     while ((match = globalRegex.exec(combined)) !== null) {
-      const code = match[1]?.trim();
-      if (code && isValidOtpCode(code) && !candidates.includes(code)) {
+      const code = match[1];
+      if (code && !candidates.includes(code)) {
         candidates.push(code);
       }
     }
   }
 
-  // 2. Jika Subjek secara eksplisit memiliki label kode/OTP (misal: "Kode verifikasi Anda: 849201")
-  if (candidates.length === 0 && /(?:otp|kode|code|pin)/i.test(subject)) {
-    const subjMatch = cleanSubject.match(
-      /(?:otp|kode|code|pin)[\s:=#]*([A-Z]-[0-9]{4,8}|[0-9]{3,4}-[0-9]{3,4}|[0-9]{4,8}|(?=[A-Z0-9]*\d)[A-Z0-9]{4,8})\b/i
-    );
-    if (subjMatch) {
-      const code = subjMatch[1]?.trim();
-      if (code && isValidOtpCode(code) && !candidates.includes(code)) {
-        candidates.push(code);
-      }
-    }
-  }
+  // 2. PRIORITY TIER 2: HTML Element dengan penekanan kuat (badge, bold, code, large font)
+  // Syarat: Email harus memiliki konteks verifikasi / login / akun
+  const hasAuthContext = /(?:verif|aktivasi|activate|confirm|konfirmasi|login|masuk|account|akun|daftar|register|signup|sign in|security|keamanan|password|token|pin)/i.test(
+    `${subject} ${text} ${html}`
+  );
 
-  // 3. Tag HTML Highlighted (<code>, <strong/b>, <h1-h3>) HANYA jika email memiliki konteks autentikasi/keamanan
   if (candidates.length === 0 && hasAuthContext) {
+    // Cari angka di dalam tag <code>, <strong/b>, <h1-h3>, atau inline style besar
     const htmlStructuralRegex =
-      /<(?:code|strong|b|h1|h2|h3)[^>]*>[\s\r\n]*([A-Z]-[0-9]{4,8}|[0-9]{3,4}-[0-9]{3,4}|[0-9]{4,8}|(?=[A-Z0-9]*\d)[A-Z0-9]{4,8})[\s\r\n]*<\/(?:code|strong|b|h1|h2|h3)>/gi;
+      /<(?:code|strong|b|h1|h2|h3)[^>]*>[\s\r\n]*([0-9]{4,8})[\s\r\n]*<\/(?:code|strong|b|h1|h2|h3)>/gi;
     let match;
     while ((match = htmlStructuralRegex.exec(html)) !== null) {
-      const code = match[1]?.trim();
-      if (code && isValidOtpCode(code) && !candidates.includes(code)) {
+      const code = match[1];
+      if (code && !candidates.includes(code)) {
         candidates.push(code);
       }
     }
   }
 
-  const primaryOtp = candidates.length > 0 ? candidates[0] : null;
+  // Filter kandidat: buang jika tahun (1950-2050) atau format tidak wajar
+  const validCandidates = candidates.filter((c) => {
+    const num = parseInt(c, 10);
+    // Tolak tahun umum
+    if (c.length === 4 && num >= 1950 && num <= 2050) return false;
+    // Tolak angka terlalu pendek (<4) atau terlalu panjang (>8)
+    if (c.length < 4 || c.length > 8) return false;
+    return true;
+  });
+
+  const primaryOtp = validCandidates.length > 0 ? validCandidates[0] : null;
 
   return {
     found: primaryOtp !== null,
     otp: primaryOtp,
-    allCandidates: candidates,
+    allCandidates: validCandidates,
   };
 }
 
@@ -241,26 +174,6 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
   const linkCandidates: ExtractedLinkItem[] = [];
   const seenUrls = new Set<string>();
 
-  const isInvalidUrl = (u: string) => {
-    const lower = u.toLowerCase();
-    return (
-      lower.includes('schemas.microsoft.com') ||
-      lower.includes('w3.org') ||
-      lower.includes('schema.org') ||
-      lower.startsWith('mailto:') ||
-      lower.startsWith('tel:') ||
-      lower.startsWith('javascript:') ||
-      lower.endsWith('.png') ||
-      lower.endsWith('.jpg') ||
-      lower.endsWith('.jpeg') ||
-      lower.endsWith('.gif') ||
-      lower.endsWith('.svg') ||
-      lower.endsWith('.css') ||
-      lower.endsWith('.pdf') ||
-      lower.endsWith('.js')
-    );
-  };
-
   // 1. Ekstrak dari Tag HTML `<a ... href="...">Text</a>`
   const anchorTagRegex = /<a\b([^>]*?)href=["']([^"'\s>]+)["']([^>]*)>([\s\S]*?)<\/a>/gi;
   let anchorMatch;
@@ -276,7 +189,24 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
     const fullAttr = `${beforeAttr} ${afterAttr}`;
 
     if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) continue;
-    if (isInvalidUrl(rawUrl)) continue;
+
+    // Filter link tidak relevan / media / schema
+    const lowerUrl = rawUrl.toLowerCase();
+    if (
+      lowerUrl.includes('schemas.microsoft.com') ||
+      lowerUrl.includes('w3.org') ||
+      lowerUrl.includes('schema.org') ||
+      lowerUrl.startsWith('mailto:') ||
+      lowerUrl.startsWith('javascript:') ||
+      lowerUrl.endsWith('.png') ||
+      lowerUrl.endsWith('.jpg') ||
+      lowerUrl.endsWith('.jpeg') ||
+      lowerUrl.endsWith('.gif') ||
+      lowerUrl.endsWith('.svg') ||
+      lowerUrl.endsWith('.css')
+    ) {
+      continue;
+    }
 
     // Ambil konteks di sekitar tag ini (150 karakter sebelum dan sesudah)
     const matchIndex = anchorMatch.index;
@@ -286,7 +216,6 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
 
     let score = 0;
     const lowerLabel = labelText.toLowerCase();
-    const lowerUrl = rawUrl.toLowerCase();
     const lowerSurrounding = surroundingSnippet.toLowerCase();
 
     // ==========================================
@@ -308,21 +237,22 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
       'this link',
       'link verifikasi',
       'link aktivasi',
+      'buka link',
+      'klik di sini',
+      'klik disini',
+      'click here',
+      'get started',
       'complete registration',
       'claim access',
+      'masuk akun',
+      'log in',
+      'login',
       'setujui',
-      'reset password',
-      'magic link',
-      'login link',
-      'masuk sekarang',
-      'claim your',
     ];
 
-    let hasHighIntentLabel = false;
     for (const kw of highIntentLabelKeywords) {
       if (lowerLabel.includes(kw)) {
         score += 60;
-        hasHighIntentLabel = true;
         break;
       }
     }
@@ -343,21 +273,6 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
       score += 40;
     }
 
-    // Generic CTA labels ("klik di sini", "click here", "buka link", "get started") only get points if surrounding text has verification context
-    const isGenericCta =
-      /(?:klik\s*di\s*sini|klik\s*disini|click\s*here|buka\s*link|open\s*link|get\s*started|continue|lanjutkan|buka|lihat)/i.test(
-        lowerLabel
-      );
-    if (isGenericCta) {
-      const hasSurroundingContext =
-        /(?:verif|aktivasi|activate|confirm|konfirmasi|langganan|subscription|daftar|register|signup|akun|account|security|keamanan|reset)/i.test(
-          lowerSurrounding
-        );
-      if (hasSurroundingContext) {
-        score += 40;
-      }
-    }
-
     // ==========================================
     // SKORING: URL & Query Token
     // ==========================================
@@ -368,26 +283,28 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
       'activation',
       'confirm',
       'confirmation',
-      'subscription',
       'subscribe',
-      'magic-link',
-      'auth-token',
-      'email-verification',
-      'validate-email',
+      'subscription',
+      'token',
+      'auth',
+      'magic',
+      'validate',
+      'action',
+      'signup',
+      'register',
+      'access',
     ];
 
-    let hasHighIntentUrl = false;
     for (const kw of urlIntentKeywords) {
       if (lowerUrl.includes(kw)) {
-        score += 45;
-        hasHighIntentUrl = true;
+        score += 35;
         break;
       }
     }
 
     // Ada parameter token / kode keamanan di URL (misal ?token=... / ?code=... / ?key=...)
-    if (/(?:token|code|key|auth|signature|hash|verification_token)=/i.test(rawUrl)) {
-      score += 30;
+    if (/(?:token|code|key|auth|signature|hash|id|uuid|ticket)=/i.test(rawUrl)) {
+      score += 25;
     }
 
     // ==========================================
@@ -408,47 +325,45 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
 
     // Tombol CTA (Class seperti btn, button, cta)
     if (/(?:btn|button|cta|action-link|verify-btn)/i.test(fullAttr)) {
-      score += 15;
+      score += 20;
     }
 
     // ==========================================
     // PENALTI: Link Unsubscribe / Social / Privacy
     // ==========================================
-    const isUnsubscribe = /(?:unsubscribe|optout|opt-out|berhenti\s*langganan)/i.test(
-      `${lowerLabel} ${lowerUrl}`
+    const isUnsubscribe =
+      lowerLabel.includes('unsubscribe') ||
+      lowerLabel.includes('berhenti langganan') ||
+      lowerUrl.includes('unsubscribe') ||
+      lowerUrl.includes('optout') ||
+      lowerUrl.includes('opt-out');
+
+    const isPrivacyOrTerms =
+      lowerLabel.includes('privacy') ||
+      lowerLabel.includes('terms') ||
+      lowerLabel.includes('syarat') ||
+      lowerLabel.includes('ketentuan') ||
+      lowerLabel.includes('kebijakan') ||
+      lowerUrl.includes('privacy') ||
+      lowerUrl.includes('terms');
+
+    const isSocialMedia = /(?:facebook\.com|twitter\.com|x\.com|instagram\.com|linkedin\.com|youtube\.com|tiktok\.com)/i.test(
+      lowerUrl
     );
 
-    const isPrivacyOrTerms = /(?:privacy|terms|syarat|ketentuan|kebijakan|bantuan|support|help|faq)/i.test(
-      `${lowerLabel} ${lowerUrl}`
-    );
-
-    const isSocialMedia =
-      /(?:facebook\.com|twitter\.com|x\.com|instagram\.com|linkedin\.com|youtube\.com|tiktok\.com|pinterest\.com)/i.test(
-        lowerUrl
-      );
-
-    if (isUnsubscribe) score -= 300;
-    if (isPrivacyOrTerms) score -= 200;
-    if (isSocialMedia) score -= 200;
-
-    // Homepage penalty
-    try {
-      const parsed = new URL(rawUrl);
-      if (parsed.pathname === '/' && !parsed.search && !hasHighIntentLabel) {
-        score -= 150;
-      }
-    } catch (e) {}
+    if (isUnsubscribe) score -= 200;
+    if (isPrivacyOrTerms) score -= 150;
+    if (isSocialMedia) score -= 150;
 
     const finalUrl = unwrapTrackingUrl(rawUrl);
-    const isLegitVerification = score >= 55 && (hasHighIntentLabel || hasHighIntentUrl || isGenericCta);
 
     if (!seenUrls.has(finalUrl)) {
       seenUrls.add(finalUrl);
       linkCandidates.push({
         url: finalUrl,
-        label: labelText || 'Buka Link Verifikasi',
+        label: labelText || 'Buka Tautan',
         score,
-        isVerification: isLegitVerification,
+        isVerification: score >= 40,
       });
     }
   }
@@ -462,61 +377,52 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
     const finalUrl = unwrapTrackingUrl(rawUrl);
     const lowerUrl = finalUrl.toLowerCase();
 
-    if (seenUrls.has(finalUrl) || isInvalidUrl(finalUrl)) continue;
-
-    let score = 0;
+    if (seenUrls.has(finalUrl)) continue;
 
     if (
-      /(?:verify|verifikasi|activate|aktifkan|confirm|konfirmasi|magic|subscribe|langganan|signup)/i.test(
+      lowerUrl.includes('schemas.microsoft.com') ||
+      lowerUrl.includes('w3.org') ||
+      lowerUrl.includes('schema.org') ||
+      lowerUrl.endsWith('.png') ||
+      lowerUrl.endsWith('.jpg')
+    ) {
+      continue;
+    }
+
+    let score = 20;
+    if (
+      /(?:verify|verifikasi|activate|aktifkan|confirm|konfirmasi|token|auth|magic|subscribe|langganan|signup)/i.test(
         lowerUrl
       )
     ) {
       score += 50;
     }
-    if (/(?:token|code|key|auth|signature|hash)=/i.test(finalUrl)) {
-      score += 35;
-    }
-
-    const matchIdx = textMatch.index;
-    const surrounding = combinedContent
-      .slice(Math.max(0, matchIdx - 150), matchIdx + textMatch[0].length + 150)
-      .toLowerCase();
-
-    if (
-      /(?:verifikasi|aktifkan|konfirmasi|langganan|verify|activate|confirm|ini\s*link|buka\s*link|tautan\s*berikut)/i.test(
-        surrounding
-      )
-    ) {
+    if (/(?:token|code|key|auth)=/i.test(finalUrl)) {
       score += 30;
     }
 
-    if (lowerUrl.includes('unsubscribe') || lowerUrl.includes('optout')) score -= 300;
-    if (lowerUrl.includes('privacy') || lowerUrl.includes('terms')) score -= 200;
-
-    try {
-      const parsed = new URL(finalUrl);
-      if (parsed.pathname === '/' && !parsed.search) {
-        score -= 150;
-      }
-    } catch (e) {}
-
-    const isLegitVerification = score >= 55;
+    if (lowerUrl.includes('unsubscribe') || lowerUrl.includes('optout')) score -= 200;
+    if (lowerUrl.includes('privacy') || lowerUrl.includes('terms')) score -= 150;
 
     seenUrls.add(finalUrl);
     linkCandidates.push({
       url: finalUrl,
       label: 'Buka Link Verifikasi',
       score,
-      isVerification: isLegitVerification,
+      isVerification: score >= 40,
     });
   }
 
   // Urutkan berdasarkan skor tertinggi
   linkCandidates.sort((a, b) => b.score - a.score);
 
-  // HANYA kembalikan link jika terbukti link verifikasi yang valid (score >= 55 & isVerification === true)
-  const validVerificationLinks = linkCandidates.filter((l) => l.isVerification && l.score >= 55);
-  const primaryItem = validVerificationLinks.length > 0 ? validVerificationLinks[0] : null;
+  const validVerificationLinks = linkCandidates.filter((l) => l.isVerification && l.score > 0);
+  const primaryItem =
+    validVerificationLinks.length > 0
+      ? validVerificationLinks[0]
+      : linkCandidates[0]?.score > 0
+      ? linkCandidates[0]
+      : null;
 
   return {
     found: primaryItem !== null,
