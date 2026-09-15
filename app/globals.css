@@ -67,11 +67,15 @@
 
 body {
   font-family: 'Plus Jakarta Sans', 'Work Sans', sans-serif;
-  background-color: #050508;
+  background-color: var(--bg-color);
   color: var(--text-main);
+  background-image: 
+    linear-gradient(to right, var(--grid-color) 2px, transparent 2px),
+    linear-gradient(to bottom, var(--grid-color) 2px, transparent 2px);
+  background-size: 28px 28px;
   min-height: 100vh;
   min-height: 100dvh;
-  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
   text-rendering: optimizeLegibility;

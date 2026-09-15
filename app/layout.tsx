@@ -33,7 +33,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="antialiased selection:bg-indigo-500 selection:text-white relative min-h-screen bg-[#050508]">
+      <body className="antialiased selection:bg-indigo-500 selection:text-white relative min-h-screen">
         <PsBackground />
         <div className="relative z-10 min-h-screen flex flex-col">{children}</div>
       </body>
