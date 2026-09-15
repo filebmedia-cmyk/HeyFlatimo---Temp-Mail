@@ -16,6 +16,9 @@ import {
   Crown,
   Sun,
   Moon,
+  QrCode,
+  Bell,
+  BellOff,
 } from 'lucide-react';
 import CustomEmailModal from './CustomEmailModal';
 import DomainDropdown, { DomainOption } from './DomainDropdown';
@@ -37,6 +40,9 @@ interface EmailCardProps {
   onRequestVipUnlock?: (domain: string) => void;
   isDark?: boolean;
   onToggleTheme?: () => void;
+  isSoundEnabled?: boolean;
+  onToggleSound?: () => void;
+  onOpenQrModal?: () => void;
 }
 
 export default function EmailCard({
@@ -56,6 +62,9 @@ export default function EmailCard({
   onRequestVipUnlock,
   isDark = false,
   onToggleTheme,
+  isSoundEnabled = false,
+  onToggleSound,
+  onOpenQrModal,
 }: EmailCardProps) {
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -183,6 +192,47 @@ export default function EmailCard({
           <SlidersHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-rotate-45 transition-transform duration-200 flex-shrink-0" />
           <span className="truncate">KUSTOM</span>
         </button>
+
+        {/* Tombol QR CODE */}
+        {onOpenQrModal && (
+          <button
+            onClick={onOpenQrModal}
+            className="brutal-btn bg-white dark:bg-zinc-800 text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700 px-3 xs:px-3.5 py-2 sm:py-2.5 text-[11px] xs:text-xs font-bold font-mono-custom flex items-center justify-center gap-1.5 sm:gap-2 uppercase group shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)]"
+            title="Tampilkan QR Code Alamat Email"
+          >
+            <QrCode className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform flex-shrink-0 text-[var(--color-blue)]" />
+            <span className="truncate">QR CODE</span>
+          </button>
+        )}
+
+        {/* Tombol SUARA NOTIFIKASI (Default: Mute) */}
+        {onToggleSound && (
+          <button
+            onClick={onToggleSound}
+            className={`brutal-btn px-2.5 xs:px-3 py-2 sm:py-2.5 text-[11px] xs:text-xs font-bold font-mono-custom flex items-center justify-center gap-1.5 sm:gap-2 uppercase group shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] ${
+              isSoundEnabled
+                ? 'bg-[var(--color-purple)] text-white hover:bg-purple-700'
+                : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300'
+            }`}
+            title={
+              isSoundEnabled
+                ? 'Suara Notifikasi: AKTIF (Klik untuk Mute)'
+                : 'Suara Notifikasi: SENYAP/MUTE (Klik untuk Bunyikan)'
+            }
+          >
+            {isSoundEnabled ? (
+              <>
+                <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--color-yellow)] flex-shrink-0" />
+                <span className="hidden xs:inline">SUARA ON</span>
+              </>
+            ) : (
+              <>
+                <BellOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="hidden xs:inline">MUTE</span>
+              </>
+            )}
+          </button>
+        )}
 
         {/* Animated Custom Domain Dropdown */}
         {availableDomains.length >= 1 && (

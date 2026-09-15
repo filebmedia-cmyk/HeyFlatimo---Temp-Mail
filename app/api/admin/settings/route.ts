@@ -4,8 +4,17 @@ import {
   saveAccessSettings,
   getAnnouncementSettings,
   saveAnnouncementSettings,
+  getTelegramSettings,
+  saveTelegramSettings,
+  getRetentionSettings,
+  saveRetentionSettings,
 } from '@/lib/settings';
 import { getAdminCredentials, saveAdminCredentials, verifyAdminRequest } from '@/lib/auth';
+import {
+  getTelegramBotInfo,
+  setTelegramWebhook,
+  deleteTelegramWebhook,
+} from '@/lib/telegram';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,12 +30,16 @@ export async function GET(req: NextRequest) {
 
     const access = await getAccessSettings();
     const announcement = await getAnnouncementSettings();
+    const telegram = await getTelegramSettings();
+    const retention = await getRetentionSettings();
     const creds = await getAdminCredentials();
 
     return NextResponse.json({
       success: true,
       access,
       announcement,
+      telegram,
+      retention,
       credentials: {
         username: creds.username,
       },
@@ -52,7 +65,87 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     let updatedAccess = null;
     let updatedAnnouncement = null;
+    let updatedTelegram = null;
+    let updatedRetention = null;
     let updatedCredentials = null;
+
+    // Handle Telegram Actions (Set Webhook, Delete Webhook, Test Bot)
+    if (body.telegramAction) {
+      const currentTg = await getTelegramSettings();
+      const token = (body.botToken || currentTg.botToken || '').trim();
+
+      if (!token) {
+        return NextResponse.json(
+          { success: false, error: 'Token Bot Telegram tidak boleh kosong.' },
+          { status: 400 }
+        );
+      }
+
+      if (body.telegramAction === 'test_bot') {
+        const testRes = await getTelegramBotInfo(token);
+        if (!testRes.success) {
+          return NextResponse.json(
+            { success: false, error: testRes.error || 'Token Bot Telegram tidak valid atau tidak dapat terhubung.' },
+            { status: 400 }
+          );
+        }
+        return NextResponse.json({
+          success: true,
+          message: `Koneksi Bot Berhasil! Bot: @${testRes.bot?.username} (${testRes.bot?.first_name})`,
+          bot: testRes.bot,
+        });
+      }
+
+      if (body.telegramAction === 'set_webhook') {
+        const origin = req.nextUrl.origin;
+        const webhookUrl = `${origin}/api/webhook/telegram`;
+        const hookRes = await setTelegramWebhook(token, webhookUrl);
+
+        if (!hookRes.success) {
+          return NextResponse.json(
+            { success: false, error: hookRes.error || 'Gagal mengatur Webhook Telegram' },
+            { status: 400 }
+          );
+        }
+
+        const botInfo = await getTelegramBotInfo(token);
+        const botUsername = botInfo.bot?.username || '';
+
+        updatedTelegram = await saveTelegramSettings({
+          botToken: token,
+          botUsername,
+          enabled: true,
+          webhookUrl,
+        });
+
+        return NextResponse.json({
+          success: true,
+          message: `Webhook Telegram berhasil diset ke: ${webhookUrl}`,
+          telegram: updatedTelegram,
+        });
+      }
+
+      if (body.telegramAction === 'delete_webhook') {
+        const delRes = await deleteTelegramWebhook(token);
+        if (!delRes.success) {
+          return NextResponse.json(
+            { success: false, error: delRes.error || 'Gagal menghapus Webhook Telegram' },
+            { status: 400 }
+          );
+        }
+
+        updatedTelegram = await saveTelegramSettings({
+          enabled: false,
+          webhookUrl: '',
+        });
+
+        return NextResponse.json({
+          success: true,
+          message: 'Webhook Telegram berhasil dinonaktifkan/dihapus.',
+          telegram: updatedTelegram,
+        });
+      }
+    }
 
     if (body.access) {
       updatedAccess = await saveAccessSettings(body.access);
@@ -60,6 +153,14 @@ export async function POST(req: NextRequest) {
 
     if (body.announcement) {
       updatedAnnouncement = await saveAnnouncementSettings(body.announcement);
+    }
+
+    if (body.telegram) {
+      updatedTelegram = await saveTelegramSettings(body.telegram);
+    }
+
+    if (body.retention) {
+      updatedRetention = await saveRetentionSettings(body.retention);
     }
 
     if (body.credentials) {
@@ -72,6 +173,8 @@ export async function POST(req: NextRequest) {
 
     const access = updatedAccess || (await getAccessSettings());
     const announcement = updatedAnnouncement || (await getAnnouncementSettings());
+    const telegram = updatedTelegram || (await getTelegramSettings());
+    const retention = updatedRetention || (await getRetentionSettings());
     const credentials = updatedCredentials || (await getAdminCredentials());
 
     return NextResponse.json({
@@ -79,6 +182,8 @@ export async function POST(req: NextRequest) {
       message: 'Pengaturan berhasil disimpan',
       access,
       announcement,
+      telegram,
+      retention,
       credentials: {
         username: credentials.username,
       },

@@ -14,9 +14,13 @@ import {
   Zap,
   ShieldCheck,
   CheckCircle,
+  ArrowUpRight,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { EmailMessage } from './MessageReader';
 import { formatEmailBody, formatDateWIB, formatTimeAgo } from '@/lib/formatters';
+import { extractOtp, extractLinks } from '@/lib/otpParser';
 
 interface MessageListProps {
   messages: EmailMessage[];
@@ -217,7 +221,89 @@ export default function MessageList({
 
                 {/* Expanded Inline Accordion Preview */}
                 {isExpanded && (
-                  <div className="border-t-[2.5px] sm:border-t-[3px] border-[var(--border-color)] bg-[#f8fafc] dark:bg-zinc-950 p-2.5 xs:p-3 sm:p-5">
+                  <div className="border-t-[2.5px] sm:border-t-[3px] border-[var(--border-color)] bg-[#f8fafc] dark:bg-zinc-950 p-2.5 xs:p-3 sm:p-5 space-y-3">
+                    {/* Inline OTP & Magic Link Detection Banners */}
+                    {(() => {
+                      const otpRes = extractOtp(msg.bodyText, msg.bodyHtml, msg.subject);
+                      const linksRes = extractLinks(msg.bodyText, msg.bodyHtml);
+                      if (!otpRes.found && !linksRes.found) return null;
+
+                      return (
+                        <div className="space-y-2">
+                          {/* OTP Bar */}
+                          {otpRes.found && otpRes.otp && (
+                            <div className="p-2.5 xs:p-3 bg-amber-50 dark:bg-amber-950/40 border-[2px] border-amber-400 dark:border-amber-600 flex flex-wrap items-center justify-between gap-2 shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="w-6 h-6 bg-[var(--color-yellow)] text-black border border-[var(--border-color)] flex items-center justify-center flex-shrink-0 shadow-[1px_1px_0px_var(--shadow-color)]">
+                                  <Zap className="w-3.5 h-3.5 text-black fill-black" />
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="text-[9px] font-mono-custom font-black text-amber-700 dark:text-amber-300 uppercase block">
+                                    KODE OTP
+                                  </span>
+                                  <span className="font-mono-custom font-black text-base xs:text-lg text-black dark:text-white tracking-widest select-all">
+                                    {otpRes.otp}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => navigator.clipboard.writeText(otpRes.otp!)}
+                                className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3 py-1 text-xs font-mono-custom font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                              >
+                                <Copy className="w-3 h-3" />
+                                <span>SALIN OTP</span>
+                              </button>
+                            </div>
+                          )}
+
+                          {/* 1-Click Verification Link */}
+                          {linksRes.found && linksRes.primaryLink && (
+                            <div className="p-2.5 xs:p-3 bg-[#ecfdf5] dark:bg-emerald-950/50 border-[2px] border-[var(--color-green)] flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in">
+                              <div className="min-w-0 flex items-center gap-2">
+                                <div className="w-6 h-6 bg-[var(--color-green)] text-white border border-[var(--border-color)] flex items-center justify-center flex-shrink-0 shadow-[1px_1px_0px_var(--shadow-color)]">
+                                  <Sparkles className="w-3.5 h-3.5 text-white" />
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[10px] font-mono-custom font-black text-emerald-800 dark:text-emerald-300 uppercase">
+                                      VERIFICATION LINK
+                                    </span>
+                                    <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                                  </div>
+                                  <p className="font-mono-custom text-[10px] xs:text-[11px] text-zinc-600 dark:text-zinc-300 truncate max-w-xs sm:max-w-sm">
+                                    {linksRes.primaryLink}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 flex-shrink-0 self-end sm:self-auto">
+                                <button
+                                  type="button"
+                                  onClick={() => navigator.clipboard.writeText(linksRes.primaryLink!)}
+                                  className="brutal-btn bg-white dark:bg-zinc-800 text-black dark:text-white px-2 py-1 text-xs font-mono-custom font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-zinc-100"
+                                  title="Salin Link"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                  <span className="hidden xs:inline">SALIN</span>
+                                </button>
+                                <a
+                                  href={linksRes.primaryLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-3 py-1 text-xs font-mono-custom font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                                >
+                                  <span>BUKA LINK</span>
+                                  <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+                                </a>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
                     <iframe
                       title={`Inline Message ${msg.id}`}
                       srcDoc={formattedHtml}

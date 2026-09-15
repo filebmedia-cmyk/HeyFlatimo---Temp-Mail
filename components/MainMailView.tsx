@@ -9,8 +9,10 @@ import Toast from '@/components/Toast';
 import AccessGateModal from '@/components/AccessGateModal';
 import AnnouncementModal from '@/components/AnnouncementModal';
 import VipCdkModal from '@/components/VipCdkModal';
+import QrCodeModal from '@/components/QrCodeModal';
 import { EmailMessage } from '@/components/MessageReader';
 import { generateRandomPrefix } from '@/lib/generator';
+import { playNotificationSound, getSoundEnabled, setSoundEnabled } from '@/lib/sound';
 
 const AUTO_SYNC_INTERVAL = 3; // 3 Detik Realtime
 
@@ -22,6 +24,13 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   const [appName, setAppName] = useState('HeyFlatimo');
   const [isDark, setIsDark] = useState(false);
   const [activeView, setActiveView] = useState<'home' | 'split'>('home');
+
+  // Sound Notification State (Default: MUTE / SILENT)
+  const [isSoundEnabled, setIsSoundEnabled] = useState(false);
+  const isSoundEnabledRef = useRef<boolean>(false);
+
+  // QR Code Modal State
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   // VIP Access State (Resets on page refresh / browser close via sessionStorage)
   const [isVipUnlocked, setIsVipUnlocked] = useState(false);
@@ -85,12 +94,30 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       setAppName(process.env.NEXT_PUBLIC_APP_NAME);
     }
 
+    // Inisialisasi status Suara Notifikasi (Default: MUTE / SILENT)
+    const soundActive = getSoundEnabled();
+    setIsSoundEnabled(soundActive);
+    isSoundEnabledRef.current = soundActive;
+
     // Cek apakah sesi ini sudah pernah membuka VIP (sessionStorage otomatis reset jika refresh / keluar web)
     const isVipActive = sessionStorage.getItem('tmail_vip_session') === 'true';
     if (isVipActive) {
       setIsVipUnlocked(true);
     }
   }, []);
+
+  const handleToggleSound = () => {
+    const next = !isSoundEnabled;
+    setIsSoundEnabled(next);
+    isSoundEnabledRef.current = next;
+    setSoundEnabled(next);
+    if (next) {
+      playNotificationSound();
+      showToast('Suara Notifikasi Diaktifkan', 'info');
+    } else {
+      showToast('Suara Notifikasi Dinonaktifkan (Mute)', 'info');
+    }
+  };
 
   const toggleTheme = () => {
     const nextDark = !isDark;
@@ -258,9 +285,12 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
           const fetchedMessages: EmailMessage[] = result.data;
           setMessages(fetchedMessages);
 
-          // Jika ada pesan baru masuk, bunyikan alert visual
+          // Jika ada pesan baru masuk, bunyikan alert visual dan suara jika diizinkan
           if (fetchedMessages.length > previousCountRef.current && previousCountRef.current > 0) {
             showToast(`Ada ${fetchedMessages.length - previousCountRef.current} pesan baru diterima!`, 'info');
+            if (isSoundEnabledRef.current) {
+              playNotificationSound();
+            }
           }
           previousCountRef.current = fetchedMessages.length;
 
@@ -480,6 +510,9 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
             }}
             isDark={isDark}
             onToggleTheme={toggleTheme}
+            isSoundEnabled={isSoundEnabled}
+            onToggleSound={handleToggleSound}
+            onOpenQrModal={() => setIsQrModalOpen(true)}
           />
 
           {/* Inbox Messages Accordion List */}
@@ -537,6 +570,14 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
         isOpen={isAccessLocked}
         message={accessMessage}
         onUnlockSuccess={() => setIsAccessLocked(false)}
+      />
+
+      {/* QR Code Modal Dialog */}
+      <QrCodeModal
+        isOpen={isQrModalOpen}
+        email={currentEmail}
+        onClose={() => setIsQrModalOpen(false)}
+        onCopySuccess={(msg) => showToast(msg, 'success')}
       />
 
       {/* Broadcast Announcement Modal */}

@@ -96,6 +96,30 @@ export default function AdminPage() {
   const [isSavingAnnouncement, setIsSavingAnnouncement] = useState(false);
   const [showAnnouncementPreview, setShowAnnouncementPreview] = useState(false);
 
+  // Telegram Bot State
+  const [telegramEnabled, setTelegramEnabled] = useState(false);
+  const [telegramBotTokenInput, setTelegramBotTokenInput] = useState('');
+  const [telegramBotUsername, setTelegramBotUsername] = useState('');
+  const [telegramWebhookUrl, setTelegramWebhookUrl] = useState('');
+  const [showTelegramToken, setShowTelegramToken] = useState(false);
+  const [isSavingTelegram, setIsSavingTelegram] = useState(false);
+  const [isTestingBot, setIsTestingBot] = useState(false);
+  const [isSettingWebhook, setIsSettingWebhook] = useState(false);
+  const [isDeletingWebhook, setIsDeletingWebhook] = useState(false);
+
+  // Database Retention & Cleanup State
+  const [retentionHoursInput, setRetentionHoursInput] = useState(24);
+  const [isSavingRetention, setIsSavingRetention] = useState(false);
+  const [isCleaningExpired, setIsCleaningExpired] = useState(false);
+  const [isCleaningAll, setIsCleaningAll] = useState(false);
+  const [showCleanAllModal, setShowCleanAllModal] = useState(false);
+  const [cleanupStats, setCleanupStats] = useState<{
+    totalMessages: number;
+    expiredCount: number;
+    oldestCreatedAt: string | null;
+    retentionHours: number;
+  } | null>(null);
+
   // Code Tab Selection
   const [activeCodeTab, setActiveCodeTab] = useState<'python' | 'node' | 'curl' | 'php'>('python');
 
@@ -240,6 +264,21 @@ export default function AdminPage() {
     }
   };
 
+  const fetchCleanupStats = async () => {
+    try {
+      const res = await fetch('/api/admin/cleanup', { headers: getAdminHeaders() });
+      const data = await res.json();
+      if (data.success) {
+        setCleanupStats(data);
+        if (typeof data.retentionHours === 'number') {
+          setRetentionHoursInput(data.retentionHours);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching cleanup stats:', err);
+    }
+  };
+
   const fetchSettings = async () => {
     try {
       const res = await fetch('/api/admin/settings', { headers: getAdminHeaders() });
@@ -261,9 +300,216 @@ export default function AdminPage() {
           if (data.announcement.content) setAnnouncementContentInput(data.announcement.content);
           if (data.announcement.displayMode) setAnnouncementDisplayModeInput(data.announcement.displayMode);
         }
+        if (data.telegram) {
+          setTelegramEnabled(Boolean(data.telegram.enabled));
+          if (data.telegram.botToken) setTelegramBotTokenInput(data.telegram.botToken);
+          if (data.telegram.botUsername) setTelegramBotUsername(data.telegram.botUsername);
+          if (data.telegram.webhookUrl) setTelegramWebhookUrl(data.telegram.webhookUrl);
+        }
+        if (data.retention) {
+          if (typeof data.retention.retentionHours === 'number') {
+            setRetentionHoursInput(data.retention.retentionHours);
+          }
+        }
       }
+      fetchCleanupStats();
     } catch (err) {
       console.error('Error fetching settings:', err);
+    }
+  };
+
+  const handleSaveTelegram = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsSavingTelegram(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({
+          telegram: {
+            botToken: telegramBotTokenInput.trim(),
+            enabled: telegramEnabled,
+            botUsername: telegramBotUsername,
+            webhookUrl: telegramWebhookUrl,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('Pengaturan Bot Telegram berhasil disimpan!', 'success');
+      } else {
+        showToast(data.error || 'Gagal menyimpan pengaturan bot', 'error');
+      }
+    } catch (err: any) {
+      showToast('Gagal terhubung saat menyimpan setelan Telegram', 'error');
+    } finally {
+      setIsSavingTelegram(false);
+    }
+  };
+
+  const handleTestBot = async () => {
+    if (!telegramBotTokenInput.trim()) {
+      showToast('Masukkan Token Bot Telegram terlebih dahulu', 'error');
+      return;
+    }
+    setIsTestingBot(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({
+          telegramAction: 'test_bot',
+          botToken: telegramBotTokenInput.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setTelegramBotUsername(data.bot?.username || '');
+        showToast(data.message || 'Koneksi Bot Telegram Berhasil!', 'success');
+      } else {
+        showToast(data.error || 'Token Bot Telegram tidak valid', 'error');
+      }
+    } catch (err: any) {
+      showToast('Gagal menguji koneksi Bot Telegram', 'error');
+    } finally {
+      setIsTestingBot(false);
+    }
+  };
+
+  const handleSetWebhook = async () => {
+    if (!telegramBotTokenInput.trim()) {
+      showToast('Masukkan Token Bot Telegram terlebih dahulu', 'error');
+      return;
+    }
+    setIsSettingWebhook(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({
+          telegramAction: 'set_webhook',
+          botToken: telegramBotTokenInput.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setTelegramEnabled(true);
+        if (data.telegram) {
+          setTelegramWebhookUrl(data.telegram.webhookUrl || '');
+          if (data.telegram.botUsername) setTelegramBotUsername(data.telegram.botUsername);
+        }
+        showToast('Webhook Telegram Berhasil Didaftarkan! Bot sekarang siap menerima pesan.', 'success');
+      } else {
+        showToast(data.error || 'Gagal mengatur Webhook Telegram', 'error');
+      }
+    } catch (err: any) {
+      showToast('Gagal menghubungi API Telegram untuk set webhook', 'error');
+    } finally {
+      setIsSettingWebhook(false);
+    }
+  };
+
+  const handleDeleteWebhook = async () => {
+    if (!confirm('Apakah Anda yakin ingin menonaktifkan dan menghapus Webhook Telegram?')) return;
+    setIsDeletingWebhook(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({
+          telegramAction: 'delete_webhook',
+          botToken: telegramBotTokenInput.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setTelegramEnabled(false);
+        setTelegramWebhookUrl('');
+        showToast('Webhook Telegram berhasil dinonaktifkan.', 'info');
+      } else {
+        showToast(data.error || 'Gagal menghapus Webhook Telegram', 'error');
+      }
+    } catch (err: any) {
+      showToast('Gagal menghapus Webhook Telegram', 'error');
+    } finally {
+      setIsDeletingWebhook(false);
+    }
+  };
+
+  const handleSaveRetention = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsSavingRetention(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({
+          retention: {
+            retentionHours: Number(retentionHoursInput),
+          },
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('Setelan Retensi Database berhasil disimpan!', 'success');
+        fetchCleanupStats();
+      } else {
+        showToast(data.error || 'Gagal menyimpan retensi database', 'error');
+      }
+    } catch (err) {
+      showToast('Gagal menyimpan retensi database', 'error');
+    } finally {
+      setIsSavingRetention(false);
+    }
+  };
+
+  const handleCleanExpired = async () => {
+    setIsCleaningExpired(true);
+    try {
+      const res = await fetch('/api/admin/cleanup', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({
+          action: 'clean_expired',
+          hours: Number(retentionHoursInput),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(data.message || 'Berhasil membersihkan pesan kadaluwarsa!', 'success');
+        fetchCleanupStats();
+        fetchStats();
+      } else {
+        showToast(data.error || 'Gagal membersihkan pesan', 'error');
+      }
+    } catch (err) {
+      showToast('Gagal membersihkan database', 'error');
+    } finally {
+      setIsCleaningExpired(false);
+    }
+  };
+
+  const confirmCleanAll = async () => {
+    setShowCleanAllModal(false);
+    setIsCleaningAll(true);
+    try {
+      const res = await fetch('/api/admin/cleanup', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({ action: 'clean_all' }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(data.message || 'Semua pesan di database telah dibersihkan!', 'success');
+        fetchCleanupStats();
+        fetchStats();
+      } else {
+        showToast(data.error || 'Gagal mengosongkan database', 'error');
+      }
+    } catch (err) {
+      showToast('Gagal mengosongkan database', 'error');
+    } finally {
+      setIsCleaningAll(false);
     }
   };
 
@@ -1515,6 +1761,331 @@ if (!empty($otpData['found'])) {
                     <CheckCircle2 className="w-4 h-4" />
                     <span>TUTUP PREVIEW</span>
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* TELEGRAM BOT INTEGRATION SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#229ED9] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <Send className="w-4 h-4 sm:w-5 sm:h-5 -translate-y-0.5 translate-x-0.5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                      INTEGRASI BOT TELEGRAM (INBOX & OTP READER)
+                    </h3>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                      Hubungkan Bot Telegram untuk membaca email dan mengambil kode OTP secara interaktif via tombol inline.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Status Badge */}
+                <div
+                  className={`text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5 ${
+                    telegramEnabled && telegramWebhookUrl
+                      ? 'bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7]'
+                      : 'bg-zinc-200 dark:bg-zinc-800 text-[var(--text-muted)]'
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      telegramEnabled && telegramWebhookUrl ? 'bg-[var(--color-green)]' : 'bg-zinc-500'
+                    } motion-pulse-dot`}
+                  />
+                  <span>
+                    {telegramEnabled && telegramWebhookUrl
+                      ? `BOT AKTIF ${telegramBotUsername ? `(@${telegramBotUsername})` : ''}`
+                      : 'BOT NONAKTIF'}
+                  </span>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveTelegram} className="space-y-4">
+                {/* On/Off Toggle */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#f0f9ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <div>
+                    <span className="font-mono-custom font-bold text-xs sm:text-sm block text-[var(--text-main)]">
+                      Status Integrasi Bot Telegram
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
+                      Aktifkan bot untuk merespons perintah <code>/start</code>, <code>/generate</code>, <code>/otp &lt;email&gt;</code>, dan <code>/inbox &lt;email&gt;</code>.
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setTelegramEnabled(!telegramEnabled)}
+                    className={`brutal-btn px-4 py-1.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)] ${
+                      telegramEnabled
+                        ? 'bg-[var(--color-green)] text-white'
+                        : 'bg-zinc-300 dark:bg-zinc-800 text-black dark:text-white'
+                    }`}
+                  >
+                    {telegramEnabled ? (
+                      <>
+                        <ToggleRight className="w-4 h-4" />
+                        <span>AKTIF (ON)</span>
+                      </>
+                    ) : (
+                      <>
+                        <ToggleLeft className="w-4 h-4" />
+                        <span>NONAKTIF (OFF)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Bot Token Input */}
+                <div>
+                  <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-blue)] dark:text-[var(--color-cyan)]">
+                    Token Bot Telegram (Dari @BotFather):
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type={showTelegramToken ? 'text' : 'password'}
+                        value={telegramBotTokenInput}
+                        onChange={(e) => setTelegramBotTokenInput(e.target.value)}
+                        placeholder="Contoh: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
+                        className="brutal-input w-full pl-3 pr-10 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowTelegramToken(!showTelegramToken)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-muted)] hover:text-black dark:hover:text-white"
+                      >
+                        {showTelegramToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleTestBot}
+                      disabled={isTestingBot || !telegramBotTokenInput.trim()}
+                      className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
+                    >
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>{isTestingBot ? 'MEMERIKSA...' : 'TES KONEKSI BOT'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Webhook Status / URL Display */}
+                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-mono-custom font-black uppercase text-[var(--text-muted)] block mb-0.5">
+                        Webhook Endpoint URL:
+                      </span>
+                      <code className="text-xs font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                        {origin}/api/webhook/telegram
+                      </code>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={handleSetWebhook}
+                        disabled={isSettingWebhook || !telegramBotTokenInput.trim()}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-3 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isSettingWebhook ? 'animate-spin-fast' : ''}`} />
+                        <span>{isSettingWebhook ? 'MENDAFTAR...' : 'SET WEBHOOK'}</span>
+                      </button>
+
+                      {telegramWebhookUrl && (
+                        <button
+                          type="button"
+                          onClick={handleDeleteWebhook}
+                          disabled={isDeletingWebhook}
+                          className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)]"
+                          title="Hapus Webhook"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>HAPUS</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save button */}
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={isSavingTelegram}
+                    className="brutal-btn bg-[#229ED9] text-white hover:bg-sky-600 px-4 xs:px-6 py-2 sm:py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isSavingTelegram ? 'MENYIMPAN...' : 'SIMPAN PENGATURAN BOT'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* DATABASE RETENTION & AUTO-DELETE CLEANER SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <Database className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                      MANAJEMEN RETENSI & BERSIHKAN DATABASE
+                    </h3>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                      Atur batas waktu penyimpanan email otomatis dan lakukan pembersihan pesan kadaluwarsa secara instan.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5">
+                  <span>RETENSI: {retentionHoursInput > 0 ? `${retentionHoursInput} JAM` : 'SELAMANYA'}</span>
+                </div>
+              </div>
+
+              {/* Retention Stats Bar */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 mb-4">
+                <div className="p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <span className="text-[9px] font-mono-custom font-black uppercase text-[var(--text-muted)] block">
+                    Total Pesan di DB:
+                  </span>
+                  <span className="text-base sm:text-lg font-heading font-black text-[var(--color-blue)]">
+                    {cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
+                  </span>
+                </div>
+
+                <div className="p-3 bg-[#fef2f2] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <span className="text-[9px] font-mono-custom font-black uppercase text-red-600 dark:text-red-400 block">
+                    Pesan Kadaluwarsa ({retentionHoursInput}h):
+                  </span>
+                  <span className="text-base sm:text-lg font-heading font-black text-[var(--color-red)]">
+                    {cleanupStats?.expiredCount ?? 0} Pesan
+                  </span>
+                </div>
+
+                <div className="p-3 bg-[#ecfdf5] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <span className="text-[9px] font-mono-custom font-black uppercase text-emerald-600 dark:text-emerald-400 block">
+                    Pesan Tertua:
+                  </span>
+                  <span className="text-xs font-mono-custom font-bold text-[var(--text-main)] block truncate">
+                    {cleanupStats?.oldestCreatedAt ? new Date(cleanupStats.oldestCreatedAt).toLocaleString('id-ID') : 'Tidak ada'}
+                  </span>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveRetention} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 items-end">
+                  <div>
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                      Batas Waktu Retensi Penyimpanan (Auto-Expire):
+                    </label>
+                    <select
+                      value={retentionHoursInput}
+                      onChange={(e) => setRetentionHoursInput(Number(e.target.value))}
+                      className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold bg-white dark:bg-zinc-900 cursor-pointer"
+                    >
+                      <option value={1}>1 Jam (Sangat Cepat)</option>
+                      <option value={6}>6 Jam</option>
+                      <option value={12}>12 Jam</option>
+                      <option value={24}>24 Jam (Standar HeyFlatimo - Rekomendasi)</option>
+                      <option value={48}>48 Jam (2 Hari)</option>
+                      <option value={72}>72 Jam (3 Hari)</option>
+                      <option value={168}>168 Jam (7 Hari)</option>
+                      <option value={0}>0 (Simpan Selamanya / Tanpa Auto-Delete)</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="submit"
+                      disabled={isSavingRetention}
+                      className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-4 py-2 sm:py-2.5 text-xs font-black flex-1 flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)]"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>{isSavingRetention ? 'MENYIMPAN...' : 'SIMPAN RETENSI'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleCleanExpired}
+                      disabled={isCleaningExpired}
+                      className="brutal-btn bg-[var(--color-orange)] text-white hover:bg-orange-600 px-4 py-2 sm:py-2.5 text-xs font-black flex-1 flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)]"
+                      title="Hapus pesan yang umurnya sudah melewati batas retensi"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>{isCleaningExpired ? 'MEMBERSIHKAN...' : 'BERSIHKAN KADALUWARSA'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Emergency Clear All Action */}
+                <div className="p-3 bg-red-50 dark:bg-red-950/40 border-[2px] border-dashed border-red-300 dark:border-red-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mt-4">
+                  <div>
+                    <span className="text-xs font-mono-custom font-black text-red-700 dark:text-red-300 block">
+                      Zona Berbahaya: Kosongkan Seluruh Database Email
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-zinc-500 block">
+                      Menghapus semua pesan email tanpa terkecuali untuk menghemat ruang MongoDB.
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowCleanAllModal(true)}
+                    className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-700 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>HAPUS SEMUA PESAN</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* CONFIRM CLEAN ALL MODAL */}
+            {showCleanAllModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
+                        HAPUS SELURUH PESAN?
+                      </h4>
+                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
+                        Tindakan ini permanen dan tidak dapat dibatalkan
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
+                    Apakah Anda yakin ingin menghapus <strong>seluruh pesan email</strong> dari database? Semua data inbox pengguna akan terhapus total.
+                  </p>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCleanAllModal(false)}
+                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
+                    >
+                      BATAL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={confirmCleanAll}
+                      disabled={isCleaningAll}
+                      className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-700 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>{isCleaningAll ? 'MEMBERSIHKAN...' : 'YA, HAPUS SEMUA PESAN'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

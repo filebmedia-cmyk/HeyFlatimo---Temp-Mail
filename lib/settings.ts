@@ -94,3 +94,87 @@ export async function saveAnnouncementSettings(
 
   return updated;
 }
+
+export interface TelegramSettings {
+  botToken: string;
+  botUsername?: string;
+  enabled: boolean;
+  webhookUrl?: string;
+}
+
+export interface RetentionSettings {
+  retentionHours: number; // e.g. 24 (default 24h), 1, 6, 12, 48, 72, 168 (7d), 0 (never)
+}
+
+const DEFAULT_TELEGRAM_SETTINGS: TelegramSettings = {
+  botToken: '',
+  botUsername: '',
+  enabled: false,
+  webhookUrl: '',
+};
+
+const DEFAULT_RETENTION_SETTINGS: RetentionSettings = {
+  retentionHours: 24,
+};
+
+export async function getTelegramSettings(): Promise<TelegramSettings> {
+  try {
+    await connectToDatabase();
+    const setting = await Setting.findOne({ key: 'telegram_bot' }).lean();
+    if (setting && setting.value) {
+      return { ...DEFAULT_TELEGRAM_SETTINGS, ...JSON.parse(setting.value) };
+    }
+  } catch (err) {
+    console.error('Error fetching telegram settings:', err);
+  }
+  return DEFAULT_TELEGRAM_SETTINGS;
+}
+
+export async function saveTelegramSettings(settings: Partial<TelegramSettings>): Promise<TelegramSettings> {
+  await connectToDatabase();
+  const current = await getTelegramSettings();
+  const updated: TelegramSettings = {
+    ...current,
+    ...settings,
+    botToken: settings.botToken !== undefined ? settings.botToken.trim() : current.botToken,
+  };
+
+  await Setting.findOneAndUpdate(
+    { key: 'telegram_bot' },
+    { value: JSON.stringify(updated), updatedAt: new Date() },
+    { upsert: true, new: true }
+  );
+
+  return updated;
+}
+
+export async function getRetentionSettings(): Promise<RetentionSettings> {
+  try {
+    await connectToDatabase();
+    const setting = await Setting.findOne({ key: 'db_retention' }).lean();
+    if (setting && setting.value) {
+      return { ...DEFAULT_RETENTION_SETTINGS, ...JSON.parse(setting.value) };
+    }
+  } catch (err) {
+    console.error('Error fetching retention settings:', err);
+  }
+  return DEFAULT_RETENTION_SETTINGS;
+}
+
+export async function saveRetentionSettings(settings: Partial<RetentionSettings>): Promise<RetentionSettings> {
+  await connectToDatabase();
+  const current = await getRetentionSettings();
+  const updated: RetentionSettings = {
+    ...current,
+    ...settings,
+    retentionHours: typeof settings.retentionHours === 'number' ? settings.retentionHours : current.retentionHours,
+  };
+
+  await Setting.findOneAndUpdate(
+    { key: 'db_retention' },
+    { value: JSON.stringify(updated), updatedAt: new Date() },
+    { upsert: true, new: true }
+  );
+
+  return updated;
+}
