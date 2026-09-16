@@ -128,12 +128,10 @@ export default function SplitInbox({
         >
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-6 sm:p-8 text-center opacity-75 my-auto select-none">
-              <div className="relative mb-3">
-                <div className="absolute inset-0 -m-2 flex items-center justify-center pointer-events-none">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-[var(--color-yellow)] opacity-40 mailbox-radar-wave-1" />
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-[var(--color-yellow)] opacity-40 mailbox-radar-wave-2" />
-                </div>
-                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[var(--color-yellow)] border-[2.5px] sm:border-[3px] border-[var(--border-color)] flex items-center justify-center shadow-[2.5px_2.5px_0px_var(--shadow-color)] motion-float relative">
+              <div className="relative mb-4 flex items-center justify-center">
+                <div className="absolute w-16 sm:w-20 h-24 sm:h-28 rounded-full border-2 border-amber-300/50 dark:border-amber-700/40 pointer-events-none -translate-x-2 -translate-y-1.5" />
+                <div className="absolute w-16 sm:w-20 h-24 sm:h-28 rounded-full border-2 border-amber-300/50 dark:border-amber-700/40 pointer-events-none translate-x-2 translate-y-1.5" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[var(--color-yellow)] border-[2.5px] sm:border-[3px] border-[var(--border-color)] flex items-center justify-center shadow-[3px_3px_0px_var(--shadow-color)] relative z-10">
                   <Inbox className="w-6 h-6 sm:w-7 sm:h-7 text-black" />
                 </div>
               </div>

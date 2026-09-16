@@ -95,21 +95,24 @@ export default function MessageList({
       {/* Message List Body */}
       <div className="p-3 xs:p-3.5 sm:p-5 bg-[var(--card-bg)] min-h-[220px] sm:min-h-[260px] flex flex-col space-y-3 sm:space-y-3.5">
         {messages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center py-7 sm:py-10">
-            {/* Animated Radar Antenna & Floating Mailbox Beacon */}
-            <div className="relative mb-4 sm:mb-5">
-              <div className="absolute inset-0 -m-3 flex items-center justify-center pointer-events-none">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-[var(--color-blue)] opacity-40 mailbox-radar-wave-1" />
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-[var(--color-blue)] opacity-40 mailbox-radar-wave-2" />
-              </div>
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#f0f9ff] dark:bg-[#151922] border-[3px] border-[var(--border-color)] flex items-center justify-center shadow-[4px_4px_0px_var(--shadow-color)] mx-auto relative group motion-float">
+          <div className="flex-1 flex flex-col items-center justify-center text-center py-9 sm:py-12 select-none">
+            {/* Dual Capsule / Pill Loop Design */}
+            <div className="relative mb-5 sm:mb-6 flex items-center justify-center">
+              {/* Left Capsule Loop */}
+              <div className="absolute w-20 xs:w-24 sm:w-28 h-32 xs:h-36 sm:h-40 rounded-full border-2 border-sky-200 dark:border-sky-900/60 pointer-events-none -translate-x-3 -translate-y-2" />
+              {/* Right Capsule Loop */}
+              <div className="absolute w-20 xs:w-24 sm:w-28 h-32 xs:h-36 sm:h-40 rounded-full border-2 border-sky-200 dark:border-sky-900/60 pointer-events-none translate-x-3 translate-y-2" />
+
+              {/* Central White Neo-Brutalist Mailbox Box */}
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-zinc-900 border-[2.5px] sm:border-[3px] border-black dark:border-white flex items-center justify-center shadow-[4px_4px_0px_#000000] relative z-10">
                 <Mail className="w-7 h-7 sm:w-8 sm:h-8 text-[var(--color-blue)]" />
               </div>
             </div>
-            <h3 className="font-heading font-black text-sm xs:text-base sm:text-lg uppercase text-[var(--text-main)] mb-1">
+
+            <h3 className="font-heading font-black text-sm xs:text-base sm:text-lg md:text-xl uppercase text-[var(--text-main)] mb-1.5 tracking-tight">
               MENUNGGU EMAIL MASUK...
             </h3>
-            <p className="font-mono-custom text-[11px] xs:text-xs text-[var(--text-muted)] max-w-sm mx-auto leading-relaxed">
+            <p className="font-mono-custom text-[11px] xs:text-xs text-[var(--text-muted)] max-w-sm mx-auto leading-relaxed px-2">
               Kirim email ke alamat di atas. Pesan, kode OTP &amp; link akan muncul otomatis secara real-time.
             </p>
           </div>
