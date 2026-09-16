@@ -1271,12 +1271,12 @@ if (!empty($otpData['found'])) {
   };
 
   return (
-    <div className="min-h-screen bg-transparent flex flex-col selection:bg-[var(--color-blue)] selection:text-white">
+    <div className="min-h-screen bg-transparent flex flex-col selection:bg-[var(--color-blue)] selection:text-white w-full max-w-full min-w-0 overflow-x-hidden">
       <Toast message={toastMsg} type={toastType} onClose={() => setToastMsg(null)} />
 
       {/* Top Navbar */}
-      <header className="border-b-[3px] sm:border-b-[4px] border-[var(--border-color)] bg-[var(--card-bg)] sticky top-0 z-40 shadow-[0px_3px_0px_var(--shadow-color)] sm:shadow-[0px_4px_0px_var(--shadow-color)]">
-        <div className="max-w-6xl mx-auto px-3 xs:px-4 sm:px-6 py-2.5 sm:py-3.5 flex justify-between items-center gap-2">
+      <header className="border-b-[3px] sm:border-b-[4px] border-[var(--border-color)] bg-[var(--card-bg)] sticky top-0 z-40 shadow-[0px_3px_0px_var(--shadow-color)] sm:shadow-[0px_4px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-2.5 xs:px-4 sm:px-6 py-2.5 sm:py-3.5 flex justify-between items-center gap-1.5 xs:gap-2 w-full min-w-0">
           <Link
             href="/"
             onClick={() => {
@@ -1355,7 +1355,7 @@ if (!empty($otpData['found'])) {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-3 xs:px-4 sm:px-6 py-5 sm:py-8 w-full flex-1">
+      <main className="max-w-6xl mx-auto px-2.5 xs:px-4 sm:px-6 py-4 sm:py-8 w-full max-w-full min-w-0 flex-1 overflow-x-hidden">
         {!isLoggedIn ? (
           /* LOGIN FORM */
           <div className="max-w-md mx-auto my-4 sm:my-8">
@@ -1426,56 +1426,61 @@ if (!empty($otpData['found'])) {
           </div>
         ) : (
           /* ADMIN DASHBOARD */
-          <div className="space-y-5 sm:space-y-7">
+          <div className="space-y-4 sm:space-y-6 w-full max-w-full min-w-0">
 
-            {/* Top Neo-Brutalist Navigation Tab Bar */}
-            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1.5 scrollbar-none border-b-2 sm:border-b-[3px] border-[var(--border-color)]">
-              {[
-                { id: 'dashboard', label: 'DASHBOARD', icon: LayoutDashboard, badge: null },
-                { id: 'domains', label: 'DOMAIN EMAIL', icon: Globe, badge: domains.length },
-                { id: 'apikeys', label: 'API KEYS', icon: Key, badge: apiKeys.length },
-                { id: 'endpoints', label: 'ENDPOINTS & DOCS', icon: Shield, badge: '9 API' },
-                { id: 'bot_tester', label: 'BOT & TESTER', icon: Terminal, badge: telegramEnabled ? 'BOT ON' : null },
-                { id: 'settings', label: 'PENGATURAN', icon: Sliders, badge: null },
-              ].map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeAdminTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => {
-                      playSound('click');
-                      setActiveAdminTab(tab.id as AdminTabType);
-                    }}
-                    className={`brutal-btn px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-black font-mono-custom flex items-center gap-1.5 sm:gap-2 uppercase whitespace-nowrap transition-all flex-shrink-0 cursor-pointer ${
-                      isActive
-                        ? 'bg-[var(--color-yellow)] text-black shadow-[3px_3px_0px_var(--shadow-color)] scale-[1.02]'
-                        : 'bg-[var(--card-bg)] text-[var(--text-main)] hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-[1.5px_1.5px_0px_var(--shadow-color)]'
-                    }`}
-                  >
-                    <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-black' : 'text-[var(--color-blue)]'}`} />
-                    <span>{tab.label}</span>
-                    {tab.badge !== null && (
-                      <span
-                        className={`text-[9px] sm:text-[10px] px-1.5 py-0.2 border border-[var(--border-color)] font-mono-custom font-black ${
-                          isActive ? 'bg-black text-white' : 'bg-[var(--color-yellow)] text-black'
-                        }`}
-                      >
-                        {tab.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+            {/* Top Neo-Brutalist Navigation Tab Bar (Contained Mobile Scroller) */}
+            <div className="w-full max-w-full min-w-0 brutal-card p-1.5 xs:p-2 bg-[var(--card-bg)] border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] overflow-hidden">
+              <div
+                className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-0.5 scrollbar-none w-full min-w-0"
+                style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
+              >
+                {[
+                  { id: 'dashboard', label: 'DASHBOARD', icon: LayoutDashboard, badge: null },
+                  { id: 'domains', label: 'DOMAIN EMAIL', icon: Globe, badge: domains.length },
+                  { id: 'apikeys', label: 'API KEYS', icon: Key, badge: apiKeys.length },
+                  { id: 'endpoints', label: 'ENDPOINTS & DOCS', icon: Shield, badge: '9 API' },
+                  { id: 'bot_tester', label: 'BOT & TESTER', icon: Terminal, badge: telegramEnabled ? 'BOT ON' : null },
+                  { id: 'settings', label: 'PENGATURAN', icon: Sliders, badge: null },
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeAdminTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => {
+                        playSound('click');
+                        setActiveAdminTab(tab.id as AdminTabType);
+                      }}
+                      className={`brutal-btn px-2.5 xs:px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] xs:text-xs sm:text-sm font-black font-mono-custom flex items-center gap-1.5 sm:gap-2 uppercase whitespace-nowrap transition-all flex-shrink-0 cursor-pointer ${
+                        isActive
+                          ? 'bg-[var(--color-yellow)] text-black shadow-[2.5px_2.5px_0px_var(--shadow-color)] scale-[1.01]'
+                          : 'bg-white dark:bg-zinc-900 text-[var(--text-main)] hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-[1px_1px_0px_var(--shadow-color)]'
+                      }`}
+                    >
+                      <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${isActive ? 'text-black' : 'text-[var(--color-blue)]'}`} />
+                      <span>{tab.label}</span>
+                      {tab.badge !== null && (
+                        <span
+                          className={`text-[9px] sm:text-[10px] px-1.5 py-0.2 border border-[var(--border-color)] font-mono-custom font-black flex-shrink-0 ${
+                            isActive ? 'bg-black text-white' : 'bg-[var(--color-yellow)] text-black'
+                          }`}
+                        >
+                          {tab.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
 
             {/* TAB 1: DASHBOARD & RINGKASAN STATUS SISTEM */}
             {activeAdminTab === 'dashboard' && (
-              <div className="space-y-5 sm:space-y-6 motion-fade-in">
+              <div className="space-y-4 sm:space-y-6 motion-fade-in w-full max-w-full min-w-0">
                 {/* Header Card */}
-                <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] space-y-4">
+                <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] space-y-4 w-full max-w-full min-w-0 overflow-hidden">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -1753,9 +1758,9 @@ if (!empty($otpData['found'])) {
 
             {/* TAB 2: KELOLA DOMAIN EMAIL */}
             {activeAdminTab === 'domains' && (
-              <div className="space-y-5 sm:space-y-6 motion-fade-in">
+              <div className="space-y-4 sm:space-y-6 motion-fade-in w-full max-w-full min-w-0">
                 {/* DOMAIN MANAGEMENT SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -1916,8 +1921,8 @@ if (!empty($otpData['found'])) {
 
             {/* TOGGLE VIP CONFIRMATION MODAL */}
             {domainToToggleVip && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4 overflow-y-auto">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full max-w-full p-4 xs:p-5 sm:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in my-auto min-w-0 overflow-hidden">
                   <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-amber-500">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
                       <Crown className="w-5 h-5 fill-black text-black" />
@@ -1963,8 +1968,8 @@ if (!empty($otpData['found'])) {
 
             {/* ADD DOMAIN CONFIRMATION MODAL */}
             {domainToAdd && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4 overflow-y-auto">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full max-w-full p-4 xs:p-5 sm:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in my-auto min-w-0 overflow-hidden">
                   <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-green)]">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-green)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
                       <Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3]" />
@@ -2005,8 +2010,8 @@ if (!empty($otpData['found'])) {
 
             {/* DELETE DOMAIN CONFIRMATION MODAL */}
             {domainToDelete && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4 overflow-y-auto">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full max-w-full p-4 xs:p-5 sm:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in my-auto min-w-0 overflow-hidden">
                   <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
                       <AlertTriangle className="w-5 h-5" />
@@ -2049,9 +2054,9 @@ if (!empty($otpData['found'])) {
 
             {/* TAB 3: KELOLA MULTI-API KEY */}
             {activeAdminTab === 'apikeys' && (
-              <div className="space-y-5 sm:space-y-6 motion-fade-in">
+              <div className="space-y-4 sm:space-y-6 motion-fade-in w-full max-w-full min-w-0">
                 {/* MULTI-API KEY & BOT CONNECTION MANAGEMENT SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -2361,8 +2366,8 @@ if (!empty($otpData['found'])) {
 
             {/* EDIT API KEY MODAL */}
             {keyToEdit && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-lg w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4 overflow-y-auto">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-lg w-full max-w-full p-4 xs:p-5 sm:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in my-auto min-w-0 overflow-hidden">
                   <div className="flex items-center gap-2.5 sm:gap-3 mb-4 text-[var(--color-blue)]">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
                       <Edit3 className="w-5 h-5" />
@@ -2459,8 +2464,8 @@ if (!empty($otpData['found'])) {
 
             {/* DELETE API KEY CONFIRMATION MODAL */}
             {keyToDelete && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4 overflow-y-auto">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full max-w-full p-4 xs:p-5 sm:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in my-auto min-w-0 overflow-hidden">
                   <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
                       <AlertTriangle className="w-5 h-5" />
@@ -2506,9 +2511,9 @@ if (!empty($otpData['found'])) {
 
             {/* TAB 4: SPESIFIKASI ENDPOINT & WEBHOOK */}
             {activeAdminTab === 'endpoints' && (
-              <div className="space-y-5 sm:space-y-6 motion-fade-in">
+              <div className="space-y-4 sm:space-y-6 motion-fade-in w-full max-w-full min-w-0">
                 {/* PRIVATE REST API & WEBHOOK SPECIFICATION SECTION (KHUSUS OWNER) */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] space-y-4">
+            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] space-y-4 w-full max-w-full min-w-0 overflow-hidden">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 sm:pb-4 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -2544,8 +2549,8 @@ if (!empty($otpData['found'])) {
               {/* Endpoint Cards List */}
               <div className="space-y-3 pt-1">
                 {/* 1. GET /api/v1/generate */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
-                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
+                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
                     <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
                       <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
                         GET
@@ -2565,7 +2570,7 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/generate`, 'ep_gen_url')}
@@ -2603,7 +2608,7 @@ if (!empty($otpData['found'])) {
                   </div>
 
                   {expandedEndpoints.has('generate') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                           <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
@@ -2629,7 +2634,7 @@ if (!empty($otpData['found'])) {
                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
                           Contoh Respon Sukses (JSON):
                         </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
 {`{
   "success": true,
   "email": "user1@kingoutlook.my.id",
@@ -2645,8 +2650,8 @@ if (!empty($otpData['found'])) {
                 </div>
 
                 {/* 2. GET /api/v1/inbox */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
-                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
+                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
                     <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
                       <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
                         GET
@@ -2666,7 +2671,7 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/inbox?email=user@domain.com`, 'ep_inbox_url')}
@@ -2702,7 +2707,7 @@ if (!empty($otpData['found'])) {
                   </div>
 
                   {expandedEndpoints.has('inbox') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                           <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
@@ -2728,7 +2733,7 @@ if (!empty($otpData['found'])) {
                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
                           Contoh Respon Sukses (JSON):
                         </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
 {`{
   "success": true,
   "email": "user@domain.com",
@@ -2751,8 +2756,8 @@ if (!empty($otpData['found'])) {
                 </div>
 
                 {/* 3. GET /api/v1/messages/{id} */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
-                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
+                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
                     <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
                       <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
                         GET
@@ -2772,7 +2777,7 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/messages/<MESSAGE_ID>`, 'ep_msg_url')}
@@ -2808,7 +2813,7 @@ if (!empty($otpData['found'])) {
                   </div>
 
                   {expandedEndpoints.has('messages') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                           <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
@@ -2833,7 +2838,7 @@ if (!empty($otpData['found'])) {
                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
                           Contoh Respon Sukses (JSON):
                         </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
 {`{
   "success": true,
   "message": {
@@ -2853,8 +2858,8 @@ if (!empty($otpData['found'])) {
                 </div>
 
                 {/* 4. GET /api/v1/otp */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
-                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
+                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
                     <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
                       <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
                         GET
@@ -2874,7 +2879,7 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/otp?email=user@domain.com`, 'ep_otp_url')}
@@ -2910,7 +2915,7 @@ if (!empty($otpData['found'])) {
                   </div>
 
                   {expandedEndpoints.has('otp') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                           <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
@@ -2935,7 +2940,7 @@ if (!empty($otpData['found'])) {
                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
                           Contoh Respon Sukses (JSON):
                         </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
 {`{
   "success": true,
   "found": true,
@@ -2951,8 +2956,8 @@ if (!empty($otpData['found'])) {
                 </div>
 
                 {/* 5. GET /api/v1/links */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
-                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
+                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
                     <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
                       <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
                         GET
@@ -2972,7 +2977,7 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/links?email=user@domain.com`, 'ep_links_url')}
@@ -3008,7 +3013,7 @@ if (!empty($otpData['found'])) {
                   </div>
 
                   {expandedEndpoints.has('links') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                           <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
@@ -3033,7 +3038,7 @@ if (!empty($otpData['found'])) {
                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
                           Contoh Respon Sukses (JSON):
                         </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
 {`{
   "success": true,
   "found": true,
@@ -3051,8 +3056,8 @@ if (!empty($otpData['found'])) {
                 </div>
 
                 {/* 6. GET /api/v1/domains */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
-                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
+                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
                     <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
                       <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
                         GET
@@ -3072,7 +3077,7 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/domains`, 'ep_dom_url')}
@@ -3108,7 +3113,7 @@ if (!empty($otpData['found'])) {
                   </div>
 
                   {expandedEndpoints.has('domains') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
                       <div>
                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
                           Required Request Headers:
@@ -3122,7 +3127,7 @@ if (!empty($otpData['found'])) {
                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
                           Contoh Respon Sukses (JSON):
                         </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
 {`{
   "success": true,
   "domains": [
@@ -3138,8 +3143,8 @@ if (!empty($otpData['found'])) {
                 </div>
 
                 {/* 7. GET /api/v1/stats */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
-                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
+                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
                     <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
                       <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
                         GET
@@ -3159,7 +3164,7 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/stats`, 'ep_stats_url')}
@@ -3195,7 +3200,7 @@ if (!empty($otpData['found'])) {
                   </div>
 
                   {expandedEndpoints.has('stats') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
                       <div>
                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
                           Required Request Headers:
@@ -3209,7 +3214,7 @@ if (!empty($otpData['found'])) {
                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
                           Contoh Respon Sukses (JSON):
                         </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
 {`{
   "success": true,
   "totalReceivedAllTime": ${cleanupStats?.totalReceivedAllTime ?? 1420},
@@ -3224,8 +3229,8 @@ if (!empty($otpData['found'])) {
                 </div>
 
                 {/* 8. POST /api/webhook/email */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
-                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
+                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
                     <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
                       <span className="px-2 py-0.5 bg-[var(--color-orange)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
                         POST
@@ -3245,7 +3250,7 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/webhook/email`, 'ep_wh_email_url')}
@@ -3267,7 +3272,7 @@ if (!empty($otpData['found'])) {
                   </div>
 
                   {expandedEndpoints.has('webhook_email') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                           <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
@@ -3297,7 +3302,7 @@ if (!empty($otpData['found'])) {
                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
                           Contoh Respon Sukses (JSON):
                         </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
 {`{
   "success": true,
   "messageId": "66e689abcdef1234567890",
@@ -3310,8 +3315,8 @@ if (!empty($otpData['found'])) {
                 </div>
 
                 {/* 9. POST /api/webhook/telegram */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
-                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
+                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
                     <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
                       <span className="px-2 py-0.5 bg-[var(--color-orange)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
                         POST
@@ -3331,7 +3336,7 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/webhook/telegram`, 'ep_wh_tg_url')}
@@ -3353,7 +3358,7 @@ if (!empty($otpData['found'])) {
                   </div>
 
                   {expandedEndpoints.has('webhook_telegram') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
                       <div>
                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
                           Deskripsi Operasional:
@@ -3367,7 +3372,7 @@ if (!empty($otpData['found'])) {
                         <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
                           Contoh Respon Sukses (JSON):
                         </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
 {`{
   "ok": true
 }`}
@@ -3384,9 +3389,9 @@ if (!empty($otpData['found'])) {
 
             {/* TAB 5: INTEGRASI BOT & LIVE TESTER */}
             {activeAdminTab === 'bot_tester' && (
-              <div className="space-y-5 sm:space-y-6 motion-fade-in">
+              <div className="space-y-4 sm:space-y-6 motion-fade-in w-full max-w-full min-w-0">
                 {/* TELEGRAM BOT INTEGRATION SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#229ED9] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -3511,7 +3516,7 @@ if (!empty($otpData['found'])) {
                 </div>
 
                 {/* Webhook Configuration & URL Display */}
-                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)]">
+                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)] w-full max-w-full min-w-0 overflow-hidden">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <span className="text-[10px] font-mono-custom font-black uppercase text-[var(--text-muted)] block mb-0.5">
@@ -3604,7 +3609,7 @@ if (!empty($otpData['found'])) {
               </form>
             </div>
                 {/* API KEY SELECTOR FOR INTEGRATION & LIVE TESTER */}
-            <div className="brutal-card p-3.5 sm:p-4 bg-[var(--card-bg)] flex flex-col md:flex-row md:items-center justify-between gap-3 border-[2px] border-[var(--border-color)]">
+            <div className="brutal-card p-3 xs:p-4 bg-[var(--card-bg)] flex flex-col md:flex-row md:items-center justify-between gap-3 border-[2px] border-[var(--border-color)] w-full max-w-full min-w-0 overflow-hidden">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
                   <Key className="w-4 h-4" />
@@ -3638,9 +3643,9 @@ if (!empty($otpData['found'])) {
               </div>
             </div>
                 {/* Two Column Layout: Code Generator & Live Interactive Tester */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-7">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full max-w-full min-w-0">
               {/* Left Column: Code Generator for Bots */}
-              <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] flex flex-col">
+              <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] flex flex-col w-full max-w-full min-w-0 overflow-hidden">
                 <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 mb-3 sm:mb-4 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                   <div className="flex items-center gap-2">
                     <Code2 className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-blue)] flex-shrink-0" />
@@ -3671,7 +3676,7 @@ if (!empty($otpData['found'])) {
                 </div>
 
                 <div className="relative flex-1">
-                  <pre className="w-full h-[300px] xs:h-[340px] sm:h-[360px] p-3 sm:p-4 bg-zinc-950 text-emerald-400 font-mono text-[10px] xs:text-[11px] sm:text-xs overflow-auto border-[2.5px] sm:border-[3px] border-[var(--border-color)] shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] whitespace-pre">
+                  <pre className="w-full max-w-full h-[280px] xs:h-[320px] sm:h-[360px] p-2.5 xs:p-3 sm:p-4 bg-zinc-950 text-emerald-400 font-mono text-[10px] xs:text-[11px] sm:text-xs overflow-x-auto overflow-y-auto border-[2.5px] sm:border-[3px] border-[var(--border-color)] shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] whitespace-pre">
                     {codeSnippets[activeCodeTab]}
                   </pre>
                   <button
@@ -3689,7 +3694,7 @@ if (!empty($otpData['found'])) {
               </div>
 
               {/* Right Column: Interactive Live API Tester */}
-              <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] flex flex-col">
+              <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] flex flex-col w-full max-w-full min-w-0 overflow-hidden">
                 <div className="flex items-center gap-2 mb-3 sm:mb-4 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                   <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-green)] flex-shrink-0" />
                   <h3 className="font-heading font-black text-sm xs:text-base uppercase">
@@ -3712,7 +3717,7 @@ if (!empty($otpData['found'])) {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
+                  <div className="grid grid-cols-2 xs:grid-cols-4 gap-1.5 sm:gap-2 w-full min-w-0">
                     <button
                       onClick={() => runTest('domains')}
                       disabled={isTesting}
@@ -3758,7 +3763,7 @@ if (!empty($otpData['found'])) {
                   <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase mb-1">
                     Live Response Output:
                   </span>
-                  <pre className="flex-1 p-3 bg-zinc-950 text-emerald-400 font-mono text-[10px] xs:text-[11px] overflow-auto border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] whitespace-pre-wrap select-text">
+                  <pre className="w-full max-w-full flex-1 p-2.5 xs:p-3 bg-zinc-950 text-emerald-400 font-mono text-[10px] xs:text-[11px] overflow-x-auto border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] whitespace-pre-wrap break-all select-text">
                     {testResult
                       ? JSON.stringify(testResult, null, 2)
                       : '// Klik salah satu tombol di atas untuk melihat respon langsung dari server.'}
@@ -3772,9 +3777,9 @@ if (!empty($otpData['found'])) {
 
             {/* TAB 6: PENGATURAN & RETENSI DATABASE */}
             {activeAdminTab === 'settings' && (
-              <div className="space-y-5 sm:space-y-6 motion-fade-in">
+              <div className="space-y-4 sm:space-y-6 motion-fade-in w-full max-w-full min-w-0">
                 {/* ADMIN LOGIN CREDENTIALS MANAGEMENT SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-purple)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -3851,7 +3856,7 @@ if (!empty($otpData['found'])) {
               </form>
             </div>
                 {/* ACCESS KEY GATE MANAGEMENT SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -3965,7 +3970,7 @@ if (!empty($otpData['found'])) {
               </form>
             </div>
                 {/* BROADCAST / POPUP ANNOUNCEMENT SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -4154,7 +4159,7 @@ if (!empty($otpData['found'])) {
               </div>
             )}
                 {/* DATABASE & AUTO-DELETE 3 HARI (WIB) CLEANER SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -4300,7 +4305,7 @@ if (!empty($otpData['found'])) {
             {/* CONFIRM CLEAN ALL MODAL */}
             {showCleanAllModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full max-w-full p-4 xs:p-5 sm:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in my-auto min-w-0 overflow-hidden">
                   <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
                       <AlertTriangle className="w-5 h-5" />
