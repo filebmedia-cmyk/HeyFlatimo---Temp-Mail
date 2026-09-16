@@ -109,7 +109,7 @@ export default function DomainDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="brutal-btn bg-white dark:bg-zinc-900 text-[var(--text-main)] px-2.5 xs:px-3.5 py-2 sm:py-2.5 text-[11px] xs:text-xs font-mono-custom font-bold flex items-center justify-between gap-1.5 xs:gap-2 w-full shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] hover:bg-[#f0f9ff] dark:hover:bg-zinc-800 transition-colors"
+        className="brutal-btn bg-white dark:bg-[#151922] text-[var(--text-main)] px-2.5 xs:px-3.5 py-2 sm:py-2.5 text-[11px] xs:text-xs font-mono-custom font-bold flex items-center justify-between gap-1.5 xs:gap-2 w-full shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] hover:bg-[#f0f9ff] dark:hover:bg-[#1e2535] transition-colors"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
@@ -137,7 +137,7 @@ export default function DomainDropdown({
 
       {/* Animated Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 right-0 sm:left-auto sm:right-0 sm:min-w-[260px] md:min-w-[300px] mt-1.5 z-50 brutal-card bg-white dark:bg-zinc-950 border-[2.5px] sm:border-[3px] border-[var(--border-color)] shadow-[4px_4px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] p-2 motion-dropdown-enter">
+        <div className="absolute left-0 right-0 sm:left-auto sm:right-0 sm:min-w-[260px] md:min-w-[300px] mt-1.5 z-50 brutal-card bg-white dark:bg-[#0f121a] border-[2.5px] sm:border-[3px] border-[var(--border-color)] shadow-[4px_4px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] p-2 motion-dropdown-enter">
           {/* Header Label inside Dropdown with Domain Counter */}
           <div className="px-2 py-1 text-[9px] xs:text-[10px] font-mono-custom font-black uppercase text-[var(--text-muted)] border-b-[2px] border-dashed border-[var(--border-color)] mb-2 flex items-center justify-between">
             <span>PILIH DOMAIN</span>
@@ -156,7 +156,7 @@ export default function DomainDropdown({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari domain..."
-                className="w-full pl-8 pr-7 py-1.5 text-xs font-mono-custom font-bold bg-[#f8fafc] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] focus:outline-none focus:border-[var(--color-blue)]"
+                className="w-full pl-8 pr-7 py-1.5 text-xs font-mono-custom font-bold bg-[#f8fafc] dark:bg-[#151922] border-[2px] border-[var(--border-color)] focus:outline-none focus:border-[var(--color-blue)]"
               />
               {searchQuery && (
                 <button
@@ -188,7 +188,7 @@ export default function DomainDropdown({
                     className={`px-2.5 py-2 text-xs font-mono-custom font-bold flex items-center justify-between gap-2 rounded-none border-[1.5px] cursor-pointer transition-all duration-150 ${
                       isSelected
                         ? 'bg-[var(--color-yellow)] text-black border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] -translate-y-0.5'
-                        : 'bg-transparent text-[var(--text-main)] border-transparent hover:border-[var(--border-color)] hover:bg-[#f1f5f9] dark:hover:bg-zinc-800 hover:translate-x-1'
+                        : 'bg-transparent text-[var(--text-main)] border-transparent hover:border-[var(--border-color)] hover:bg-[#f1f5f9] dark:hover:bg-[#1e2535] hover:translate-x-1'
                     }`}
                   >
                     <div className="flex items-center gap-1.5 min-w-0">

@@ -296,7 +296,7 @@ export default function PsBackground() {
               }}
             >
               {/* Neo-Brutalist Button Box with Black Border & 3D Shadow (Matching Temp Mail Card) */}
-              <div className="w-full h-full bg-white dark:bg-zinc-900 border-[2.5px] sm:border-[3px] border-[var(--border-color)] rounded-xl sm:rounded-2xl shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] flex items-center justify-center transition-all">
+              <div className="w-full h-full bg-white dark:bg-[#121622] border-[2.5px] sm:border-[3px] border-[var(--border-color)] rounded-xl sm:rounded-2xl shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] flex items-center justify-center transition-all">
                 <RenderIcon shape={token.shape} color={token.color} />
               </div>
             </div>

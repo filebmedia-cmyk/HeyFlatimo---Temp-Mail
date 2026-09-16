@@ -35,34 +35,33 @@
 }
 
 .dark {
-  /* DARK MODE (High Contrast Crisp White Borders & Pure White 3D Shadows) */
-  --bg-color: #08080c;
-  --text-main: #ffffff;
-  --text-muted: #cbd5e1;
-  --card-bg: #111116;
-  --input-bg: #181820;
-  --border-color: #ffffff;    /* High contrast crisp white border */
-  --shadow-color: #ffffff;    /* Crisp pure white 3D drop shadow */
+  /* DARK MODE: OBSIDIAN MIDNIGHT PRO (OLED Canvas, Velvet Slate Surfaces, Sleek Contrast) */
+  --bg-color: #07080c;        /* Pitch Black Deep OLED Canvas */
+  --text-main: #f8fafc;       /* Crisp High-Contrast Pure White */
+  --text-muted: #94a3b8;      /* Clean Slate Grey, highly readable */
+  --card-bg: #0f121a;         /* Deep Obsidian Slate Surface */
+  --input-bg: #161b26;        /* Subtle Elevated Surface for Inputs & Boxes */
+  --border-color: #2b3548;    /* Sophisticated Dark Obsidian Border */
+  --shadow-color: #000000;    /* Deep 3D Grounded Obsidian Shadow */
 
-
-  /* ULTRA-SATURATED NEON GLOW ACCENTS */
-  --color-blue: #00d2ff;
-  --color-yellow: #ffea00;
-  --color-green: #00e676;
-  --color-orange: #ff6d00;
-  --color-red: #ff1744;
-  --color-purple: #a855f7;
-  --color-pink: #ff2d87;
-  --color-cyan: #00f5ff;
+  /* RICH VIBRANT ACCENT COLORS (High Saturation, Non-pale on Dark OLED) */
+  --color-blue: #38bdf8;      /* Electric Sky Blue */
+  --color-yellow: #facc15;    /* Vivid Cyber Gold Yellow */
+  --color-green: #34d399;     /* Ultra Vivid Emerald Mint */
+  --color-orange: #fb923c;    /* Vivid Tangerine Orange */
+  --color-red: #f87171;       /* Vivid Coral Crimson */
+  --color-purple: #c084fc;    /* Vivid Electric Lavender */
+  --color-pink: #f472b6;      /* Vivid Neon Hot Rose */
+  --color-cyan: #22d3ee;      /* Vivid Cyan Neon */
 
   --brand-primary: var(--color-blue);
   --brand-secondary: var(--color-green);
   --brand-accent: var(--color-yellow);
   --brand-danger: var(--color-red);
 
-  --grid-color: rgba(255, 255, 255, 0.07);
-  --badge-bg: #003b14;
-  --badge-text: #00e676;
+  --grid-color: rgba(255, 255, 255, 0.04);
+  --badge-bg: #064e3b;
+  --badge-text: #34d399;
 }
 
 body {
