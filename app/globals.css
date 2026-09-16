@@ -225,19 +225,19 @@ body {
    ============================================================ */
 
 .dark .brutal-card {
-  box-shadow: 4px 4px 0px #000000, 0 0 25px rgba(56, 189, 248, 0.06);
+  box-shadow: 4px 4px 0px #000000;
 }
 
 @media (min-width: 640px) {
   .dark .brutal-card {
-    box-shadow: 6px 6px 0px #000000, 0 0 35px rgba(56, 189, 248, 0.08);
+    box-shadow: 6px 6px 0px #000000;
   }
   .dark .brutal-card:hover {
-    box-shadow: 8px 8px 0px #000000, 0 0 45px rgba(56, 189, 248, 0.14);
+    box-shadow: 8px 8px 0px #000000, 0 0 18px rgba(56, 189, 248, 0.08);
   }
 }
 
-/* Vivid Neon Button Glows in Dark Mode */
+/* Subtle, Anti-Glare Neon Button Glows on Hover in Dark Mode */
 .dark .brutal-btn {
   box-shadow: 3.5px 3.5px 0px #000000;
 }
@@ -249,70 +249,47 @@ body {
 }
 
 .dark .brutal-btn:hover {
-  box-shadow: 6px 6px 0px #000000;
+  box-shadow: 5px 5px 0px #000000;
 }
 
-.dark .brutal-btn[class*="bg-[var(--color-yellow)]"],
-.dark .brutal-btn[class*="bg-amber-"],
-.dark .brutal-btn[class*="bg-yellow-"] {
-  box-shadow: 3.5px 3.5px 0px #000000, 0 0 20px rgba(255, 230, 0, 0.45);
-}
 .dark .brutal-btn[class*="bg-[var(--color-yellow)]"]:hover,
 .dark .brutal-btn[class*="bg-amber-"]:hover,
 .dark .brutal-btn[class*="bg-yellow-"]:hover {
-  box-shadow: 5px 5px 0px #000000, 0 0 32px rgba(255, 230, 0, 0.7);
+  box-shadow: 5px 5px 0px #000000, 0 0 12px rgba(255, 230, 0, 0.35);
 }
 
-.dark .brutal-btn[class*="bg-[var(--color-blue)]"],
-.dark .brutal-btn[class*="bg-sky-"],
-.dark .brutal-btn[class*="bg-blue-"] {
-  box-shadow: 3.5px 3.5px 0px #000000, 0 0 20px rgba(0, 200, 255, 0.45);
-}
 .dark .brutal-btn[class*="bg-[var(--color-blue)]"]:hover,
 .dark .brutal-btn[class*="bg-sky-"]:hover,
 .dark .brutal-btn[class*="bg-blue-"]:hover {
-  box-shadow: 5px 5px 0px #000000, 0 0 32px rgba(0, 200, 255, 0.7);
+  box-shadow: 5px 5px 0px #000000, 0 0 12px rgba(0, 200, 255, 0.35);
 }
 
-.dark .brutal-btn[class*="bg-[var(--color-green)]"],
-.dark .brutal-btn[class*="bg-emerald-"],
-.dark .brutal-btn[class*="bg-green-"] {
-  box-shadow: 3.5px 3.5px 0px #000000, 0 0 20px rgba(0, 255, 102, 0.45);
-}
 .dark .brutal-btn[class*="bg-[var(--color-green)]"]:hover,
 .dark .brutal-btn[class*="bg-emerald-"]:hover,
 .dark .brutal-btn[class*="bg-green-"]:hover {
-  box-shadow: 5px 5px 0px #000000, 0 0 32px rgba(0, 255, 102, 0.7);
+  box-shadow: 5px 5px 0px #000000, 0 0 12px rgba(0, 255, 102, 0.35);
 }
 
-.dark .brutal-btn[class*="bg-[var(--color-orange)]"],
-.dark .brutal-btn[class*="bg-orange-"] {
-  box-shadow: 3.5px 3.5px 0px #000000, 0 0 20px rgba(255, 85, 0, 0.45);
-}
 .dark .brutal-btn[class*="bg-[var(--color-orange)]"]:hover,
 .dark .brutal-btn[class*="bg-orange-"]:hover {
-  box-shadow: 5px 5px 0px #000000, 0 0 32px rgba(255, 85, 0, 0.7);
+  box-shadow: 5px 5px 0px #000000, 0 0 12px rgba(255, 85, 0, 0.35);
 }
 
-.dark .brutal-btn[class*="bg-[var(--color-red)]"],
-.dark .brutal-btn[class*="bg-red-"] {
-  box-shadow: 3.5px 3.5px 0px #000000, 0 0 20px rgba(255, 0, 85, 0.45);
-}
 .dark .brutal-btn[class*="bg-[var(--color-red)]"]:hover,
 .dark .brutal-btn[class*="bg-red-"]:hover {
-  box-shadow: 5px 5px 0px #000000, 0 0 32px rgba(255, 0, 85, 0.7);
+  box-shadow: 5px 5px 0px #000000, 0 0 12px rgba(255, 0, 85, 0.35);
 }
 
-/* Luminous Input Glow in Dark Mode */
+/* Crisp Input Focus in Dark Mode */
 .dark .brutal-input:focus {
   outline: none;
-  box-shadow: 4px 4px 0px #000000, 0 0 24px rgba(0, 200, 255, 0.45);
+  box-shadow: 4px 4px 0px #000000, 0 0 10px rgba(0, 200, 255, 0.25);
   border-color: var(--color-blue);
 }
 
-/* Neon Text Glow in Dark Mode */
+/* Refined Subtle Text Glow in Dark Mode */
 .dark h1 span.text-\[var\(--color-blue\)\] {
-  text-shadow: 0 0 24px rgba(0, 200, 255, 0.55);
+  text-shadow: 0 0 10px rgba(0, 200, 255, 0.25);
 }
 
 /* ============================================================
@@ -650,7 +627,7 @@ body {
 .dark .anim-cpu,
 .dark .anim-terminal,
 .dark .anim-globe {
-  filter: drop-shadow(0 0 5px currentColor);
+  filter: drop-shadow(0 0 2px currentColor);
 }
 
 .group:hover .icon-spin {

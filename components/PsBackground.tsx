@@ -30,7 +30,7 @@ const TOKENS: PsToken[] = [
     animDuration: '22s',
     rotDuration: '28s',
     delay: '0s',
-    opacity: 0.75,
+    opacity: 0.32,
     animType: 'ps-float-1',
     rotDir: 'clockwise',
   },
@@ -45,7 +45,7 @@ const TOKENS: PsToken[] = [
     animDuration: '18s',
     rotDuration: '24s',
     delay: '-3s',
-    opacity: 0.75,
+    opacity: 0.3,
     animType: 'ps-float-2',
     rotDir: 'counter',
   },
@@ -60,7 +60,7 @@ const TOKENS: PsToken[] = [
     animDuration: '20s',
     rotDuration: '26s',
     delay: '-6s',
-    opacity: 0.7,
+    opacity: 0.28,
     animType: 'ps-float-3',
     rotDir: 'clockwise',
   },
@@ -75,7 +75,7 @@ const TOKENS: PsToken[] = [
     animDuration: '19s',
     rotDuration: '25s',
     delay: '-2s',
-    opacity: 0.75,
+    opacity: 0.3,
     animType: 'ps-float-4',
     rotDir: 'counter',
   },
@@ -90,7 +90,7 @@ const TOKENS: PsToken[] = [
     animDuration: '21s',
     rotDuration: '27s',
     delay: '-8s',
-    opacity: 0.7,
+    opacity: 0.28,
     animType: 'ps-float-2',
     rotDir: 'clockwise',
   },
@@ -105,7 +105,7 @@ const TOKENS: PsToken[] = [
     animDuration: '24s',
     rotDuration: '30s',
     delay: '-5s',
-    opacity: 0.7,
+    opacity: 0.28,
     animType: 'ps-float-1',
     rotDir: 'counter',
   },
@@ -120,7 +120,7 @@ const TOKENS: PsToken[] = [
     animDuration: '17s',
     rotDuration: '22s',
     delay: '-4s',
-    opacity: 0.65,
+    opacity: 0.25,
     animType: 'ps-float-4',
     rotDir: 'counter',
   },
@@ -135,7 +135,7 @@ const TOKENS: PsToken[] = [
     animDuration: '23s',
     rotDuration: '29s',
     delay: '-9s',
-    opacity: 0.65,
+    opacity: 0.25,
     animType: 'ps-float-3',
     rotDir: 'clockwise',
   },
@@ -150,7 +150,7 @@ const TOKENS: PsToken[] = [
     animDuration: '16s',
     rotDuration: '20s',
     delay: '-1s',
-    opacity: 0.6,
+    opacity: 0.22,
     animType: 'ps-float-1',
     rotDir: 'clockwise',
   },
@@ -165,14 +165,14 @@ const TOKENS: PsToken[] = [
     animDuration: '25s',
     rotDuration: '31s',
     delay: '-7s',
-    opacity: 0.6,
+    opacity: 0.22,
     animType: 'ps-float-2',
     rotDir: 'counter',
   },
 ];
 
 function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }) {
-  const glowStyle = { color, filter: 'drop-shadow(0 0 7px currentColor)' };
+  const glowStyle = { color, filter: 'drop-shadow(0 0 2.5px currentColor)' };
   switch (shape) {
     case 'triangle':
       return (
@@ -298,7 +298,7 @@ export default function PsBackground() {
             >
               {/* Neo-Brutalist Button Box with Black Border & 3D Shadow + Luminous Glow */}
               <div
-                className="w-full h-full bg-white dark:bg-[#121622] border-[2.5px] sm:border-[3px] border-[var(--border-color)] rounded-xl sm:rounded-2xl shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] dark:shadow-[3px_3px_0px_#000000,0_0_18px_rgba(0,0,0,0.8)] flex items-center justify-center transition-all"
+                className="w-full h-full bg-white dark:bg-[#121622] border-[2.5px] sm:border-[3px] border-[var(--border-color)] rounded-xl sm:rounded-2xl shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] dark:shadow-[3px_3px_0px_#000000] flex items-center justify-center transition-all"
                 style={{
                   boxShadow: undefined,
                 }}
