@@ -37,9 +37,6 @@ import {
   Megaphone,
   Save,
   Sliders,
-  BellRing,
-  Bell,
-  BellOff,
   ToggleLeft,
   ToggleRight,
   Crown,
@@ -52,7 +49,7 @@ import {
   LayoutDashboard,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
-import { playSound, getSoundEnabled, setSoundEnabled, unlockAudio } from '@/lib/sound';
+import { playSound } from '@/lib/sound';
 
 export interface ApiKeyItem {
   id: string;
@@ -84,8 +81,6 @@ export default function AdminPage() {
   // Active Admin Navigation Tab (Dashboard, Domains, API Keys, Endpoints, Bot Tester, Settings)
   const [activeAdminTab, setActiveAdminTab] = useState<AdminTabType>('dashboard');
 
-  // Sound FX State (Inherited from localStorage)
-  const [isSoundEnabled, setIsSoundEnabled] = useState(false);
 
   // Multi API Key & Single-Bot Lock State
   const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([]);
@@ -223,7 +218,6 @@ export default function AdminPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setOrigin(window.location.origin);
-      setIsSoundEnabled(getSoundEnabled());
       // Clear any legacy persistent storage
       localStorage.removeItem('heyflatimo_admin_logged');
       
@@ -239,18 +233,6 @@ export default function AdminPage() {
     }
   }, []);
 
-  const handleToggleSound = () => {
-    unlockAudio();
-    const next = !isSoundEnabled;
-    setIsSoundEnabled(next);
-    setSoundEnabled(next);
-    if (next) {
-      playSound('success');
-      showToast('Suara Notifikasi Admin Diaktifkan', 'info');
-    } else {
-      showToast('Suara Notifikasi Admin Dinonaktifkan (Mute)', 'info');
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1299,34 +1281,6 @@ if (!empty($otpData['found'])) {
           </Link>
 
           <div className="flex items-center gap-1.5 xs:gap-2.5 flex-shrink-0">
-            {/* Sound FX Toggle Button */}
-            <button
-              type="button"
-              onClick={handleToggleSound}
-              className={`brutal-btn px-2 xs:px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10px] xs:text-[11px] sm:text-xs font-bold font-mono-custom flex items-center gap-1 sm:gap-1.5 uppercase shadow-[2px_2px_0px_var(--shadow-color)] ${
-                isSoundEnabled
-                  ? 'bg-[var(--color-purple)] text-white hover:bg-purple-700'
-                  : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300'
-              }`}
-              title={
-                isSoundEnabled
-                  ? 'Suara Notifikasi Admin: AKTIF (Klik untuk Mute)'
-                  : 'Suara Notifikasi Admin: SENYAP/MUTE (Klik untuk Bunyikan)'
-              }
-            >
-              {isSoundEnabled ? (
-                <>
-                  <Bell className="w-3.5 h-3.5 text-[var(--color-yellow)] flex-shrink-0" />
-                  <span className="hidden xs:inline">SUARA ON</span>
-                </>
-              ) : (
-                <>
-                  <BellOff className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span className="hidden xs:inline">MUTE</span>
-                </>
-              )}
-            </button>
-
             <Link
               href="/"
               onClick={() => {
