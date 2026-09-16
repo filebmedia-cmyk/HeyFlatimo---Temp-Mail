@@ -335,10 +335,10 @@ export async function validateAdminCredentials(user: string, pass: string): Prom
 
 /**
  * Server-Side Admin Guard for /api/admin/* endpoints
- * Verifies either Admin Session Token or valid Admin API Key
+ * Verifies Admin Session Token, Basic Auth credentials, or valid Admin API Key
  */
 export async function verifyAdminRequest(req: NextRequest): Promise<{ authorized: boolean; username?: string }> {
-  // 1. Check Session Token in x-admin-token or Authorization: Bearer <token>
+  // 1. Check Session Token in x-admin-token header
   const adminTokenHeader = req.headers.get('x-admin-token');
   if (adminTokenHeader) {
     const session = verifyAdminSessionToken(adminTokenHeader.trim());
@@ -347,23 +347,41 @@ export async function verifyAdminRequest(req: NextRequest): Promise<{ authorized
     }
   }
 
+  // 2. Check Authorization header (Bearer or Basic)
   const authHeader = req.headers.get('authorization');
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-    // Try as session token first
-    const session = verifyAdminSessionToken(token);
-    if (session.valid) {
-      return { authorized: true, username: session.username };
-    }
-    // Try as API Key
-    const activeKey = await getCurrentApiKey();
-    const envKey = process.env.ADMIN_API_KEY || 'hfl_key_8899aabbccddeeff00112233';
-    if (safeCompare(token, activeKey) || safeCompare(token, envKey)) {
-      return { authorized: true, username: 'api_admin' };
+  if (authHeader) {
+    if (authHeader.startsWith('Bearer ')) {
+      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+      // Try as session token first
+      const session = verifyAdminSessionToken(token);
+      if (session.valid) {
+        return { authorized: true, username: session.username };
+      }
+      // Try as API Key
+      const activeKey = await getCurrentApiKey();
+      const envKey = process.env.ADMIN_API_KEY || 'hfl_key_8899aabbccddeeff00112233';
+      if (safeCompare(token, activeKey) || safeCompare(token, envKey)) {
+        return { authorized: true, username: 'api_admin' };
+      }
+    } else if (authHeader.startsWith('Basic ')) {
+      const b64 = authHeader.replace(/^Basic\s+/i, '').trim();
+      try {
+        const decoded = Buffer.from(b64, 'base64').toString('utf-8');
+        const colonIndex = decoded.indexOf(':');
+        if (colonIndex > -1) {
+          const u = decoded.substring(0, colonIndex);
+          const p = decoded.substring(colonIndex + 1);
+          if (u && p && (await validateAdminCredentials(u, p))) {
+            return { authorized: true, username: u };
+          }
+        }
+      } catch {
+        // ignore decoding errors
+      }
     }
   }
 
-  // 2. Check x-api-key header
+  // 3. Check x-api-key header
   const apiKeyHeader = req.headers.get('x-api-key');
   if (apiKeyHeader) {
     const activeKey = await getCurrentApiKey();

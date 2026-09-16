@@ -222,24 +222,40 @@ export default function AdminPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setOrigin(window.location.origin);
+      // Sinkronkan daftar domain segera saat halaman dibuka
+      fetchDomains();
       const isLogged = sessionStorage.getItem('heyflatimo_admin_logged');
       if (isLogged === 'true') {
         setIsLoggedIn(true);
+        const savedKey = sessionStorage.getItem('heyflatimo_admin_key');
+        if (savedKey) setApiKey(savedKey);
         fetchApiKeys();
-        fetchDomains();
         fetchCleanupStats();
         fetchSettings();
-        fetchStats();
+        fetchStats(savedKey || undefined);
       }
     }
   }, []);
 
-  const getAdminHeaders = () => {
-    const auth = sessionStorage.getItem('heyflatimo_admin_auth') || '';
-    return {
+  const getAdminHeaders = (): Record<string, string> => {
+    const auth = typeof window !== 'undefined' ? sessionStorage.getItem('heyflatimo_admin_auth') || '' : '';
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem('heyflatimo_admin_token') || '' : '';
+    const key = typeof window !== 'undefined' ? sessionStorage.getItem('heyflatimo_admin_key') || apiKey || '' : '';
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Authorization': `Basic ${auth}`,
     };
+    if (auth) {
+      headers['Authorization'] = `Basic ${auth}`;
+    } else if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    if (token) {
+      headers['x-admin-token'] = token;
+    }
+    if (key) {
+      headers['x-api-key'] = key;
+    }
+    return headers;
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -261,14 +277,21 @@ export default function AdminPage() {
         playSound('success');
         sessionStorage.setItem('heyflatimo_admin_logged', 'true');
         sessionStorage.setItem('heyflatimo_admin_auth', basicAuth);
+        if (data.sessionToken) {
+          sessionStorage.setItem('heyflatimo_admin_token', data.sessionToken);
+        }
+        const activeApiKey = data.apiKey || data.admin?.apiKey;
+        if (activeApiKey) {
+          sessionStorage.setItem('heyflatimo_admin_key', activeApiKey);
+          setApiKey(activeApiKey);
+        }
         setIsLoggedIn(true);
-        if (data.apiKey) setApiKey(data.apiKey);
         showToast('Login Admin Berhasil!', 'success');
         fetchApiKeys();
         fetchDomains();
         fetchCleanupStats();
         fetchSettings();
-        fetchStats(data.apiKey);
+        fetchStats(activeApiKey);
       } else {
         playSound('error');
         showToast(data.error || 'Username atau password salah!', 'error');
@@ -285,6 +308,8 @@ export default function AdminPage() {
     playSound('click');
     sessionStorage.removeItem('heyflatimo_admin_logged');
     sessionStorage.removeItem('heyflatimo_admin_auth');
+    sessionStorage.removeItem('heyflatimo_admin_token');
+    sessionStorage.removeItem('heyflatimo_admin_key');
     setIsLoggedIn(false);
     setUsername('');
     setPassword('');
@@ -503,15 +528,34 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin/domains', { headers: getAdminHeaders() });
       const data = await res.json();
-      if (data.success && Array.isArray(data.domains)) {
+      if (data.success && Array.isArray(data.domains) && data.domains.length > 0) {
         const normalized = data.domains.map((d: any) => {
           if (typeof d === 'string') return { domain: d, isVip: false };
           return { domain: d.domain, isVip: Boolean(d.isVip), createdAt: d.createdAt };
         });
         setDomains(normalized);
+        return;
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching admin domains:', err);
+    }
+
+    // Fallback sync with public domain endpoint if admin API response is empty or unauthenticated
+    try {
+      const pubRes = await fetch('/api/domains');
+      const pubData = await pubRes.json();
+      if (pubData.domainDetails && Array.isArray(pubData.domainDetails) && pubData.domainDetails.length > 0) {
+        const normalized = pubData.domainDetails.map((d: any) => ({
+          domain: typeof d === 'string' ? d : d.domain,
+          isVip: Boolean(d.isVip),
+          createdAt: d.createdAt,
+        }));
+        setDomains(normalized);
+      } else if (pubData.domains && Array.isArray(pubData.domains) && pubData.domains.length > 0) {
+        setDomains(pubData.domains.map((d: string) => ({ domain: d, isVip: false })));
+      }
+    } catch (pubErr) {
+      console.error('Error fetching public fallback domains:', pubErr);
     }
   };
 
@@ -872,7 +916,16 @@ export default function AdminPage() {
         setNewDomainInput('');
         setIsNewDomainVip(false);
         setDomainToAdd(null);
-        fetchDomains();
+        if (Array.isArray(data.domains)) {
+          const normalized = data.domains.map((d: any) => ({
+            domain: typeof d === 'string' ? d : d.domain,
+            isVip: Boolean(d.isVip),
+            createdAt: d.createdAt,
+          }));
+          setDomains(normalized);
+        } else {
+          fetchDomains();
+        }
         showToast(`Domain @${domainToAdd} berhasil ditambahkan!`, 'success');
         setDomainNotice({ type: 'success', message: `Domain @${domainToAdd} berhasil ditambahkan dan siap digunakan.` });
       } else {
@@ -902,7 +955,16 @@ export default function AdminPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         playSound('success');
-        fetchDomains();
+        if (Array.isArray(data.domains)) {
+          const normalized = data.domains.map((d: any) => ({
+            domain: typeof d === 'string' ? d : d.domain,
+            isVip: Boolean(d.isVip),
+            createdAt: d.createdAt,
+          }));
+          setDomains(normalized);
+        } else {
+          fetchDomains();
+        }
         const successMsg = `Status @${domainToToggleVip.domain} diubah ke ${domainToToggleVip.isVip ? 'VIP' : 'FREE'}!`;
         showToast(successMsg, 'success');
         setDomainNotice({ type: 'success', message: successMsg });
@@ -936,7 +998,16 @@ export default function AdminPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         playSound('delete');
-        fetchDomains();
+        if (Array.isArray(data.domains)) {
+          const normalized = data.domains.map((d: any) => ({
+            domain: typeof d === 'string' ? d : d.domain,
+            isVip: Boolean(d.isVip),
+            createdAt: d.createdAt,
+          }));
+          setDomains(normalized);
+        } else {
+          fetchDomains();
+        }
         showToast(`Domain @${target} berhasil dihapus!`, 'success');
         setDomainNotice({ type: 'success', message: `Domain @${target} telah berhasil dihapus dari sistem.` });
       } else {

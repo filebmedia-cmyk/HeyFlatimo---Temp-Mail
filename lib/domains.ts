@@ -11,7 +11,10 @@ export interface DomainItem {
  * Get all domains as full objects with VIP status
  */
 export async function getAllDomainDetails(): Promise<DomainItem[]> {
-  const envDomainsRaw = process.env.NEXT_PUBLIC_AVAILABLE_DOMAINS || '';
+  const envDomainsRaw =
+    process.env.NEXT_PUBLIC_AVAILABLE_DOMAINS ||
+    process.env.AVAILABLE_DOMAINS ||
+    '';
   const envDomains = envDomainsRaw
     .split(',')
     .map((d) => d.trim().toLowerCase())
