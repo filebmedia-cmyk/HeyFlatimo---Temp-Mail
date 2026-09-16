@@ -44,15 +44,15 @@
   --border-color: #2b3548;    /* Sophisticated Dark Obsidian Border */
   --shadow-color: #000000;    /* Deep 3D Grounded Obsidian Shadow */
 
-  /* RICH VIBRANT ACCENT COLORS (High Saturation, Non-pale on Dark OLED) */
-  --color-blue: #38bdf8;      /* Electric Sky Blue */
-  --color-yellow: #facc15;    /* Vivid Cyber Gold Yellow */
-  --color-green: #34d399;     /* Ultra Vivid Emerald Mint */
-  --color-orange: #fb923c;    /* Vivid Tangerine Orange */
-  --color-red: #f87171;       /* Vivid Coral Crimson */
-  --color-purple: #c084fc;    /* Vivid Electric Lavender */
-  --color-pink: #f472b6;      /* Vivid Neon Hot Rose */
-  --color-cyan: #22d3ee;      /* Vivid Cyan Neon */
+  /* 100% ULTRA-HIGH SATURATION CYBER NEON LASER PALETTE */
+  --color-blue: #00c8ff;      /* 100% Ultra Pure Electric Cyan-Blue */
+  --color-yellow: #ffe600;    /* 100% Ultra Pure Cyber Laser Yellow */
+  --color-green: #00ff66;     /* 100% Ultra Pure Laser Emerald / Toxic Mint */
+  --color-orange: #ff5500;    /* 100% Ultra Pure Blazing Laser Tangerine */
+  --color-red: #ff0055;       /* 100% Ultra Pure Laser Hot Crimson */
+  --color-purple: #b026ff;    /* 100% Ultra Pure Laser Violet */
+  --color-pink: #ff007f;      /* 100% Ultra Pure Laser Hot Pink */
+  --color-cyan: #00ffff;      /* 100% Ultra Pure Laser Cyan */
 
   --brand-primary: var(--color-blue);
   --brand-secondary: var(--color-green);
@@ -60,8 +60,8 @@
   --brand-danger: var(--color-red);
 
   --grid-color: rgba(255, 255, 255, 0.04);
-  --badge-bg: #064e3b;
-  --badge-text: #34d399;
+  --badge-bg: #003d19;
+  --badge-text: #00ff66;
 }
 
 body {
@@ -255,64 +255,64 @@ body {
 .dark .brutal-btn[class*="bg-[var(--color-yellow)]"],
 .dark .brutal-btn[class*="bg-amber-"],
 .dark .brutal-btn[class*="bg-yellow-"] {
-  box-shadow: 3.5px 3.5px 0px #000000, 0 0 16px rgba(250, 204, 21, 0.35);
+  box-shadow: 3.5px 3.5px 0px #000000, 0 0 20px rgba(255, 230, 0, 0.45);
 }
 .dark .brutal-btn[class*="bg-[var(--color-yellow)]"]:hover,
 .dark .brutal-btn[class*="bg-amber-"]:hover,
 .dark .brutal-btn[class*="bg-yellow-"]:hover {
-  box-shadow: 5px 5px 0px #000000, 0 0 28px rgba(250, 204, 21, 0.55);
+  box-shadow: 5px 5px 0px #000000, 0 0 32px rgba(255, 230, 0, 0.7);
 }
 
 .dark .brutal-btn[class*="bg-[var(--color-blue)]"],
 .dark .brutal-btn[class*="bg-sky-"],
 .dark .brutal-btn[class*="bg-blue-"] {
-  box-shadow: 3.5px 3.5px 0px #000000, 0 0 16px rgba(56, 189, 248, 0.35);
+  box-shadow: 3.5px 3.5px 0px #000000, 0 0 20px rgba(0, 200, 255, 0.45);
 }
 .dark .brutal-btn[class*="bg-[var(--color-blue)]"]:hover,
 .dark .brutal-btn[class*="bg-sky-"]:hover,
 .dark .brutal-btn[class*="bg-blue-"]:hover {
-  box-shadow: 5px 5px 0px #000000, 0 0 28px rgba(56, 189, 248, 0.55);
+  box-shadow: 5px 5px 0px #000000, 0 0 32px rgba(0, 200, 255, 0.7);
 }
 
 .dark .brutal-btn[class*="bg-[var(--color-green)]"],
 .dark .brutal-btn[class*="bg-emerald-"],
 .dark .brutal-btn[class*="bg-green-"] {
-  box-shadow: 3.5px 3.5px 0px #000000, 0 0 16px rgba(52, 211, 153, 0.35);
+  box-shadow: 3.5px 3.5px 0px #000000, 0 0 20px rgba(0, 255, 102, 0.45);
 }
 .dark .brutal-btn[class*="bg-[var(--color-green)]"]:hover,
 .dark .brutal-btn[class*="bg-emerald-"]:hover,
 .dark .brutal-btn[class*="bg-green-"]:hover {
-  box-shadow: 5px 5px 0px #000000, 0 0 28px rgba(52, 211, 153, 0.55);
+  box-shadow: 5px 5px 0px #000000, 0 0 32px rgba(0, 255, 102, 0.7);
 }
 
 .dark .brutal-btn[class*="bg-[var(--color-orange)]"],
 .dark .brutal-btn[class*="bg-orange-"] {
-  box-shadow: 3.5px 3.5px 0px #000000, 0 0 16px rgba(251, 146, 60, 0.35);
+  box-shadow: 3.5px 3.5px 0px #000000, 0 0 20px rgba(255, 85, 0, 0.45);
 }
 .dark .brutal-btn[class*="bg-[var(--color-orange)]"]:hover,
 .dark .brutal-btn[class*="bg-orange-"]:hover {
-  box-shadow: 5px 5px 0px #000000, 0 0 28px rgba(251, 146, 60, 0.55);
+  box-shadow: 5px 5px 0px #000000, 0 0 32px rgba(255, 85, 0, 0.7);
 }
 
 .dark .brutal-btn[class*="bg-[var(--color-red)]"],
 .dark .brutal-btn[class*="bg-red-"] {
-  box-shadow: 3.5px 3.5px 0px #000000, 0 0 16px rgba(248, 113, 113, 0.35);
+  box-shadow: 3.5px 3.5px 0px #000000, 0 0 20px rgba(255, 0, 85, 0.45);
 }
 .dark .brutal-btn[class*="bg-[var(--color-red)]"]:hover,
 .dark .brutal-btn[class*="bg-red-"]:hover {
-  box-shadow: 5px 5px 0px #000000, 0 0 28px rgba(248, 113, 113, 0.55);
+  box-shadow: 5px 5px 0px #000000, 0 0 32px rgba(255, 0, 85, 0.7);
 }
 
 /* Luminous Input Glow in Dark Mode */
 .dark .brutal-input:focus {
   outline: none;
-  box-shadow: 4px 4px 0px #000000, 0 0 22px rgba(56, 189, 248, 0.35);
+  box-shadow: 4px 4px 0px #000000, 0 0 24px rgba(0, 200, 255, 0.45);
   border-color: var(--color-blue);
 }
 
 /* Neon Text Glow in Dark Mode */
 .dark h1 span.text-\[var\(--color-blue\)\] {
-  text-shadow: 0 0 20px rgba(56, 189, 248, 0.45);
+  text-shadow: 0 0 24px rgba(0, 200, 255, 0.55);
 }
 
 /* ============================================================
