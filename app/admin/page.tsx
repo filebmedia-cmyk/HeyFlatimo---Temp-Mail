@@ -15,6 +15,7 @@ import {
   Zap,
   ExternalLink,
   ArrowLeft,
+  ArrowUpRight,
   Sparkles,
   Server,
   Database,
@@ -37,6 +38,8 @@ import {
   Save,
   Sliders,
   BellRing,
+  Bell,
+  BellOff,
   ToggleLeft,
   ToggleRight,
   Crown,
@@ -44,8 +47,11 @@ import {
   Timer,
   Power,
   Edit3,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
+import { playSound, getSoundEnabled, setSoundEnabled, unlockAudio } from '@/lib/sound';
 
 export interface ApiKeyItem {
   id: string;
@@ -72,6 +78,9 @@ export default function AdminPage() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
+  // Sound FX State (Inherited from localStorage)
+  const [isSoundEnabled, setIsSoundEnabled] = useState(false);
+
   // Multi API Key & Single-Bot Lock State
   const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([]);
   const [isLoadingKeys, setIsLoadingKeys] = useState(false);
@@ -85,6 +94,42 @@ export default function AdminPage() {
   const [keyToDelete, setKeyToDelete] = useState<ApiKeyItem | null>(null);
   const [isDeletingKey, setIsDeletingKey] = useState(false);
   const [keyNotice, setKeyNotice] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  // Private REST API & Webhook Docs State
+  const [expandedEndpoints, setExpandedEndpoints] = useState<Set<string>>(
+    new Set(['generate', 'otp', 'links', 'inbox'])
+  );
+  const [copiedEndpointId, setCopiedEndpointId] = useState<string | null>(null);
+  const [copiedCurlId, setCopiedCurlId] = useState<string | null>(null);
+
+  const toggleEndpointExpand = (id: string) => {
+    playSound('click');
+    setExpandedEndpoints((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleCopyEndpointUrl = (url: string, id: string) => {
+    playSound('success');
+    navigator.clipboard.writeText(url);
+    setCopiedEndpointId(id);
+    showToast('URL Endpoint berhasil disalin ke clipboard!');
+    setTimeout(() => setCopiedEndpointId(null), 2000);
+  };
+
+  const handleCopyEndpointCurl = (curlCommand: string, id: string) => {
+    playSound('success');
+    navigator.clipboard.writeText(curlCommand);
+    setCopiedCurlId(id);
+    showToast('Perintah cURL berhasil disalin ke clipboard!');
+    setTimeout(() => setCopiedCurlId(null), 2000);
+  };
 
   // Edit API Key Modal State
   const [keyToEdit, setKeyToEdit] = useState<ApiKeyItem | null>(null);
@@ -151,30 +196,17 @@ export default function AdminPage() {
   const [isCleaningExpired, setIsCleaningExpired] = useState(false);
   const [isCleaningAll, setIsCleaningAll] = useState(false);
   const [showCleanAllModal, setShowCleanAllModal] = useState(false);
-  const [cleanupStats, setCleanupStats] = useState<{
-    totalMessages: number;
-    activeMessages?: number;
-    totalReceivedAllTime?: number;
-    totalDeletedAllTime?: number;
-    totalGeneratedAllTime?: number;
-    uniqueActiveMailboxes?: number;
-    unreadMessages?: number;
-    expiredCount: number;
-    oldestCreatedAt: string | null;
-    retentionHours: number;
-  } | null>(null);
-
-  // Code Tab Selection
-  const [activeCodeTab, setActiveCodeTab] = useState<'python' | 'node' | 'curl' | 'php'>('python');
-
-  // Live Tester State
-  const [testEmail, setTestEmail] = useState('');
-  const [testResult, setTestResult] = useState<any>(null);
-  const [isTesting, setIsTesting] = useState(false);
-  const [origin, setOrigin] = useState('http://localhost:3000');
+  const [cleanupStats, setCleanupStats] = useState<any>(null);
 
   // Stats State
   const [stats, setStats] = useState<any>(null);
+
+  // Interactive Live Tester & Code State
+  const [testEmail, setTestEmail] = useState('');
+  const [testResult, setTestResult] = useState<any>(null);
+  const [isTesting, setIsTesting] = useState(false);
+  const [activeCodeTab, setActiveCodeTab] = useState<'python' | 'node' | 'curl' | 'php'>('python');
+  const [origin, setOrigin] = useState('https://heyflatimo.com');
 
   const showToast = (msg: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToastMsg(msg);
@@ -185,11 +217,12 @@ export default function AdminPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setOrigin(window.location.origin);
+      setIsSoundEnabled(getSoundEnabled());
       // Clear any legacy persistent storage
       localStorage.removeItem('heyflatimo_admin_logged');
       
-      const savedAuth = sessionStorage.getItem('heyflatimo_admin_logged');
-      if (savedAuth === 'true') {
+      const sessionLogged = sessionStorage.getItem('heyflatimo_admin_logged');
+      if (sessionLogged === 'true') {
         setIsLoggedIn(true);
         fetchApiKeys();
         fetchDomains();
@@ -197,38 +230,39 @@ export default function AdminPage() {
         fetchSettings();
         fetchCleanupStats();
       }
-
-      // Auto logout when leaving web / closing tab
-      const handleAutoLogout = () => {
-        sessionStorage.removeItem('heyflatimo_admin_logged');
-        sessionStorage.removeItem('heyflatimo_admin_session_token');
-        localStorage.removeItem('heyflatimo_admin_logged');
-      };
-
-      window.addEventListener('beforeunload', handleAutoLogout);
-      window.addEventListener('pagehide', handleAutoLogout);
-
-      return () => {
-        window.removeEventListener('beforeunload', handleAutoLogout);
-        window.removeEventListener('pagehide', handleAutoLogout);
-      };
     }
   }, []);
+
+  const handleToggleSound = () => {
+    unlockAudio();
+    const next = !isSoundEnabled;
+    setIsSoundEnabled(next);
+    setSoundEnabled(next);
+    if (next) {
+      playSound('success');
+      showToast('Suara Notifikasi Admin Diaktifkan', 'info');
+    } else {
+      showToast('Suara Notifikasi Admin Dinonaktifkan (Mute)', 'info');
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({
+          username: username.trim(),
+          password: password.trim(),
+        }),
       });
 
       const data = await res.json();
 
       if (res.ok && data.success) {
+        playSound('success');
         setIsLoggedIn(true);
         if (data.sessionToken) {
           sessionStorage.setItem('heyflatimo_admin_session_token', data.sessionToken);
@@ -246,9 +280,11 @@ export default function AdminPage() {
         fetchSettings();
         fetchCleanupStats();
       } else {
+        playSound('error');
         showToast(data.error || 'Username atau password salah', 'error');
       }
     } catch (err: any) {
+      playSound('error');
       showToast('Gagal melakukan login', 'error');
     } finally {
       setLoading(false);
@@ -256,6 +292,7 @@ export default function AdminPage() {
   };
 
   const handleLogout = () => {
+    playSound('click');
     setIsLoggedIn(false);
     sessionStorage.removeItem('heyflatimo_admin_logged');
     sessionStorage.removeItem('heyflatimo_admin_session_token');
@@ -284,6 +321,7 @@ export default function AdminPage() {
   };
 
   const handleGenerateRandomKeyInput = () => {
+    playSound('pop');
     const randomHex = Array.from(crypto.getRandomValues(new Uint8Array(16)))
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
@@ -293,6 +331,7 @@ export default function AdminPage() {
   const handleCreateApiKey = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newKeyTitle.trim()) {
+      playSound('error');
       showToast('Judul / Nama Bot wajib diisi.', 'error');
       return;
     }
@@ -311,6 +350,7 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('success');
         showToast('API Key baru berhasil dibuat.', 'success');
         setKeyNotice({ type: 'success', message: `API Key "${data.key.name}" berhasil dibuat dan siap digunakan.` });
         setNewKeyTitle('');
@@ -318,10 +358,12 @@ export default function AdminPage() {
         setNewKeySingleBot(true);
         fetchApiKeys();
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal membuat API Key', 'error');
         setKeyNotice({ type: 'error', message: data.error || 'Gagal membuat API Key' });
       }
     } catch (err: any) {
+      playSound('error');
       showToast('Gagal membuat API Key', 'error');
     } finally {
       setIsCreatingKey(false);
@@ -329,6 +371,7 @@ export default function AdminPage() {
   };
 
   const handleToggleKeyActive = async (id: string, currentStatus: boolean) => {
+    playSound('click');
     try {
       const res = await fetch(`/api/admin/apikeys/${id}`, {
         method: 'PATCH',
@@ -340,9 +383,11 @@ export default function AdminPage() {
         showToast(`API Key berhasil ${!currentStatus ? 'diaktifkan' : 'dinonaktifkan'}.`, 'success');
         fetchApiKeys();
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal mengubah status', 'error');
       }
     } catch (err) {
+      playSound('error');
       showToast('Gagal mengubah status API Key', 'error');
     }
   };
@@ -358,13 +403,16 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('delete');
         showToast('Kunci bot berhasil dilepas (Reset)!', 'success');
         setKeyNotice({ type: 'success', message: `Kunci binding untuk "${name}" telah dilepas. Siap dihubungkan ke bot baru.` });
         fetchApiKeys();
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal mereset kunci', 'error');
       }
     } catch (err) {
+      playSound('error');
       showToast('Gagal mereset kunci binding', 'error');
     }
   };
@@ -380,14 +428,17 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('delete');
         showToast(`API Key "${keyToDelete.name}" berhasil dihapus.`, 'success');
         setKeyNotice({ type: 'info', message: `API Key "${keyToDelete.name}" telah dihapus permanen.` });
         setKeyToDelete(null);
         fetchApiKeys();
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal menghapus API Key', 'error');
       }
     } catch (err) {
+      playSound('error');
       showToast('Gagal menghapus API Key', 'error');
     } finally {
       setIsDeletingKey(false);
@@ -395,6 +446,7 @@ export default function AdminPage() {
   };
 
   const handleCopySingleKey = (keyVal: string, id: string) => {
+    playSound('success');
     navigator.clipboard.writeText(keyVal);
     setCopiedKeyId(id);
     showToast('API Key berhasil disalin ke clipboard!');
@@ -402,6 +454,7 @@ export default function AdminPage() {
   };
 
   const toggleKeyVisibility = (id: string) => {
+    playSound('click');
     setVisibleKeyIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
@@ -414,6 +467,7 @@ export default function AdminPage() {
   };
 
   const handleOpenEditKeyModal = (item: ApiKeyItem) => {
+    playSound('pop');
     setKeyToEdit(item);
     setEditTitle(item.name);
     setEditValue(item.key);
@@ -421,6 +475,7 @@ export default function AdminPage() {
   };
 
   const handleGenerateRandomEditValue = () => {
+    playSound('pop');
     const randomHex = Array.from(crypto.getRandomValues(new Uint8Array(16)))
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
@@ -431,10 +486,12 @@ export default function AdminPage() {
     e.preventDefault();
     if (!keyToEdit) return;
     if (!editTitle.trim()) {
+      playSound('error');
       showToast('Judul / Nama Bot wajib diisi.', 'error');
       return;
     }
     if (!editValue.trim()) {
+      playSound('error');
       showToast('Nilai API Key wajib diisi.', 'error');
       return;
     }
@@ -452,14 +509,17 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('success');
         showToast('API Key berhasil diperbarui!', 'success');
         setKeyNotice({ type: 'success', message: `API Key "${data.key.name}" berhasil diperbarui.` });
         setKeyToEdit(null);
         fetchApiKeys();
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal memperbarui API Key', 'error');
       }
     } catch (err) {
+      playSound('error');
       showToast('Gagal memperbarui API Key', 'error');
     } finally {
       setIsSavingEditKey(false);
@@ -594,6 +654,7 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('success');
         if (data.telegram) {
           setTelegramEnabled(Boolean(data.telegram.enabled));
           setTelegramWebhookUrl(data.telegram.webhookUrl || '');
@@ -602,9 +663,11 @@ export default function AdminPage() {
         showToast('Pengaturan Bot Telegram berhasil disimpan!', 'success');
         fetchWebhookInfo(telegramBotTokenInput.trim());
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal menyimpan pengaturan bot', 'error');
       }
     } catch (err: any) {
+      playSound('error');
       showToast('Gagal terhubung saat menyimpan setelan Telegram', 'error');
     } finally {
       setIsSavingTelegram(false);
@@ -613,6 +676,7 @@ export default function AdminPage() {
 
   const handleTestBot = async () => {
     if (!telegramBotTokenInput.trim()) {
+      playSound('error');
       showToast('Masukkan Token Bot Telegram terlebih dahulu', 'error');
       return;
     }
@@ -628,13 +692,16 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('success');
         setTelegramBotUsername(data.bot?.username || '');
         showToast(data.message || 'Koneksi Bot Telegram Berhasil!', 'success');
         fetchWebhookInfo(telegramBotTokenInput.trim());
       } else {
+        playSound('error');
         showToast(data.error || 'Token Bot Telegram tidak valid', 'error');
       }
     } catch (err: any) {
+      playSound('error');
       showToast('Gagal menguji koneksi Bot Telegram', 'error');
     } finally {
       setIsTestingBot(false);
@@ -643,6 +710,7 @@ export default function AdminPage() {
 
   const handleSetWebhook = async () => {
     if (!telegramBotTokenInput.trim()) {
+      playSound('error');
       showToast('Masukkan Token Bot Telegram terlebih dahulu', 'error');
       return;
     }
@@ -658,6 +726,7 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('success');
         setTelegramEnabled(true);
         if (data.telegram) {
           setTelegramWebhookUrl(data.telegram.webhookUrl || '');
@@ -666,9 +735,11 @@ export default function AdminPage() {
         showToast('Webhook Telegram Berhasil Didaftarkan! Bot sekarang siap menerima pesan.', 'success');
         fetchWebhookInfo(telegramBotTokenInput.trim());
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal mengatur Webhook Telegram', 'error');
       }
     } catch (err: any) {
+      playSound('error');
       showToast('Gagal menghubungi API Telegram untuk set webhook', 'error');
     } finally {
       setIsSettingWebhook(false);
@@ -689,14 +760,17 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('delete');
         setTelegramEnabled(false);
         setTelegramWebhookUrl('');
         setTelegramWebhookInfo(null);
         showToast('Webhook Telegram berhasil dinonaktifkan.', 'info');
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal menghapus Webhook Telegram', 'error');
       }
     } catch (err: any) {
+      playSound('error');
       showToast('Gagal menghapus Webhook Telegram', 'error');
     } finally {
       setIsDeletingWebhook(false);
@@ -716,13 +790,16 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('delete');
         showToast(data.message || 'Berhasil membersihkan pesan yang berusia lebih dari 3 hari!', 'success');
         fetchCleanupStats();
         fetchStats();
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal membersihkan pesan', 'error');
       }
     } catch (err) {
+      playSound('error');
       showToast('Gagal membersihkan database', 'error');
     } finally {
       setIsCleaningExpired(false);
@@ -740,13 +817,16 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('delete');
         showToast(data.message || 'Semua pesan di database telah dibersihkan!', 'success');
         fetchCleanupStats();
         fetchStats();
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal mengosongkan database', 'error');
       }
     } catch (err) {
+      playSound('error');
       showToast('Gagal mengosongkan database', 'error');
     } finally {
       setIsCleaningAll(false);
@@ -756,6 +836,7 @@ export default function AdminPage() {
   const handleSaveCredentials = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!adminUserInput.trim() || !adminPassInput.trim()) {
+      playSound('error');
       showToast('Username dan Password baru tidak boleh kosong', 'error');
       return;
     }
@@ -773,12 +854,15 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('success');
         showToast('Kredensial Login Admin (Username & Password) berhasil disimpan!', 'success');
         setAdminPassInput(''); // Clear password field after saving
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal mengubah kredensial admin', 'error');
       }
     } catch (err: any) {
+      playSound('error');
       showToast('Terjadi kesalahan koneksi saat menyimpan kredensial', 'error');
     } finally {
       setIsSavingCreds(false);
@@ -804,11 +888,14 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('success');
         showToast('Pengaturan Kode Akses Web berhasil disimpan!', 'success');
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal menyimpan pengaturan akses', 'error');
       }
     } catch (err) {
+      playSound('error');
       showToast('Terjadi kesalahan koneksi saat menyimpan akses', 'error');
     } finally {
       setIsSavingAccess(false);
@@ -836,11 +923,14 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('success');
         showToast('Pengaturan Pengumuman Popup berhasil disimpan!', 'success');
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal menyimpan pengumuman', 'error');
       }
     } catch (err) {
+      playSound('error');
       showToast('Terjadi kesalahan koneksi saat menyimpan pengumuman', 'error');
     } finally {
       setIsSavingAnnouncement(false);
@@ -848,6 +938,7 @@ export default function AdminPage() {
   };
 
   const handleCopyKey = () => {
+    playSound('success');
     navigator.clipboard.writeText(apiKey);
     setCopiedKey(true);
     showToast('API Key berhasil disalin ke clipboard!');
@@ -866,12 +957,15 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (data.success && data.apiKey) {
+        playSound('delete');
         setApiKey(data.apiKey);
         showToast('API Key baru berhasil dibuat dan disimpan!', 'success');
       } else {
+        playSound('error');
         showToast(data.error || 'Gagal mereset API Key', 'error');
       }
     } catch (err: any) {
+      playSound('error');
       showToast('Gagal mereset API Key', 'error');
     } finally {
       setIsResettingKey(false);
@@ -883,11 +977,13 @@ export default function AdminPage() {
     e.preventDefault();
     const cleanDomain = newDomainInput.trim().toLowerCase().replace(/^@/, '');
     if (!cleanDomain) {
+      playSound('error');
       showToast('Masukkan nama domain yang valid', 'error');
       return;
     }
 
     if (domains.some((d) => d.domain === cleanDomain)) {
+      playSound('error');
       showToast(`Domain @${cleanDomain} sudah terdaftar!`, 'info');
       setDomainNotice({
         type: 'info',
@@ -896,6 +992,7 @@ export default function AdminPage() {
       return;
     }
 
+    playSound('pop');
     setDomainToAdd(cleanDomain);
   };
 
@@ -916,6 +1013,7 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('success');
         fetchDomains();
         setNewDomainInput('');
         setIsNewDomainVip(false);
@@ -926,6 +1024,7 @@ export default function AdminPage() {
           message: `Berhasil menambahkan domain @${cleanDomain} ke daftar aktif.`,
         });
       } else {
+        playSound('error');
         const errorText = data.error || 'Gagal menambahkan domain';
         showToast(errorText, 'error');
         setDomainNotice({
@@ -934,6 +1033,7 @@ export default function AdminPage() {
         });
       }
     } catch (err: any) {
+      playSound('error');
       showToast('Gagal menambahkan domain ke database', 'error');
       setDomainNotice({
         type: 'error',
@@ -960,6 +1060,7 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('click');
         fetchDomains();
         const msg = `Status domain @${domain} diubah ke ${targetVip ? 'VIP' : 'Free'}`;
         showToast(msg, 'success');
@@ -968,6 +1069,7 @@ export default function AdminPage() {
           message: msg,
         });
       } else {
+        playSound('error');
         const errorText = data.error || 'Gagal mengubah status VIP domain';
         showToast(errorText, 'error');
         setDomainNotice({
@@ -976,6 +1078,7 @@ export default function AdminPage() {
         });
       }
     } catch (err: any) {
+      playSound('error');
       showToast('Gagal mengubah status VIP', 'error');
     } finally {
       setIsTogglingVip(false);
@@ -984,6 +1087,7 @@ export default function AdminPage() {
 
   // Trigger Delete Confirmation Modal
   const handleDeleteClick = (domain: string) => {
+    playSound('pop');
     setDomainToDelete(domain);
   };
 
@@ -1001,6 +1105,7 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        playSound('delete');
         fetchDomains();
         const successText = `Domain @${target} berhasil dihapus!`;
         showToast(successText, 'success');
@@ -1009,6 +1114,7 @@ export default function AdminPage() {
           message: `Domain @${target} telah berhasil dihapus dari sistem.`,
         });
       } else {
+        playSound('error');
         const errorText = data.error || 'Gagal menghapus domain';
         showToast(errorText, 'error');
         setDomainNotice({
@@ -1017,6 +1123,7 @@ export default function AdminPage() {
         });
       }
     } catch (err: any) {
+      playSound('error');
       showToast('Gagal menghapus domain', 'error');
       setDomainNotice({
         type: 'error',
@@ -1032,6 +1139,7 @@ export default function AdminPage() {
     'hfl_key_8899aabbccddeeff00112233';
 
   const runTest = async (endpoint: string, params: string = '') => {
+    playSound('click');
     setIsTesting(true);
     setTestResult('Memproses request...');
     try {
@@ -1044,10 +1152,17 @@ export default function AdminPage() {
       const data = await res.json();
       setTestResult(data);
 
+      if (data.error || !res.ok) {
+        playSound('error');
+      } else {
+        playSound('success');
+      }
+
       if (data.email && !testEmail) {
         setTestEmail(data.email);
       }
     } catch (err: any) {
+      playSound('error');
       setTestResult({ error: err.message });
     } finally {
       setIsTesting(false);
@@ -1178,9 +1293,38 @@ if (!empty($otpData['found'])) {
           </Link>
 
           <div className="flex items-center gap-1.5 xs:gap-2.5 flex-shrink-0">
+            {/* Sound FX Toggle Button */}
+            <button
+              type="button"
+              onClick={handleToggleSound}
+              className={`brutal-btn px-2 xs:px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10px] xs:text-[11px] sm:text-xs font-bold font-mono-custom flex items-center gap-1 sm:gap-1.5 uppercase shadow-[2px_2px_0px_var(--shadow-color)] ${
+                isSoundEnabled
+                  ? 'bg-[var(--color-purple)] text-white hover:bg-purple-700'
+                  : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300'
+              }`}
+              title={
+                isSoundEnabled
+                  ? 'Suara Notifikasi Admin: AKTIF (Klik untuk Mute)'
+                  : 'Suara Notifikasi Admin: SENYAP/MUTE (Klik untuk Bunyikan)'
+              }
+            >
+              {isSoundEnabled ? (
+                <>
+                  <Bell className="w-3.5 h-3.5 text-[var(--color-yellow)] flex-shrink-0" />
+                  <span className="hidden xs:inline">SUARA ON</span>
+                </>
+              ) : (
+                <>
+                  <BellOff className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="hidden xs:inline">MUTE</span>
+                </>
+              )}
+            </button>
+
             <Link
               href="/"
               onClick={() => {
+                playSound('click');
                 sessionStorage.removeItem('heyflatimo_admin_logged');
                 setIsLoggedIn(false);
               }}
@@ -2895,6 +3039,878 @@ if (!empty($otpData['found'])) {
               </div>
             </div>
 
+            {/* PRIVATE REST API & WEBHOOK SPECIFICATION SECTION (KHUSUS OWNER) */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 sm:pb-4 border-b-2 border-dashed border-[var(--border-color)]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                      DOKUMENTASI ENDPOINT & WEBHOOK (KHUSUS OWNER)
+                    </h3>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                      Spesifikasi teknis integrasi Bot & REST API private dengan otentikasi API Key terenkripsi.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-[10px] xs:text-xs font-mono-custom font-black px-3 py-1.5 bg-[#eff6ff] dark:bg-sky-950/60 text-[var(--color-blue)] dark:text-sky-300 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start md:self-auto flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>STATUS: 100% PRIVATE & TERPROTEKSI</span>
+                </div>
+              </div>
+
+              {/* Private Security Banner */}
+              <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-mono-custom font-black text-[var(--text-main)] uppercase">
+                  <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
+                  <span>KEBIJAKAN AKSES & KEAMANAN SISTEM:</span>
+                </div>
+                <p className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-muted)] leading-relaxed">
+                  Semua endpoint <code>/api/v1/*</code> berstatus <strong>Private (Bukan Open Public)</strong> dan wajib menyertakan header <code>x-api-key</code> yang valid. Endpoint webhook <code>/api/webhook/email</code> dan <code>/api/webhook/telegram</code> diverifikasi secara ketat menggunakan secret signature token internal. Akses tanpa kredensial yang sah akan langsung ditolak dengan status HTTP <code>401 Unauthorized</code> atau <code>403 Forbidden</code>.
+                </p>
+              </div>
+
+              {/* Endpoint Cards List */}
+              <div className="space-y-3 pt-1">
+                {/* 1. GET /api/v1/generate */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/generate
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
+                            PRIVATE (x-api-key)
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Generate mailbox email sementara baru (random otomatis atau custom prefix & domain).
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/generate`, 'ep_gen_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        title="Salin Full URL Endpoint"
+                      >
+                        {copiedEndpointId === 'ep_gen_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/generate" -H "x-api-key: ${safeKey}"`,
+                            'ep_gen_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        title="Salin cURL Siap Pakai"
+                      >
+                        {copiedCurlId === 'ep_gen_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('generate')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('generate') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('generate') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('generate') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Required Request Headers:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                            <code>x-api-key: {safeKey}</code>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Optional Query Parameters:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] space-y-1 text-[11px]">
+                            <p><code>prefix</code>: Nama mailbox khusus (cth: <code>user1</code>)</p>
+                            <p><code>domain</code>: Domain spesifik (cth: <code>kingoutlook.my.id</code>)</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "email": "user1@kingoutlook.my.id",
+  "prefix": "user1",
+  "domain": "kingoutlook.my.id",
+  "createdAt": ${Date.now()},
+  "retentionHours": 72
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. GET /api/v1/inbox */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/inbox
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
+                            PRIVATE (x-api-key)
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Mengambil daftar seluruh pesan email yang masuk untuk mailbox target.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/inbox?email=user@domain.com`, 'ep_inbox_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_inbox_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/inbox?email=user@domain.com" -H "x-api-key: ${safeKey}"`,
+                            'ep_inbox_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedCurlId === 'ep_inbox_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('inbox')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('inbox') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('inbox') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('inbox') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Required Request Headers:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                            <code>x-api-key: {safeKey}</code>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Query Parameters:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] space-y-1 text-[11px]">
+                            <p><code>email</code> <strong>(Wajib)</strong>: Alamat email target (cth: <code>user@domain.com</code>)</p>
+                            <p><code>limit</code> (Opsional): Batas jumlah pesan (default: 50)</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "email": "user@domain.com",
+  "count": 1,
+  "messages": [
+    {
+      "id": "66e6...01",
+      "sender": "noreply@service.com",
+      "senderName": "Service Auth",
+      "subject": "Kode Verifikasi Akun",
+      "preview": "Kode OTP akun Anda adalah 849201...",
+      "receivedAt": ${Date.now()}
+    }
+  ]
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. GET /api/v1/messages/{id} */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/messages/[id]
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
+                            PRIVATE (x-api-key)
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Membaca isi lengkap satu pesan email, format teks murni, dan render HTML body.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/messages/<MESSAGE_ID>`, 'ep_msg_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_msg_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/messages/<MESSAGE_ID>" -H "x-api-key: ${safeKey}"`,
+                            'ep_msg_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedCurlId === 'ep_msg_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('messages')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('messages') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('messages') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('messages') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Required Request Headers:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                            <code>x-api-key: {safeKey}</code>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            URL Parameter:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] text-[11px]">
+                            <code>id</code> <strong>(Wajib)</strong>: ID pesan unik yang didapatkan dari pemanggilan /api/v1/inbox.
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "message": {
+    "id": "66e66123abc456",
+    "recipient": "user@domain.com",
+    "sender": "service@auth.com",
+    "subject": "Verifikasi Email",
+    "text": "Kode verifikasi Anda adalah: 918234",
+    "html": "<p>Kode verifikasi Anda adalah: <b>918234</b></p>",
+    "receivedAt": ${Date.now()}
+  }
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. GET /api/v1/otp */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/otp
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 uppercase">
+                            BOT AUTO-EXTRACT
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Ekstraksi otomatis angka kode OTP (4-8 digit) dari email terbaru tanpa parsing manual.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/otp?email=user@domain.com`, 'ep_otp_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_otp_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/otp?email=user@domain.com" -H "x-api-key: ${safeKey}"`,
+                            'ep_otp_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedCurlId === 'ep_otp_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('otp')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('otp') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('otp') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('otp') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Required Request Headers:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                            <code>x-api-key: {safeKey}</code>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Query Parameters:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] text-[11px]">
+                            <code>email</code> <strong>(Wajib)</strong>: Alamat email target (cth: <code>user@domain.com</code>)
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "found": true,
+  "otp": "492018",
+  "sender": "no-reply@target.com",
+  "subject": "Kode OTP Konfirmasi Akun",
+  "receivedAt": ${Date.now()}
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 5. GET /api/v1/links */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/links
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 uppercase">
+                            BOT AUTO-EXTRACT
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Ekstraksi URL link verifikasi / konfirmasi aktivasi akun dari pesan email terbaru.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/links?email=user@domain.com`, 'ep_links_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_links_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/links?email=user@domain.com" -H "x-api-key: ${safeKey}"`,
+                            'ep_links_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedCurlId === 'ep_links_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('links')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('links') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('links') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('links') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Required Request Headers:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                            <code>x-api-key: {safeKey}</code>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Query Parameters:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] text-[11px]">
+                            <code>email</code> <strong>(Wajib)</strong>: Alamat email target (cth: <code>user@domain.com</code>)
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "found": true,
+  "links": [
+    "https://service.com/verify?token=abc123xyz"
+  ],
+  "primaryLink": "https://service.com/verify?token=abc123xyz",
+  "sender": "auth@service.com",
+  "subject": "Aktivasi Akun Baru"
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 6. GET /api/v1/domains */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/domains
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
+                            PRIVATE (x-api-key)
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Mengambil seluruh daftar domain aktif yang tersedia beserta status tier VIP.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/domains`, 'ep_dom_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_dom_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/domains" -H "x-api-key: ${safeKey}"`,
+                            'ep_dom_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedCurlId === 'ep_dom_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('domains')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('domains') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('domains') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('domains') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Required Request Headers:
+                        </span>
+                        <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                          <code>x-api-key: {safeKey}</code>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "domains": [
+    { "domain": "kingoutlook.my.id", "isVip": false },
+    { "domain": "capacuputpro.my.id", "isVip": true }
+  ],
+  "total": 2
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 7. GET /api/v1/stats */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/stats
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
+                            PRIVATE (x-api-key)
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Statistik lifetime email masuk, pesan aktif database, dan waktu server WIB.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/stats`, 'ep_stats_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_stats_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/stats" -H "x-api-key: ${safeKey}"`,
+                            'ep_stats_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedCurlId === 'ep_stats_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('stats')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('stats') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('stats') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('stats') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Required Request Headers:
+                        </span>
+                        <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                          <code>x-api-key: {safeKey}</code>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "totalReceivedAllTime": ${cleanupStats?.totalReceivedAllTime ?? 1420},
+  "totalMessages": ${cleanupStats?.totalMessages ?? 45},
+  "totalDomains": ${domains.length || 2},
+  "serverTimeWIB": "${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB"
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 8. POST /api/webhook/email */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-orange)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        POST
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/webhook/email
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800 uppercase">
+                            WEBHOOK (x-webhook-secret)
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Inbound receiver webhook untuk menerima email masuk dari Cloudflare Email Routing Worker.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/webhook/email`, 'ep_wh_email_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_wh_email_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('webhook_email')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('webhook_email') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('webhook_email') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('webhook_email') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Required Request Headers:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] space-y-1 text-[11px]">
+                            <p><code>Content-Type: application/json</code></p>
+                            <p><code>x-webhook-secret: &lt;WEBHOOK_SECRET&gt;</code></p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            JSON Payload Fields:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] space-y-0.5 text-[11px]">
+                            <p><code>recipient</code>: Alamat email penerima</p>
+                            <p><code>sender</code>: Alamat email pengirim</p>
+                            <p><code>subject</code>: Judul email</p>
+                            <p><code>text</code>: Body teks polos</p>
+                            <p><code>html</code>: Body HTML render</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "messageId": "66e689abcdef1234567890",
+  "message": "Email received & processed"
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 9. POST /api/webhook/telegram */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-orange)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        POST
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/webhook/telegram
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800 uppercase">
+                            TELEGRAM ENGINE
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Webhook engine resmi untuk menangani pemrosesan pesan dan tombol bot Telegram.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/webhook/telegram`, 'ep_wh_tg_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_wh_tg_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('webhook_telegram')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('webhook_telegram') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('webhook_telegram') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('webhook_telegram') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Deskripsi Operasional:
+                        </span>
+                        <p className="text-[11px] text-[var(--text-muted)]">
+                          Endpoint ini didaftarkan secara otomatis melalui tombol <strong>SET WEBHOOK</strong> di panel Admin ke server Telegram API resmi. Endpoint memproses pesan teks <code>/start</code>, <code>/generate</code>, <code>/otp &lt;email&gt;</code>, serta callback data interaktif.
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "ok": true
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Two Column Layout: Code Generator & Live Interactive Tester */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-7">
               {/* Left Column: Code Generator for Bots */}
@@ -2912,7 +3928,10 @@ if (!empty($otpData['found'])) {
                     {(['python', 'node', 'curl', 'php'] as const).map((lang) => (
                       <button
                         key={lang}
-                        onClick={() => setActiveCodeTab(lang)}
+                        onClick={() => {
+                          playSound('click');
+                          setActiveCodeTab(lang);
+                        }}
                         className={`px-2 xs:px-2.5 py-1 text-[9px] xs:text-[10px] font-mono-custom font-black border-2 border-[var(--border-color)] uppercase transition-all ${
                           activeCodeTab === lang
                             ? 'bg-[var(--color-yellow)] text-black shadow-[1.5px_1.5px_0px_var(--shadow-color)]'
@@ -2931,6 +3950,7 @@ if (!empty($otpData['found'])) {
                   </pre>
                   <button
                     onClick={() => {
+                      playSound('success');
                       navigator.clipboard.writeText(codeSnippets[activeCodeTab]);
                       showToast(`Kode ${activeCodeTab.toUpperCase()} berhasil disalin!`);
                     }}
