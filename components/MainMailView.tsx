@@ -12,7 +12,7 @@ import VipCdkModal from '@/components/VipCdkModal';
 import QrCodeModal from '@/components/QrCodeModal';
 import { EmailMessage } from '@/components/MessageReader';
 import { generateRandomPrefix } from '@/lib/generator';
-import { playNotificationSound, unlockAudio, getSoundEnabled, setSoundEnabled } from '@/lib/sound';
+import { playSound, unlockAudio, getSoundEnabled, setSoundEnabled } from '@/lib/sound';
 
 const AUTO_SYNC_INTERVAL = 3; // 3 Detik Realtime
 
@@ -113,7 +113,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     isSoundEnabledRef.current = next;
     setSoundEnabled(next);
     if (next) {
-      playNotificationSound();
+      playSound('success');
       showToast('Suara Notifikasi Diaktifkan', 'info');
     } else {
       showToast('Suara Notifikasi Dinonaktifkan (Mute)', 'info');
@@ -121,6 +121,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   };
 
   const toggleTheme = () => {
+    playSound('click');
     const nextDark = !isDark;
     setIsDark(nextDark);
     if (nextDark) {
@@ -290,7 +291,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
           if (fetchedMessages.length > previousCountRef.current && previousCountRef.current > 0) {
             showToast(`Ada ${fetchedMessages.length - previousCountRef.current} pesan baru diterima!`, 'info');
             if (isSoundEnabledRef.current) {
-              playNotificationSound();
+              playSound('notification');
             }
           }
           previousCountRef.current = fetchedMessages.length;
@@ -342,6 +343,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
 
   // 5. Handler Actions
   const handleRandomizeEmail = () => {
+    playSound('click');
     if (availableDomains.length === 0) {
       showToast('Belum ada domain email aktif. Silakan tambahkan domain di Menu Admin.', 'error');
       return;
@@ -368,10 +370,12 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   };
 
   const handleChangeDomain = (newDomain: string) => {
+    playSound('click');
     if (!availableDomains.includes(newDomain)) return;
 
     const isVip = domainDetails.find((d) => d.domain.toLowerCase() === newDomain.toLowerCase())?.isVip;
     if (isVip && !isVipUnlocked) {
+      playSound('pop');
       setTargetVipDomain(newDomain);
       setIsVipModalOpen(true);
       return;
@@ -395,17 +399,20 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   const handleApplyCustom = (prefix: string, domain: string) => {
     const validDomain = availableDomains.includes(domain) ? domain : (availableDomains[0] || '');
     if (!validDomain) {
+      playSound('error');
       showToast('Pilih domain yang valid dari daftar aktif', 'error');
       return;
     }
 
     const isVip = domainDetails.find((d) => d.domain.toLowerCase() === validDomain.toLowerCase())?.isVip;
     if (isVip && !isVipUnlocked) {
+      playSound('pop');
       setTargetVipDomain(validDomain);
       setIsVipModalOpen(true);
       return;
     }
 
+    playSound('success');
     setCurrentPrefix(prefix);
     setCurrentDomain(validDomain);
     const newEmail = `${prefix}@${validDomain}`;
@@ -421,22 +428,26 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   };
 
   const handleCopyEmail = (text: string) => {
+    playSound('success');
     navigator.clipboard.writeText(text);
     showToast('Alamat email berhasil disalin!');
   };
 
   const handleCopyText = (text: string) => {
+    playSound('success');
     navigator.clipboard.writeText(text);
     showToast('Teks berhasil disalin!');
   };
 
   const handleManualRefresh = () => {
+    playSound('click');
     setCountdown(AUTO_SYNC_INTERVAL);
     fetchMessages(currentEmail);
   };
 
   const handleDeleteMessage = async (id: string) => {
     try {
+      playSound('delete');
       const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setMessages((prev) => prev.filter((m) => m.id !== id));
@@ -454,6 +465,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     if (!confirm('Apakah Anda yakin ingin menghapus semua pesan di inbox ini?')) return;
 
     try {
+      playSound('delete');
       const res = await fetch(`/api/messages?email=${encodeURIComponent(currentEmail)}`, {
         method: 'DELETE',
       });
@@ -480,7 +492,10 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
         isDark={isDark}
         onToggleTheme={toggleTheme}
         activeView={activeView}
-        onToggleView={setActiveView}
+        onToggleView={(v) => {
+          playSound('click');
+          setActiveView(v);
+        }}
         unreadCount={unreadCount}
       />
 
@@ -502,10 +517,12 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
             countdownSeconds={countdown}
             isVipUnlocked={isVipUnlocked}
             onOpenVipModal={() => {
+              playSound('pop');
               setTargetVipDomain(null);
               setIsVipModalOpen(true);
             }}
             onRequestVipUnlock={(dom) => {
+              playSound('pop');
               setTargetVipDomain(dom);
               setIsVipModalOpen(true);
             }}
@@ -513,7 +530,10 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
             onToggleTheme={toggleTheme}
             isSoundEnabled={isSoundEnabled}
             onToggleSound={handleToggleSound}
-            onOpenQrModal={() => setIsQrModalOpen(true)}
+            onOpenQrModal={() => {
+              playSound('pop');
+              setIsQrModalOpen(true);
+            }}
           />
 
           {/* Inbox Messages Accordion List */}
@@ -521,6 +541,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
             messages={messages}
             currentEmail={currentEmail}
             onOpenSplitView={() => {
+              playSound('click');
               if (typeof window !== 'undefined' && window.innerWidth >= 768) {
                 if (messages.length > 0 && !selectedMessage) {
                   setSelectedMessage(messages[0]);
@@ -529,6 +550,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
               setActiveView('split');
             }}
             onSelectMessageForSplit={(msg) => {
+              playSound('click');
               setSelectedMessage(msg);
               setActiveView('split');
             }}
@@ -545,9 +567,10 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
               <span className="hidden sm:inline text-[var(--text-muted)]">&bull;</span>
               <a
                 href="/admin"
+                onClick={() => playSound('click')}
                 className="text-[10px] xs:text-[11px] font-mono-custom font-black text-[var(--color-orange)] hover:underline flex items-center gap-1 uppercase"
               >
-                <span>⚙️ Menu Admin & API</span>
+                <span>Menu Admin & API</span>
               </a>
             </div>
           </footer>
@@ -558,8 +581,14 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
           currentEmail={currentEmail}
           messages={messages}
           selectedMessage={selectedMessage}
-          onSelectMessage={(msg) => setSelectedMessage(msg)}
-          onBackToHome={() => setActiveView('home')}
+          onSelectMessage={(msg) => {
+            playSound('click');
+            setSelectedMessage(msg);
+          }}
+          onBackToHome={() => {
+            playSound('click');
+            setActiveView('home');
+          }}
           onRefresh={handleManualRefresh}
           isRefreshing={isRefreshing}
           onDeleteMessage={handleDeleteMessage}
@@ -572,15 +601,24 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       <AccessGateModal
         isOpen={isAccessLocked}
         message={accessMessage}
-        onUnlockSuccess={() => setIsAccessLocked(false)}
+        onUnlockSuccess={() => {
+          playSound('success');
+          setIsAccessLocked(false);
+        }}
       />
 
       {/* QR Code Modal Dialog */}
       <QrCodeModal
         isOpen={isQrModalOpen}
         email={currentEmail}
-        onClose={() => setIsQrModalOpen(false)}
-        onCopySuccess={(msg) => showToast(msg, 'success')}
+        onClose={() => {
+          playSound('click');
+          setIsQrModalOpen(false);
+        }}
+        onCopySuccess={(msg) => {
+          playSound('success');
+          showToast(msg, 'success');
+        }}
       />
 
       {/* Broadcast Announcement Modal */}
@@ -592,7 +630,10 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
           title={announcementData.title}
           content={announcementData.content}
           displayMode={announcementData.displayMode}
-          onClose={() => setIsAnnouncementOpen(false)}
+          onClose={() => {
+            playSound('click');
+            setIsAnnouncementOpen(false);
+          }}
         />
       )}
 
@@ -601,12 +642,14 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
         isOpen={isVipModalOpen}
         targetDomain={targetVipDomain}
         onClose={() => {
+          playSound('click');
           setIsVipModalOpen(false);
           setTargetVipDomain(null);
         }}
         onSuccess={(unlockedDomain) => {
+          playSound('success');
           setIsVipUnlocked(true);
-          showToast('👑 Akses VIP Aktif! Semua domain bermahkota terbuka.', 'success');
+          showToast('Akses VIP Aktif! Semua domain bermahkota terbuka.', 'success');
           if (unlockedDomain && availableDomains.includes(unlockedDomain)) {
             setCurrentDomain(unlockedDomain);
             const prefix = currentPrefix || generateRandomPrefix();

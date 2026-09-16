@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { formatEmailBody, formatDateWIB, escapeHtml } from '@/lib/formatters';
 import { extractOtp, extractLinks } from '@/lib/otpParser';
+import { playSound } from '@/lib/sound';
 
 export interface EmailMessage {
   id: string;
@@ -81,6 +82,7 @@ export default function MessageReader({
   const handleCopyBody = () => {
     const content = message.bodyText || message.bodyHtml || '';
     onCopyText(content);
+    playSound('success');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -91,12 +93,14 @@ export default function MessageReader({
 
   const handleCopyLink = (url: string) => {
     navigator.clipboard.writeText(url);
+    playSound('success');
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
   const handleCopyOtp = (otp: string) => {
     navigator.clipboard.writeText(otp);
+    playSound('success');
     setCopiedOtp(true);
     setTimeout(() => setCopiedOtp(false), 2000);
   };
@@ -109,7 +113,10 @@ export default function MessageReader({
         <div className="flex items-center justify-between gap-2">
           {onBack && (
             <button
-              onClick={onBack}
+              onClick={() => {
+                playSound('click');
+                onBack();
+              }}
               className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-2.5 xs:px-3 py-1.5 text-[11px] xs:text-xs font-black flex items-center gap-1 md:hidden group shadow-[2px_2px_0px_var(--shadow-color)]"
             >
               <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform flex-shrink-0" />
@@ -125,7 +132,10 @@ export default function MessageReader({
           <div className="flex items-center gap-1.5 xs:gap-2 ml-auto">
             {/* Toggle Raw Text / HTML */}
             <button
-              onClick={() => setViewRaw(!viewRaw)}
+              onClick={() => {
+                playSound('click');
+                setViewRaw(!viewRaw);
+              }}
               className="brutal-btn bg-[var(--color-orange)] text-white hover:bg-orange-600 px-2.5 xs:px-3 py-1.5 text-[11px] xs:text-xs flex items-center gap-1 font-mono-custom font-bold group shadow-[2px_2px_0px_var(--shadow-color)]"
               title={viewRaw ? 'Tampilkan Mode HTML Preview' : 'Tampilkan Plain Text / Raw'}
             >
@@ -153,7 +163,10 @@ export default function MessageReader({
 
             {/* Delete Message Button */}
             <button
-              onClick={() => onDelete(message.id)}
+              onClick={() => {
+                playSound('delete');
+                onDelete(message.id);
+              }}
               className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-2.5 xs:px-3 py-1.5 text-[11px] xs:text-xs flex items-center gap-1 group shadow-[2px_2px_0px_var(--shadow-color)]"
               title="Hapus pesan ini"
             >
@@ -261,6 +274,7 @@ export default function MessageReader({
                   href={linksResult.primaryLink}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => playSound('click')}
                   className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-2.5 xs:px-3 py-1 text-[11px] font-mono-custom font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] cursor-pointer"
                 >
                   <span>BUKA LINK</span>

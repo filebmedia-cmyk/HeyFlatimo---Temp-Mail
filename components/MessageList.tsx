@@ -21,6 +21,7 @@ import {
 import { EmailMessage } from './MessageReader';
 import { formatEmailBody, formatDateWIB, formatTimeAgo } from '@/lib/formatters';
 import { extractOtp, extractLinks } from '@/lib/otpParser';
+import { playSound } from '@/lib/sound';
 
 interface MessageListProps {
   messages: EmailMessage[];
@@ -42,6 +43,7 @@ export default function MessageList({
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const toggleExpand = (id: string) => {
+    playSound('click');
     setExpandedId(expandedId === id ? null : id);
   };
 
@@ -241,7 +243,10 @@ export default function MessageList({
 
                               <button
                                 type="button"
-                                onClick={() => navigator.clipboard.writeText(otpRes.otp!)}
+                                onClick={() => {
+                                  navigator.clipboard.writeText(otpRes.otp!);
+                                  playSound('success');
+                                }}
                                 className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3 py-1 text-xs font-mono-custom font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
                               >
                                 <Copy className="w-3 h-3" />
@@ -278,7 +283,10 @@ export default function MessageList({
                               <div className="flex items-center gap-1.5 flex-shrink-0 self-end sm:self-auto">
                                 <button
                                   type="button"
-                                  onClick={() => navigator.clipboard.writeText(linksRes.primaryLink!)}
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(linksRes.primaryLink!);
+                                    playSound('success');
+                                  }}
                                   className="brutal-btn bg-white dark:bg-zinc-800 text-black dark:text-white px-2 py-1 text-xs font-mono-custom font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-zinc-100"
                                   title="Salin Link"
                                 >
@@ -289,6 +297,7 @@ export default function MessageList({
                                   href={linksRes.primaryLink}
                                   target="_blank"
                                   rel="noopener noreferrer"
+                                  onClick={() => playSound('click')}
                                   className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-3 py-1 text-xs font-mono-custom font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
                                 >
                                   <span>BUKA LINK</span>

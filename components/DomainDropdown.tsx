@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, Check, Server, Search, Sparkles, X, Crown } from 'lucide-react';
+import { playSound } from '@/lib/sound';
 
 export interface DomainOption {
   domain: string;
@@ -93,12 +94,14 @@ export default function DomainDropdown({
   const handleSelect = (domain: string) => {
     const selectedItem = normalizedDomains.find((d) => d.domain.toLowerCase() === domain.toLowerCase());
     if (selectedItem?.isVip && !isVipUnlocked) {
+      playSound('pop');
       setIsOpen(false);
       if (onRequestVipUnlock) {
         onRequestVipUnlock(domain);
       }
       return;
     }
+    playSound('click');
     onSelect(domain);
     setIsOpen(false);
   };
@@ -108,7 +111,10 @@ export default function DomainDropdown({
       {/* Trigger Button */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          playSound('pop');
+          setIsOpen(!isOpen);
+        }}
         className="brutal-btn bg-white dark:bg-[#151922] text-[var(--text-main)] px-2.5 xs:px-3.5 py-2 sm:py-2.5 text-[11px] xs:text-xs font-mono-custom font-bold flex items-center justify-between gap-1.5 xs:gap-2 w-full shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] hover:bg-[#f0f9ff] dark:hover:bg-[#1e2535] transition-colors"
         aria-haspopup="listbox"
         aria-expanded={isOpen}

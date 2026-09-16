@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Megaphone, X, CheckCircle, Sparkles } from 'lucide-react';
+import { playSound } from '@/lib/sound';
 
 interface AnnouncementModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export default function AnnouncementModal({
   if (!isOpen) return null;
 
   const handleDismiss = () => {
+    playSound('click');
     if (displayMode === 'once_per_session') {
       sessionStorage.setItem(`tmail_seen_ann_${id}`, 'true');
     } else if (displayMode === 'once_per_device') {

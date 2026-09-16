@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Crown, KeyRound, X, Check, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
+import { playSound } from '@/lib/sound';
 
 interface VipCdkModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export default function VipCdkModal({
     e.preventDefault();
     const cleanCdk = cdkInput.trim();
     if (!cleanCdk) {
+      playSound('error');
       setErrorMessage('Silakan masukkan kode CDK.');
       return;
     }
@@ -43,6 +45,7 @@ export default function VipCdkModal({
       const data = await res.json();
 
       if (!res.ok || !data.success) {
+        playSound('error');
         setErrorMessage(data.error || 'Kode CDK salah.');
         setIsLoading(false);
         return;
@@ -52,9 +55,11 @@ export default function VipCdkModal({
       sessionStorage.setItem('tmail_vip_session', 'true');
       setCdkInput('');
       setIsLoading(false);
+      playSound('success');
       onSuccess(targetDomain || undefined);
       onClose();
     } catch (err: any) {
+      playSound('error');
       setErrorMessage('Gagal menghubungi server verifikasi.');
       setIsLoading(false);
     }
@@ -82,7 +87,10 @@ export default function VipCdkModal({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              playSound('click');
+              onClose();
+            }}
             className="brutal-btn bg-[var(--color-red)] text-white w-7 h-7 xs:w-8 xs:h-8 flex items-center justify-center text-xs hover:bg-red-600 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 cursor-pointer"
             title="Tutup Modal"
           >
@@ -97,7 +105,7 @@ export default function VipCdkModal({
               Domain <strong className="text-black dark:text-yellow-400 bg-amber-100 dark:bg-amber-950/60 px-1 py-0.5 border border-amber-400">@{targetDomain}</strong> berstatus VIP. Masukkan kode CDK untuk membuka semua domain bermahkota pada sesi ini.
             </>
           ) : (
-            'Masukkan kode CDK / Passcode untuk mengaktifkan seluruh domain VIP bermahkota 👑 pada sesi browser ini.'
+            'Masukkan kode CDK / Passcode untuk mengaktifkan seluruh domain VIP bermahkota pada sesi browser ini.'
           )}
         </p>
 
@@ -137,7 +145,10 @@ export default function VipCdkModal({
           <div className="flex items-center justify-end gap-2 pt-2">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                playSound('click');
+                onClose();
+              }}
               disabled={isLoading}
               className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold font-mono-custom"
             >

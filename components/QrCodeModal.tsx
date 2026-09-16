@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import QRCode from 'qrcode';
 import { QrCode, X, Copy, Check, Download, ExternalLink, ShieldCheck } from 'lucide-react';
+import { playSound } from '@/lib/sound';
 
 interface QrCodeModalProps {
   isOpen: boolean;
@@ -53,6 +54,7 @@ export default function QrCodeModal({
   const handleCopyEmail = () => {
     if (!email) return;
     navigator.clipboard.writeText(email);
+    playSound('success');
     setCopied(true);
     if (onCopySuccess) onCopySuccess('Alamat email berhasil disalin!');
     setTimeout(() => setCopied(false), 2000);
@@ -60,6 +62,7 @@ export default function QrCodeModal({
 
   const handleDownloadQr = () => {
     if (!dataUrl) return;
+    playSound('success');
     const link = document.createElement('a');
     link.download = `heyflatimo-qr-${email.split('@')[0] || 'email'}.png`;
     link.href = dataUrl;

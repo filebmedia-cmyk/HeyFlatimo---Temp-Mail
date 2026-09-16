@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Check, Edit3, Sparkles } from 'lucide-react';
 import DomainDropdown, { DomainOption } from './DomainDropdown';
+import { playSound } from '@/lib/sound';
 
 interface CustomEmailModalProps {
   isOpen: boolean;
@@ -45,7 +46,11 @@ export default function CustomEmailModal({
       .toLowerCase()
       .replace(/[^a-z0-9._-]/g, '');
 
-    if (!cleanPrefix) return;
+    if (!cleanPrefix) {
+      playSound('error');
+      return;
+    }
+    playSound('success');
     onApply(cleanPrefix, selectedDomain);
     onClose();
   };
@@ -66,7 +71,10 @@ export default function CustomEmailModal({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              playSound('click');
+              onClose();
+            }}
             className="brutal-btn bg-[var(--color-red)] text-white w-7 h-7 xs:w-8 xs:h-8 flex items-center justify-center text-xs hover:bg-red-600 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 cursor-pointer"
             title="Tutup Modal"
           >
@@ -118,7 +126,10 @@ export default function CustomEmailModal({
           <div className="flex gap-2 pt-1.5 sm:pt-2">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                playSound('click');
+                onClose();
+              }}
               className="brutal-btn bg-white dark:bg-zinc-800 text-black dark:text-white flex-1 py-2 sm:py-2.5 text-xs font-bold uppercase shadow-[2px_2px_0px_var(--shadow-color)]"
             >
               Batal

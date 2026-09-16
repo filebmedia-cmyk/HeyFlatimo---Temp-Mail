@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Lock, KeyRound, ArrowRight, ShieldAlert, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { playSound } from '@/lib/sound';
 
 interface AccessGateModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export default function AccessGateModal({
     e.preventDefault();
     const cleanKey = inputKey.trim();
     if (!cleanKey) {
+      playSound('error');
       setErrorMsg('Masukkan kode akses terlebih dahulu');
       return;
     }
@@ -46,11 +48,14 @@ export default function AccessGateModal({
           localStorage.removeItem('tmail_access_token');
           sessionStorage.removeItem('tmail_access_token');
         }
+        playSound('success');
         onUnlockSuccess();
       } else {
+        playSound('error');
         setErrorMsg(data.error || 'Kode akses tidak sesuai. Silakan coba lagi.');
       }
     } catch (err: any) {
+      playSound('error');
       setErrorMsg('Gagal memverifikasi kode akses ke server.');
     } finally {
       setIsVerifying(false);

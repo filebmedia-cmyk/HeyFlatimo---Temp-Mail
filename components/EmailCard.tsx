@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import CustomEmailModal from './CustomEmailModal';
 import DomainDropdown, { DomainOption } from './DomainDropdown';
+import { playSound } from '@/lib/sound';
 
 interface EmailCardProps {
   currentEmail: string;
@@ -185,7 +186,10 @@ export default function EmailCard({
 
         {/* Tombol KUSTOM */}
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            playSound('pop');
+            setIsModalOpen(true);
+          }}
           className="brutal-btn bg-[var(--color-orange)] text-white hover:bg-orange-600 px-3 xs:px-4 py-2 sm:py-2.5 text-[11px] xs:text-xs font-bold font-mono-custom flex items-center justify-center gap-1.5 sm:gap-2 uppercase group shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)]"
           title="Tentukan nama email kustom"
         >
