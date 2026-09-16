@@ -49,6 +49,7 @@ import {
   Edit3,
   ChevronDown,
   ChevronUp,
+  LayoutDashboard,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 import { playSound, getSoundEnabled, setSoundEnabled, unlockAudio } from '@/lib/sound';
@@ -58,14 +59,16 @@ export interface ApiKeyItem {
   name: string;
   key: string;
   isSingleBot: boolean;
-  boundIdentifier: string | null;
-  boundAt: string | null;
-  lastUsedAt: string | null;
-  lastUsedIp: string | null;
-  totalRequests: number;
+  boundIdentifier?: string | null;
+  boundAt?: string | null;
+  lastUsedAt?: string | null;
+  lastUsedIp?: string | null;
+  totalRequests?: number;
   isActive: boolean;
-  createdAt: string;
+  createdAt?: string;
 }
+
+export type AdminTabType = 'dashboard' | 'domains' | 'apikeys' | 'endpoints' | 'bot_tester' | 'settings';
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -77,6 +80,9 @@ export default function AdminPage() {
   const [copiedKey, setCopiedKey] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
+
+  // Active Admin Navigation Tab (Dashboard, Domains, API Keys, Endpoints, Bot Tester, Settings)
+  const [activeAdminTab, setActiveAdminTab] = useState<AdminTabType>('dashboard');
 
   // Sound FX State (Inherited from localStorage)
   const [isSoundEnabled, setIsSoundEnabled] = useState(false);
@@ -1421,7 +1427,630 @@ if (!empty($otpData['found'])) {
         ) : (
           /* ADMIN DASHBOARD */
           <div className="space-y-5 sm:space-y-7">
-            {/* MULTI-API KEY & BOT CONNECTION MANAGEMENT SECTION */}
+
+            {/* Top Neo-Brutalist Navigation Tab Bar */}
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1.5 scrollbar-none border-b-2 sm:border-b-[3px] border-[var(--border-color)]">
+              {[
+                { id: 'dashboard', label: 'DASHBOARD', icon: LayoutDashboard, badge: null },
+                { id: 'domains', label: 'DOMAIN EMAIL', icon: Globe, badge: domains.length },
+                { id: 'apikeys', label: 'API KEYS', icon: Key, badge: apiKeys.length },
+                { id: 'endpoints', label: 'ENDPOINTS & DOCS', icon: Shield, badge: '9 API' },
+                { id: 'bot_tester', label: 'BOT & TESTER', icon: Terminal, badge: telegramEnabled ? 'BOT ON' : null },
+                { id: 'settings', label: 'PENGATURAN', icon: Sliders, badge: null },
+              ].map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeAdminTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      playSound('click');
+                      setActiveAdminTab(tab.id as AdminTabType);
+                    }}
+                    className={`brutal-btn px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-black font-mono-custom flex items-center gap-1.5 sm:gap-2 uppercase whitespace-nowrap transition-all flex-shrink-0 cursor-pointer ${
+                      isActive
+                        ? 'bg-[var(--color-yellow)] text-black shadow-[3px_3px_0px_var(--shadow-color)] scale-[1.02]'
+                        : 'bg-[var(--card-bg)] text-[var(--text-main)] hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-[1.5px_1.5px_0px_var(--shadow-color)]'
+                    }`}
+                  >
+                    <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-black' : 'text-[var(--color-blue)]'}`} />
+                    <span>{tab.label}</span>
+                    {tab.badge !== null && (
+                      <span
+                        className={`text-[9px] sm:text-[10px] px-1.5 py-0.2 border border-[var(--border-color)] font-mono-custom font-black ${
+                          isActive ? 'bg-black text-white' : 'bg-[var(--color-yellow)] text-black'
+                        }`}
+                      >
+                        {tab.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+
+            {/* TAB 1: DASHBOARD & RINGKASAN STATUS SISTEM */}
+            {activeAdminTab === 'dashboard' && (
+              <div className="space-y-5 sm:space-y-6 motion-fade-in">
+                {/* Header Card */}
+                <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                        <LayoutDashboard className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </div>
+                      <div>
+                        <h2 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                          DASHBOARD UTAMA & STATUS SISTEM
+                        </h2>
+                        <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                          Ringkasan performa real-time, statistik lifetime email, dan status server.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 bg-[var(--color-green)] text-white border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-white motion-pulse-dot" />
+                      <span>SISTEM AKTIF (WIB)</span>
+                    </div>
+                  </div>
+
+                  {/* 6 KPI Cards Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    {/* KPI 1 */}
+                    <div className="p-3.5 sm:p-4 bg-[#eff6ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex items-center gap-3 shadow-[2px_2px_0px_var(--shadow-color)]">
+                      <div className="w-10 h-10 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                        <Server className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
+                          STATUS REST API
+                        </span>
+                        <span className="font-heading font-black text-base sm:text-lg text-[var(--color-blue)] block truncate">
+                          ONLINE (v1 READY)
+                        </span>
+                        <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block">
+                          9 Endpoint Terproteksi
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* KPI 2 */}
+                    <div className="p-3.5 sm:p-4 bg-[#ecfdf5] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex items-center gap-3 shadow-[2px_2px_0px_var(--shadow-color)]">
+                      <div className="w-10 h-10 bg-[var(--color-green)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                        <Database className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-emerald-700 dark:text-emerald-400 uppercase block truncate">
+                          TOTAL EMAIL MASUK (ALL-TIME)
+                        </span>
+                        <span className="font-heading font-black text-base sm:text-lg text-[var(--color-green)] block truncate">
+                          {cleanupStats?.totalReceivedAllTime ?? stats?.totalReceivedAllTime ?? cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
+                        </span>
+                        <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block">
+                          Akumulatif Seumur Hidup
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* KPI 3 */}
+                    <div className="p-3.5 sm:p-4 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex items-center gap-3 shadow-[2px_2px_0px_var(--shadow-color)]">
+                      <div className="w-10 h-10 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                        <Zap className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
+                          PESAN AKTIF DI DB SAAT INI
+                        </span>
+                        <span className="font-heading font-black text-base sm:text-lg text-[var(--color-orange)] block truncate">
+                          {cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
+                        </span>
+                        <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block">
+                          {cleanupStats?.uniqueActiveMailboxes ?? 0} Mailbox Aktif
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* KPI 4 */}
+                    <div className="p-3.5 sm:p-4 bg-[#fdf4ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex items-center gap-3 shadow-[2px_2px_0px_var(--shadow-color)]">
+                      <div className="w-10 h-10 bg-[var(--color-purple)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                        <Clock className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-purple-700 dark:text-purple-400 uppercase block truncate">
+                          RETENSI DATABASE
+                        </span>
+                        <span className="font-heading font-black text-base sm:text-lg text-purple-700 dark:text-purple-400 block truncate">
+                          72 JAM (3 HARI WIB)
+                        </span>
+                        <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block">
+                          {cleanupStats?.totalDeletedAllTime ?? 0} Pesan Dihapus
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* KPI 5 */}
+                    <div className="p-3.5 sm:p-4 bg-[#fefce8] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex items-center gap-3 shadow-[2px_2px_0px_var(--shadow-color)]">
+                      <div className="w-10 h-10 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                        <Globe className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
+                          DOMAIN EMAIL AKTIF
+                        </span>
+                        <span className="font-heading font-black text-base sm:text-lg text-black dark:text-white block truncate">
+                          {domains.length} Domain
+                        </span>
+                        <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block">
+                          {domains.filter((d) => d.isVip).length} VIP | {domains.filter((d) => !d.isVip).length} Free
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* KPI 6 */}
+                    <div className="p-3.5 sm:p-4 bg-[#f0fdfa] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex items-center gap-3 shadow-[2px_2px_0px_var(--shadow-color)]">
+                      <div className="w-10 h-10 bg-[#229ED9] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                        <Send className="w-5 h-5 -translate-y-0.5 translate-x-0.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
+                          BOT TELEGRAM & API KEYS
+                        </span>
+                        <span className="font-heading font-black text-base sm:text-lg text-[#229ED9] block truncate">
+                          {telegramEnabled ? 'BOT TELEGRAM ON' : 'BOT TELEGRAM OFF'}
+                        </span>
+                        <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block">
+                          {apiKeys.length} Kunci API ({apiKeys.filter((k) => k.isActive).length} Aktif)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* QUICK HUB SHORTCUTS (1-CLICK JUMP TO TABS) */}
+                  <div className="space-y-2.5 pt-2">
+                    <span className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)] block">
+                      PINTASAN MODUL ADMINISTRASI:
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playSound('click');
+                          setActiveAdminTab('domains');
+                        }}
+                        className="brutal-card p-3 bg-white dark:bg-zinc-900 hover:bg-yellow-50 dark:hover:bg-zinc-800 text-left flex items-center justify-between group transition-all cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] flex items-center justify-center font-bold flex-shrink-0">
+                            <Globe className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-xs font-heading font-black uppercase block text-[var(--text-main)] truncate">
+                              KELOLA DOMAIN EMAIL
+                            </span>
+                            <span className="text-[10px] font-mono-custom text-[var(--text-muted)] block truncate">
+                              {domains.length} Domain terdaftar (Free / VIP)
+                            </span>
+                          </div>
+                        </div>
+                        <ArrowUpRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-black dark:group-hover:text-white flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playSound('click');
+                          setActiveAdminTab('apikeys');
+                        }}
+                        className="brutal-card p-3 bg-white dark:bg-zinc-900 hover:bg-blue-50 dark:hover:bg-zinc-800 text-left flex items-center justify-between group transition-all cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] flex items-center justify-center font-bold flex-shrink-0">
+                            <Key className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-xs font-heading font-black uppercase block text-[var(--text-main)] truncate">
+                              KELOLA MULTI-API KEY
+                            </span>
+                            <span className="text-[10px] font-mono-custom text-[var(--text-muted)] block truncate">
+                              {apiKeys.length} Kunci API & Fitur 1-Bot Lock
+                            </span>
+                          </div>
+                        </div>
+                        <ArrowUpRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-black dark:group-hover:text-white flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playSound('click');
+                          setActiveAdminTab('endpoints');
+                        }}
+                        className="brutal-card p-3 bg-white dark:bg-zinc-900 hover:bg-emerald-50 dark:hover:bg-zinc-800 text-left flex items-center justify-between group transition-all cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 bg-[var(--color-green)] text-white border-2 border-[var(--border-color)] flex items-center justify-center font-bold flex-shrink-0">
+                            <Shield className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-xs font-heading font-black uppercase block text-[var(--text-main)] truncate">
+                              ENDPOINTS & WEBHOOKS
+                            </span>
+                            <span className="text-[10px] font-mono-custom text-[var(--text-muted)] block truncate">
+                              Spesifikasi 9 API & Contoh cURL
+                            </span>
+                          </div>
+                        </div>
+                        <ArrowUpRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-black dark:group-hover:text-white flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playSound('click');
+                          setActiveAdminTab('bot_tester');
+                        }}
+                        className="brutal-card p-3 bg-white dark:bg-zinc-900 hover:bg-sky-50 dark:hover:bg-zinc-800 text-left flex items-center justify-between group transition-all cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 bg-[#229ED9] text-white border-2 border-[var(--border-color)] flex items-center justify-center font-bold flex-shrink-0">
+                            <Send className="w-4 h-4 -translate-y-0.5 translate-x-0.5" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-xs font-heading font-black uppercase block text-[var(--text-main)] truncate">
+                              BOT TELEGRAM & TESTER
+                            </span>
+                            <span className="text-[10px] font-mono-custom text-[var(--text-muted)] block truncate">
+                              Integrasi Bot, Tester Live & Snippets
+                            </span>
+                          </div>
+                        </div>
+                        <ArrowUpRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-black dark:group-hover:text-white flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playSound('click');
+                          setActiveAdminTab('settings');
+                        }}
+                        className="brutal-card p-3 bg-white dark:bg-zinc-900 hover:bg-purple-50 dark:hover:bg-zinc-800 text-left flex items-center justify-between group transition-all cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 bg-[var(--color-purple)] text-white border-2 border-[var(--border-color)] flex items-center justify-center font-bold flex-shrink-0">
+                            <Sliders className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-xs font-heading font-black uppercase block text-[var(--text-main)] truncate">
+                              PENGATURAN & DATABASE
+                            </span>
+                            <span className="text-[10px] font-mono-custom text-[var(--text-muted)] block truncate">
+                              Kredensial, Akses Gate & Cleaner
+                            </span>
+                          </div>
+                        </div>
+                        <ArrowUpRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-black dark:group-hover:text-white flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Information & WIB Schedule Card */}
+                  <div className="p-3.5 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 shadow-[2px_2px_0px_var(--shadow-color)] space-y-1.5 mt-3">
+                    <div className="flex items-center gap-1.5 text-xs font-mono-custom font-black text-emerald-800 dark:text-emerald-300 uppercase">
+                      <Clock className="w-4 h-4 text-emerald-600" />
+                      <span>KEBIJAKAN RETENSI OTOMATIS 3 HARI (ZONA WAKTU WIB / UTC+7)</span>
+                    </div>
+                    <p className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-main)] leading-relaxed">
+                      Setiap email yang masuk ke sistem HeyFlatimo Temp Mail akan otomatis terhapus permanen setelah 3 hari (72 jam) oleh worker MongoDB TTL secara efisien.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+
+            {/* TAB 2: KELOLA DOMAIN EMAIL */}
+            {activeAdminTab === 'domains' && (
+              <div className="space-y-5 sm:space-y-6 motion-fade-in">
+                {/* DOMAIN MANAGEMENT SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                      KELOLA DOMAIN EMAIL AKTIF
+                    </h3>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                      Tambah atau hapus domain email yang tersedia di web dan API.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-[10px] xs:text-xs font-mono-custom font-black bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto">
+                  {domains.length} DOMAIN TERPASANG
+                </div>
+              </div>
+
+              {/* Dynamic Notification Notice Banner */}
+              {domainNotice && (
+                <div
+                  className={`p-3 sm:p-3.5 mb-4 sm:mb-5 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] flex items-start justify-between gap-2.5 sm:gap-3 ${
+                    domainNotice.type === 'success'
+                      ? 'bg-[#ecfdf5] dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200'
+                      : domainNotice.type === 'error'
+                      ? 'bg-[#fef2f2] dark:bg-red-950 text-red-800 dark:text-red-200'
+                      : 'bg-[#eff6ff] dark:bg-sky-950 text-sky-800 dark:text-sky-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 text-xs font-mono-custom font-black">
+                    {domainNotice.type === 'success' ? (
+                      <CheckCircle2 className="w-4 h-4 text-[var(--color-green)] flex-shrink-0" />
+                    ) : domainNotice.type === 'error' ? (
+                      <AlertCircle className="w-4 h-4 text-[var(--color-red)] flex-shrink-0" />
+                    ) : (
+                      <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
+                    )}
+                    <span className="break-words">{domainNotice.message}</span>
+                  </div>
+                  <button
+                    onClick={() => setDomainNotice(null)}
+                    className="text-xs hover:opacity-70 font-bold px-1 flex-shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {/* Add Domain Form */}
+              <form onSubmit={handleAddDomainSubmit} className="space-y-2 mb-5 sm:mb-6">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-2.5">
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none font-mono text-xs sm:text-sm font-bold text-[var(--text-muted)]">
+                      @
+                    </div>
+                    <input
+                      type="text"
+                      value={newDomainInput}
+                      onChange={(e) => setNewDomainInput(e.target.value)}
+                      placeholder="mail.domainbaru.com"
+                      className="brutal-input w-full pl-8 pr-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isAddingDomain || !newDomainInput.trim()}
+                    className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-4 xs:px-5 py-2 sm:py-2.5 text-xs flex items-center justify-center gap-1.5 disabled:opacity-50 font-black cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{isAddingDomain ? 'MENAMBAHKAN...' : 'TAMBAH DOMAIN'}</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-mono-custom font-bold text-[var(--text-main)] select-none">
+                    <input
+                      type="checkbox"
+                      checked={isNewDomainVip}
+                      onChange={(e) => setIsNewDomainVip(e.target.checked)}
+                      className="w-4 h-4 accent-amber-500 rounded-none border-2 border-[var(--border-color)]"
+                    />
+                    <span className="flex items-center gap-1.5">
+                      Jadikan Domain <strong className="text-amber-600 dark:text-amber-400 flex items-center gap-1"><Crown className="w-3.5 h-3.5 fill-amber-400 inline" /> VIP / Premium</strong>
+                    </span>
+                  </label>
+                </div>
+              </form>
+
+              {/* Active Domains List */}
+              {domains.length === 0 ? (
+                <div className="p-4 border-2 border-dashed border-[var(--border-color)] text-center text-xs font-mono-custom text-[var(--text-muted)] bg-[var(--bg-color)]">
+                  Belum ada domain kustom yang ditambahkan. Menggunakan domain bawaan sistem.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
+                  {domains.map((domItem) => {
+                    const dom = typeof domItem === 'string' ? domItem : domItem.domain;
+                    const isVip = typeof domItem === 'object' ? Boolean(domItem.isVip) : false;
+                    return (
+                      <div
+                        key={dom}
+                        className={`p-2.5 sm:p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] flex items-center justify-between gap-2 ${
+                          isVip ? 'border-amber-400 bg-amber-50/40 dark:bg-amber-950/20' : ''
+                        }`}
+                      >
+                        <div className="min-w-0 flex items-center gap-1.5 xs:gap-2 flex-1">
+                          {isVip ? (
+                            <div className="w-5 h-5 bg-[var(--color-yellow)] border border-black flex items-center justify-center flex-shrink-0" title="Domain VIP">
+                              <Crown className="w-3 h-3 text-black fill-black" />
+                            </div>
+                          ) : (
+                            <span className="w-2 h-2 rounded-full bg-[var(--color-green)] motion-pulse-dot flex-shrink-0" />
+                          )}
+                          <span className="font-mono-custom font-bold text-xs sm:text-sm break-all">
+                            @{dom}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                          {/* 1-Click VIP Toggle Button with Confirmation Modal */}
+                          {isVip ? (
+                            <button
+                              onClick={() => setDomainToToggleVip({ domain: dom, isVip: false })}
+                              className="brutal-btn bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 text-[10px] xs:text-[11px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-yellow-400 cursor-pointer flex-shrink-0"
+                              title="Klik untuk ubah status ke Free"
+                            >
+                              <Crown className="w-3 h-3 fill-black flex-shrink-0" />
+                              <span>VIP</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setDomainToToggleVip({ domain: dom, isVip: true })}
+                              className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 xs:px-2.5 py-1 text-[10px] xs:text-[11px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-amber-100 dark:hover:bg-zinc-700 cursor-pointer flex-shrink-0"
+                              title="Klik untuk jadikan VIP"
+                            >
+                              <span>FREE</span>
+                            </button>
+                          )}
+
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => handleDeleteClick(dom)}
+                            className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 p-1.5 text-xs flex-shrink-0 cursor-pointer shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                            title={`Hapus domain @${dom}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* TOGGLE VIP CONFIRMATION MODAL */}
+            {domainToToggleVip && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-amber-500">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                      <Crown className="w-5 h-5 fill-black text-black" />
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
+                        {domainToToggleVip.isVip ? 'JADIKAN DOMAIN VIP?' : 'HAPUS STATUS VIP?'}
+                      </h4>
+                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
+                        Konfirmasi perubahan status domain
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
+                    Apakah Anda yakin ingin mengubah status domain{' '}
+                    <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">
+                      @{domainToToggleVip.domain}
+                    </span>{' '}
+                    menjadi{' '}
+                    <strong>{domainToToggleVip.isVip ? 'VIP (Mahkota Emas)' : 'FREE (Biasa)'}</strong>?
+                  </p>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setDomainToToggleVip(null)}
+                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
+                    >
+                      BATAL
+                    </button>
+                    <button
+                      onClick={confirmToggleVipDomain}
+                      disabled={isTogglingVip}
+                      className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>{isTogglingVip ? 'MEMPROSES...' : 'YA, UBAH STATUS'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ADD DOMAIN CONFIRMATION MODAL */}
+            {domainToAdd && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-green)]">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-green)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                      <Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3]" />
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
+                        TAMBAH DOMAIN BARU?
+                      </h4>
+                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
+                        Konfirmasi penambahan domain aktif
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
+                    Apakah Anda yakin ingin menambahkan domain <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">@{domainToAdd}</span> ke daftar email aktif HeyFlatimo?
+                  </p>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setDomainToAdd(null)}
+                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
+                    >
+                      BATAL
+                    </button>
+                    <button
+                      onClick={confirmAddDomain}
+                      disabled={isAddingDomain}
+                      className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>{isAddingDomain ? 'MENAMBAHKAN...' : 'YA, TAMBAHKAN'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* DELETE DOMAIN CONFIRMATION MODAL */}
+            {domainToDelete && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
+                        HAPUS DOMAIN?
+                      </h4>
+                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
+                        Konfirmasi penghapusan domain
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
+                    Apakah Anda yakin ingin menghapus domain <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">@{domainToDelete}</span> dari daftar email?
+                  </p>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setDomainToDelete(null)}
+                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
+                    >
+                      BATAL
+                    </button>
+                    <button
+                      onClick={confirmDeleteDomain}
+                      className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>YA, HAPUS DOMAIN</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+              </div>
+            )}
+
+
+            {/* TAB 3: KELOLA MULTI-API KEY */}
+            {activeAdminTab === 'apikeys' && (
+              <div className="space-y-5 sm:space-y-6 motion-fade-in">
+                {/* MULTI-API KEY & BOT CONNECTION MANAGEMENT SECTION */}
             <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
@@ -1871,1175 +2500,14 @@ if (!empty($otpData['found'])) {
                 </div>
               </div>
             )}
-
-            {/* DOMAIN MANAGEMENT SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
-                <div className="flex items-center gap-2 sm:gap-2.5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
-                      KELOLA DOMAIN EMAIL AKTIF
-                    </h3>
-                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
-                      Tambah atau hapus domain email yang tersedia di web dan API.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-[10px] xs:text-xs font-mono-custom font-black bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto">
-                  {domains.length} DOMAIN TERPASANG
-                </div>
-              </div>
-
-              {/* Dynamic Notification Notice Banner */}
-              {domainNotice && (
-                <div
-                  className={`p-3 sm:p-3.5 mb-4 sm:mb-5 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] flex items-start justify-between gap-2.5 sm:gap-3 ${
-                    domainNotice.type === 'success'
-                      ? 'bg-[#ecfdf5] dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200'
-                      : domainNotice.type === 'error'
-                      ? 'bg-[#fef2f2] dark:bg-red-950 text-red-800 dark:text-red-200'
-                      : 'bg-[#eff6ff] dark:bg-sky-950 text-sky-800 dark:text-sky-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-xs font-mono-custom font-black">
-                    {domainNotice.type === 'success' ? (
-                      <CheckCircle2 className="w-4 h-4 text-[var(--color-green)] flex-shrink-0" />
-                    ) : domainNotice.type === 'error' ? (
-                      <AlertCircle className="w-4 h-4 text-[var(--color-red)] flex-shrink-0" />
-                    ) : (
-                      <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
-                    )}
-                    <span className="break-words">{domainNotice.message}</span>
-                  </div>
-                  <button
-                    onClick={() => setDomainNotice(null)}
-                    className="text-xs hover:opacity-70 font-bold px-1 flex-shrink-0"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              )}
-
-              {/* Add Domain Form */}
-              <form onSubmit={handleAddDomainSubmit} className="space-y-2 mb-5 sm:mb-6">
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-2.5">
-                  <div className="relative flex-1">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none font-mono text-xs sm:text-sm font-bold text-[var(--text-muted)]">
-                      @
-                    </div>
-                    <input
-                      type="text"
-                      value={newDomainInput}
-                      onChange={(e) => setNewDomainInput(e.target.value)}
-                      placeholder="mail.domainbaru.com"
-                      className="brutal-input w-full pl-8 pr-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isAddingDomain || !newDomainInput.trim()}
-                    className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-4 xs:px-5 py-2 sm:py-2.5 text-xs flex items-center justify-center gap-1.5 disabled:opacity-50 font-black cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>{isAddingDomain ? 'MENAMBAHKAN...' : 'TAMBAH DOMAIN'}</span>
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2 pt-1">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-mono-custom font-bold text-[var(--text-main)] select-none">
-                    <input
-                      type="checkbox"
-                      checked={isNewDomainVip}
-                      onChange={(e) => setIsNewDomainVip(e.target.checked)}
-                      className="w-4 h-4 accent-amber-500 rounded-none border-2 border-[var(--border-color)]"
-                    />
-                    <span className="flex items-center gap-1.5">
-                      Jadikan Domain <strong className="text-amber-600 dark:text-amber-400 flex items-center gap-1"><Crown className="w-3.5 h-3.5 fill-amber-400 inline" /> VIP / Premium</strong>
-                    </span>
-                  </label>
-                </div>
-              </form>
-
-              {/* Active Domains List */}
-              {domains.length === 0 ? (
-                <div className="p-4 border-2 border-dashed border-[var(--border-color)] text-center text-xs font-mono-custom text-[var(--text-muted)] bg-[var(--bg-color)]">
-                  Belum ada domain kustom yang ditambahkan. Menggunakan domain bawaan sistem.
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
-                  {domains.map((domItem) => {
-                    const dom = typeof domItem === 'string' ? domItem : domItem.domain;
-                    const isVip = typeof domItem === 'object' ? Boolean(domItem.isVip) : false;
-                    return (
-                      <div
-                        key={dom}
-                        className={`p-2.5 sm:p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] flex items-center justify-between gap-2 ${
-                          isVip ? 'border-amber-400 bg-amber-50/40 dark:bg-amber-950/20' : ''
-                        }`}
-                      >
-                        <div className="min-w-0 flex items-center gap-1.5 xs:gap-2 flex-1">
-                          {isVip ? (
-                            <div className="w-5 h-5 bg-[var(--color-yellow)] border border-black flex items-center justify-center flex-shrink-0" title="Domain VIP">
-                              <Crown className="w-3 h-3 text-black fill-black" />
-                            </div>
-                          ) : (
-                            <span className="w-2 h-2 rounded-full bg-[var(--color-green)] motion-pulse-dot flex-shrink-0" />
-                          )}
-                          <span className="font-mono-custom font-bold text-xs sm:text-sm break-all">
-                            @{dom}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-                          {/* 1-Click VIP Toggle Button with Confirmation Modal */}
-                          {isVip ? (
-                            <button
-                              onClick={() => setDomainToToggleVip({ domain: dom, isVip: false })}
-                              className="brutal-btn bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 text-[10px] xs:text-[11px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-yellow-400 cursor-pointer flex-shrink-0"
-                              title="Klik untuk ubah status ke Free"
-                            >
-                              <Crown className="w-3 h-3 fill-black flex-shrink-0" />
-                              <span>VIP</span>
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setDomainToToggleVip({ domain: dom, isVip: true })}
-                              className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 xs:px-2.5 py-1 text-[10px] xs:text-[11px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-amber-100 dark:hover:bg-zinc-700 cursor-pointer flex-shrink-0"
-                              title="Klik untuk jadikan VIP"
-                            >
-                              <span>FREE</span>
-                            </button>
-                          )}
-
-                          {/* Delete Button */}
-                          <button
-                            onClick={() => handleDeleteClick(dom)}
-                            className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 p-1.5 text-xs flex-shrink-0 cursor-pointer shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
-                            title={`Hapus domain @${dom}`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* TOGGLE VIP CONFIRMATION MODAL */}
-            {domainToToggleVip && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
-                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-amber-500">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                      <Crown className="w-5 h-5 fill-black text-black" />
-                    </div>
-                    <div>
-                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
-                        {domainToToggleVip.isVip ? 'JADIKAN DOMAIN VIP?' : 'HAPUS STATUS VIP?'}
-                      </h4>
-                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
-                        Konfirmasi perubahan status domain
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
-                    Apakah Anda yakin ingin mengubah status domain{' '}
-                    <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">
-                      @{domainToToggleVip.domain}
-                    </span>{' '}
-                    menjadi{' '}
-                    <strong>{domainToToggleVip.isVip ? 'VIP (Mahkota Emas)' : 'FREE (Biasa)'}</strong>?
-                  </p>
-
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setDomainToToggleVip(null)}
-                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
-                    >
-                      BATAL
-                    </button>
-                    <button
-                      onClick={confirmToggleVipDomain}
-                      disabled={isTogglingVip}
-                      className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
-                    >
-                      <Check className="w-4 h-4" />
-                      <span>{isTogglingVip ? 'MEMPROSES...' : 'YA, UBAH STATUS'}</span>
-                    </button>
-                  </div>
-                </div>
               </div>
             )}
 
-            {/* ADD DOMAIN CONFIRMATION MODAL */}
-            {domainToAdd && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
-                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-green)]">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-green)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                      <Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3]" />
-                    </div>
-                    <div>
-                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
-                        TAMBAH DOMAIN BARU?
-                      </h4>
-                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
-                        Konfirmasi penambahan domain aktif
-                      </p>
-                    </div>
-                  </div>
 
-                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
-                    Apakah Anda yakin ingin menambahkan domain <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">@{domainToAdd}</span> ke daftar email aktif HeyFlatimo?
-                  </p>
-
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setDomainToAdd(null)}
-                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
-                    >
-                      BATAL
-                    </button>
-                    <button
-                      onClick={confirmAddDomain}
-                      disabled={isAddingDomain}
-                      className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
-                    >
-                      <Check className="w-4 h-4" />
-                      <span>{isAddingDomain ? 'MENAMBAHKAN...' : 'YA, TAMBAHKAN'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* DELETE DOMAIN CONFIRMATION MODAL */}
-            {domainToDelete && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
-                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                      <AlertTriangle className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
-                        HAPUS DOMAIN?
-                      </h4>
-                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
-                        Konfirmasi penghapusan domain
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
-                    Apakah Anda yakin ingin menghapus domain <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">@{domainToDelete}</span> dari daftar email?
-                  </p>
-
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setDomainToDelete(null)}
-                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
-                    >
-                      BATAL
-                    </button>
-                    <button
-                      onClick={confirmDeleteDomain}
-                      className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>YA, HAPUS DOMAIN</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ADMIN LOGIN CREDENTIALS MANAGEMENT SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
-                <div className="flex items-center gap-2 sm:gap-2.5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-purple)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <User className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
-                      KREDENSIAL LOGIN ADMIN (USERNAME & PASSWORD)
-                    </h3>
-                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
-                      Ubah Username dan Password yang digunakan untuk masuk ke Menu Dashboard Admin ini.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>AKUN UTAMA ADMIN</span>
-                </div>
-              </div>
-
-              <form onSubmit={handleSaveCredentials} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
-                  <div>
-                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-blue)] dark:text-[var(--color-cyan)]">
-                      Username Admin Baru:
-                    </label>
-                    <input
-                      type="text"
-                      value={adminUserInput}
-                      onChange={(e) => setAdminUserInput(e.target.value)}
-                      placeholder="Ketik Username Admin Baru"
-                      autoComplete="off"
-                      className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-purple)] dark:text-[var(--color-pink)]">
-                      Password Admin Baru:
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showAdminPass ? 'text' : 'password'}
-                        value={adminPassInput}
-                        onChange={(e) => setAdminPassInput(e.target.value)}
-                        placeholder="Ketik Password Admin Baru"
-                        autoComplete="new-password"
-                        className="brutal-input w-full pl-3 pr-10 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowAdminPass(!showAdminPass)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-muted)] hover:text-black dark:hover:text-white"
-                      >
-                        {showAdminPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-1">
-                  <button
-                    type="submit"
-                    disabled={isSavingCreds}
-                    className="brutal-btn bg-[var(--color-purple)] text-white hover:bg-purple-700 px-4 xs:px-6 py-2 sm:py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
-                  >
-                    <Save className="w-4 h-4" />
-                    <span>{isSavingCreds ? 'MENYIMPAN...' : 'SIMPAN KREDENSIAL ADMIN'}</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            {/* ACCESS KEY GATE MANAGEMENT SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
-                <div className="flex items-center gap-2 sm:gap-2.5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
-                      KODE AKSES WEB TMAIL (ACCESS GATE)
-                    </h3>
-                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
-                      Proteksi website TMail dengan kode akses/PIN sebelum pengunjung bisa menggunakan email.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Status Badge */}
-                <div className={`text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5 ${
-                  accessEnabled
-                    ? 'bg-[var(--color-red)] text-white'
-                    : 'bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7]'
-                }`}>
-                  <span className={`w-2 h-2 rounded-full ${accessEnabled ? 'bg-white' : 'bg-[var(--color-green)]'} motion-pulse-dot`} />
-                  <span>{accessEnabled ? 'STATUS: PROTEKSI AKTIF (LOCKED)' : 'STATUS: BEBAS (TANPA KUNCI)'}</span>
-                </div>
-              </div>
-
-              <form onSubmit={handleSaveAccess} className="space-y-4">
-                {/* On/Off Toggle Button */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
-                  <div>
-                    <span className="font-mono-custom font-bold text-xs sm:text-sm block text-[var(--text-main)]">
-                      Aktifkan Proteksi Kode Akses Web
-                    </span>
-                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
-                      Jika aktif, setiap pengguna wajib memasukkan kode akses sebelum bisa membuka mailbox.
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setAccessEnabled(!accessEnabled)}
-                    className={`brutal-btn px-4 py-1.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)] ${
-                      accessEnabled
-                        ? 'bg-[var(--color-green)] text-white'
-                        : 'bg-zinc-300 dark:bg-zinc-800 text-black dark:text-white'
-                    }`}
-                  >
-                    {accessEnabled ? (
-                      <>
-                        <ToggleRight className="w-4 h-4" />
-                        <span>AKTIF (ON)</span>
-                      </>
-                    ) : (
-                      <>
-                        <ToggleLeft className="w-4 h-4" />
-                        <span>NONAKTIF (OFF)</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Key and Message Configuration */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
-                  <div>
-                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-blue)] dark:text-[var(--color-cyan)]">
-                      Kode Akses Kustom (Password / Key):
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showAccessKey ? 'text' : 'password'}
-                        value={accessKeyInput}
-                        onChange={(e) => setAccessKeyInput(e.target.value)}
-                        placeholder="Contoh: VIP2026 atau 123456"
-                        className="brutal-input w-full pl-3 pr-10 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
-                        required={accessEnabled}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowAccessKey(!showAccessKey)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-muted)] hover:text-black dark:hover:text-white"
-                      >
-                        {showAccessKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-purple)] dark:text-[var(--color-pink)]">
-                      Pesan Petunjuk untuk Pengunjung:
-                    </label>
-                    <input
-                      type="text"
-                      value={accessMessageInput}
-                      onChange={(e) => setAccessMessageInput(e.target.value)}
-                      placeholder="Petunjuk atau info kontak jika butuh akses..."
-                      className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-1">
-                  <button
-                    type="submit"
-                    disabled={isSavingAccess}
-                    className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-4 xs:px-6 py-2 sm:py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
-                  >
-                    <Save className="w-4 h-4" />
-                    <span>{isSavingAccess ? 'MENYIMPAN...' : 'SIMPAN PENGATURAN KODE AKSES'}</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            {/* BROADCAST / POPUP ANNOUNCEMENT SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
-                <div className="flex items-center gap-2 sm:gap-2.5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Megaphone className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
-                      POP-UP PENGUMUMAN / BROADCAST
-                    </h3>
-                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
-                      Tampilkan modal pop-up pemberitahuan otomatis saat pengunjung membuka website TMail.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Status Badge */}
-                <div className={`text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5 ${
-                  announcementEnabled
-                    ? 'bg-[var(--color-green)] text-white'
-                    : 'bg-zinc-200 dark:bg-zinc-800 text-[var(--text-muted)]'
-                }`}>
-                  <span className={`w-2 h-2 rounded-full ${announcementEnabled ? 'bg-white' : 'bg-zinc-500'} motion-pulse-dot`} />
-                  <span>{announcementEnabled ? 'POPUP: AKTIF (TAMPIL)' : 'POPUP: NONAKTIF'}</span>
-                </div>
-              </div>
-
-              <form onSubmit={handleSaveAnnouncement} className="space-y-4">
-                {/* On/Off Toggle Button */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#fffbeb] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
-                  <div>
-                    <span className="font-mono-custom font-bold text-xs sm:text-sm block text-[var(--text-main)]">
-                      Aktifkan Pop-Up Pengumuman Saat Buka Web
-                    </span>
-                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
-                      Munculkan pesan broadcast penting secara otomatis ke semua pengguna.
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setAnnouncementEnabled(!announcementEnabled)}
-                    className={`brutal-btn px-4 py-1.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)] ${
-                      announcementEnabled
-                        ? 'bg-[var(--color-green)] text-white'
-                        : 'bg-zinc-300 dark:bg-zinc-800 text-black dark:text-white'
-                    }`}
-                  >
-                    {announcementEnabled ? (
-                      <>
-                        <ToggleRight className="w-4 h-4" />
-                        <span>AKTIF (ON)</span>
-                      </>
-                    ) : (
-                      <>
-                        <ToggleLeft className="w-4 h-4" />
-                        <span>NONAKTIF (OFF)</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Form Fields: Tag, Title, Display Mode */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
-                      Tag / Badge Label:
-                    </label>
-                    <input
-                      type="text"
-                      value={announcementTagInput}
-                      onChange={(e) => setAnnouncementTagInput(e.target.value)}
-                      placeholder="PENGUMUMAN RESMI"
-                      className="brutal-input w-full px-3 py-2 text-xs font-mono-custom font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
-                      Judul Pop-Up:
-                    </label>
-                    <input
-                      type="text"
-                      value={announcementTitleInput}
-                      onChange={(e) => setAnnouncementTitleInput(e.target.value)}
-                      placeholder="Update Layanan TMail Pro"
-                      className="brutal-input w-full px-3 py-2 text-xs font-mono-custom font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
-                      Pengaturan Muncul Pop-Up:
-                    </label>
-                    <select
-                      value={announcementDisplayModeInput}
-                      onChange={(e) => setAnnouncementDisplayModeInput(e.target.value as any)}
-                      className="brutal-input w-full px-3 py-2 text-xs font-mono-custom font-bold bg-white dark:bg-zinc-900 cursor-pointer"
-                    >
-                      <option value="once_per_device">Sekali per Perangkat (Sampai Diubah)</option>
-                      <option value="once_per_session">Sekali per Sesi Buka Browser</option>
-                      <option value="always">Selalu Muncul Setiap Buka / Refresh</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Content Textarea */}
-                <div>
-                  <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-orange)]">
-                    Isi Pesan Pengumuman:
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={announcementContentInput}
-                    onChange={(e) => setAnnouncementContentInput(e.target.value)}
-                    placeholder="Tulis pesan pengumuman atau broadcast lengkap di sini..."
-                    className="brutal-input w-full p-3 text-xs sm:text-sm font-mono-custom font-bold bg-[#f8fafc] dark:bg-zinc-900"
-                  />
-                </div>
-
-                {/* Actions: Preview & Save */}
-                <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowAnnouncementPreview(true)}
-                    className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 xs:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)]"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span>PREVIEW POP-UP</span>
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={isSavingAnnouncement}
-                    className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-4 xs:px-6 py-2 sm:py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
-                  >
-                    <Save className="w-4 h-4" />
-                    <span>{isSavingAnnouncement ? 'MENYIMPAN...' : 'SIMPAN PENGUMUMAN'}</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            {/* PREVIEW ANNOUNCEMENT MODAL FOR ADMIN */}
-            {showAnnouncementPreview && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-3 xs:p-4 bg-black/80 backdrop-blur-xs">
-                <div className="brutal-card w-full max-w-lg p-5 xs:p-6 sm:p-7 bg-white dark:bg-zinc-900 relative shadow-[6px_6px_0px_var(--shadow-color)] sm:shadow-[8px_8px_0px_var(--shadow-color)] border-[3px] sm:border-[4px] border-[var(--border-color)] motion-modal-in">
-                  <div className="flex items-start justify-between gap-3 mb-3.5 pb-3 border-b-[2.5px] border-dashed border-[var(--border-color)]">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                        <Megaphone className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="inline-block bg-[var(--color-orange)] text-white text-[9px] font-mono-custom font-black px-1.5 py-0.2 border border-[var(--border-color)] uppercase mb-0.5">
-                          {announcementTagInput || 'PENGUMUMAN'}
-                        </span>
-                        <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)] truncate">
-                          {announcementTitleInput || 'Pemberitahuan Sistem'}
-                        </h3>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setShowAnnouncementPreview(false)}
-                      className="brutal-btn bg-[var(--color-red)] text-white w-7 h-7 xs:w-8 xs:h-8 flex items-center justify-center text-xs hover:bg-red-600 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 cursor-pointer"
-                    >
-                      <X className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
-                    </button>
-                  </div>
-
-                  <div className="p-3.5 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] mb-4 max-h-64 overflow-y-auto">
-                    <p className="text-xs sm:text-sm font-mono-custom text-[var(--text-main)] leading-relaxed whitespace-pre-wrap">
-                      {announcementContentInput || 'Belum ada isi pengumuman.'}
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowAnnouncementPreview(false)}
-                    className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 w-full py-2.5 sm:py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-[3px_3px_0px_var(--shadow-color)]"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>TUTUP PREVIEW</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* TELEGRAM BOT INTEGRATION SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
-                <div className="flex items-center gap-2 sm:gap-2.5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#229ED9] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Send className="w-4 h-4 sm:w-5 sm:h-5 -translate-y-0.5 translate-x-0.5" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
-                      INTEGRASI BOT TELEGRAM (INBOX & OTP READER)
-                    </h3>
-                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
-                      Hubungkan Bot Telegram untuk membaca email dan mengambil kode OTP secara interaktif via tombol inline.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Status Badge */}
-                <div
-                  className={`text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5 ${
-                    telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
-                      ? 'bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7]'
-                      : telegramEnabled
-                      ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'
-                      : 'bg-zinc-200 dark:bg-zinc-800 text-[var(--text-muted)]'
-                  }`}
-                >
-                  <span
-                    className={`w-2 h-2 rounded-full ${
-                      telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
-                        ? 'bg-[var(--color-green)]'
-                        : telegramEnabled
-                        ? 'bg-amber-500'
-                        : 'bg-zinc-500'
-                    } motion-pulse-dot`}
-                  />
-                  <span>
-                    {telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
-                      ? `BOT AKTIF ${telegramBotUsername ? `(@${telegramBotUsername})` : ''}`
-                      : telegramEnabled
-                      ? 'BOT AKTIF (BELUM SET WEBHOOK HTTPS)'
-                      : 'BOT NONAKTIF'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Step-by-Step Info Banner */}
-              <div className="p-3 sm:p-4 bg-[#eff6ff] dark:bg-sky-950/40 border-[2px] border-[var(--border-color)] mb-4 space-y-2 shadow-[2px_2px_0px_var(--shadow-color)]">
-                <div className="flex items-center gap-2 font-mono-custom font-black text-xs text-[var(--color-blue)] uppercase">
-                  <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
-                  <span>Panduan Menghubungkan Bot Telegram:</span>
-                </div>
-                <div className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-muted)] space-y-1 pl-6">
-                  <p>1. Buka <strong>@BotFather</strong> di Telegram, kirim perintah <code>/newbot</code> dan ikuti langkah pembuatan bot.</p>
-                  <p>2. Salin <strong>HTTP API Token</strong> yang diberikan dan tempel pada kolom Token Bot di bawah.</p>
-                  <p>3. Ubah saklar status ke <strong>AKTIF (ON)</strong> lalu klik tombol <strong>SET WEBHOOK</strong> atau <strong>SIMPAN PENGATURAN BOT</strong>.</p>
-                  <p>4. Buka bot Anda di Telegram dan kirim pesan <code>/start</code> atau ketik email langsung untuk cek OTP secara instan!</p>
-                </div>
-              </div>
-
-              <form onSubmit={handleSaveTelegram} className="space-y-4">
-                {/* On/Off Toggle */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#f0f9ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
-                  <div>
-                    <span className="font-mono-custom font-bold text-xs sm:text-sm block text-[var(--text-main)]">
-                      Status Integrasi Bot Telegram
-                    </span>
-                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
-                      Aktifkan bot untuk merespons perintah <code>/start</code>, <code>/generate</code>, <code>/otp &lt;email&gt;</code>, dan <code>/inbox &lt;email&gt;</code>.
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setTelegramEnabled(!telegramEnabled)}
-                    className={`brutal-btn px-4 py-1.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)] ${
-                      telegramEnabled
-                        ? 'bg-[var(--color-green)] text-white'
-                        : 'bg-zinc-300 dark:bg-zinc-800 text-black dark:text-white'
-                    }`}
-                  >
-                    {telegramEnabled ? (
-                      <>
-                        <ToggleRight className="w-4 h-4" />
-                        <span>AKTIF (ON)</span>
-                      </>
-                    ) : (
-                      <>
-                        <ToggleLeft className="w-4 h-4" />
-                        <span>NONAKTIF (OFF)</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Bot Token Input */}
-                <div>
-                  <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-blue)] dark:text-[var(--color-cyan)]">
-                    Token Bot Telegram (Dari @BotFather):
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type="text"
-                        value={telegramBotTokenInput}
-                        onChange={(e) => setTelegramBotTokenInput(e.target.value)}
-                        placeholder="Contoh: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
-                        className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
-                        autoComplete="off"
-                        spellCheck="false"
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleTestBot}
-                      disabled={isTestingBot || !telegramBotTokenInput.trim()}
-                      className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
-                    >
-                      <Zap className="w-3.5 h-3.5" />
-                      <span>{isTestingBot ? 'MEMERIKSA...' : 'TES KONEKSI BOT'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Webhook Configuration & URL Display */}
-                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)]">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <span className="text-[10px] font-mono-custom font-black uppercase text-[var(--text-muted)] block mb-0.5">
-                        Webhook Endpoint Otomatis:
-                      </span>
-                      <code className="text-xs font-mono-custom font-bold text-[var(--color-blue)] break-all block">
-                        {origin}/api/webhook/telegram
-                      </code>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
-                      <button
-                        type="button"
-                        onClick={handleSetWebhook}
-                        disabled={isSettingWebhook || !telegramBotTokenInput.trim()}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-3 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
-                      >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isSettingWebhook ? 'animate-spin-fast' : ''}`} />
-                        <span>{isSettingWebhook ? 'MENDAFTAR...' : 'SET WEBHOOK'}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => fetchWebhookInfo(telegramBotTokenInput.trim())}
-                        disabled={isCheckingWebhookInfo || !telegramBotTokenInput.trim()}
-                        className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
-                        title="Cek Status Webhook Langsung dari Telegram API"
-                      >
-                        <RefreshCw className={`w-3 h-3 ${isCheckingWebhookInfo ? 'animate-spin-fast' : ''}`} />
-                        <span>CEK LIVE</span>
-                      </button>
-
-                      {(telegramWebhookUrl || telegramWebhookInfo?.url) && (
-                        <button
-                          type="button"
-                          onClick={handleDeleteWebhook}
-                          disabled={isDeletingWebhook}
-                          className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)]"
-                          title="Hapus Webhook"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>HAPUS</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Live Webhook Diagnostics Card */}
-                {telegramWebhookInfo && (
-                  <div className="p-3 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 space-y-1.5 text-xs font-mono-custom shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in">
-                    <div className="flex items-center justify-between gap-2 border-b border-dashed border-emerald-300 dark:border-emerald-800 pb-1">
-                      <span className="font-black text-emerald-800 dark:text-emerald-300 uppercase flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>STATUS WEBHOOK DI TELEGRAM SERVER</span>
-                      </span>
-                      {telegramWebhookInfo.url ? (
-                        <span className="bg-emerald-200 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 px-1.5 py-0.2 text-[10px] font-bold border border-emerald-400">
-                          TERDAFTAR
-                        </span>
-                      ) : (
-                        <span className="bg-amber-200 dark:bg-amber-950 text-amber-900 dark:text-amber-200 px-1.5 py-0.2 text-[10px] font-bold border border-amber-400">
-                          BELUM TERDAFTAR
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-[11px] text-[var(--text-main)] space-y-0.5">
-                      <p><strong>URL Terdaftar:</strong> {telegramWebhookInfo.url || '(Belum diset ke Telegram)'}</p>
-                      <p><strong>Pending Updates:</strong> {telegramWebhookInfo.pending_update_count ?? 0} pesan</p>
-                      {telegramWebhookInfo.last_error_message && (
-                        <div className="p-2 bg-red-100 dark:bg-red-950/60 border border-red-400 text-red-800 dark:text-red-300 mt-1">
-                          <strong>Error Terakhir dari Telegram:</strong> {telegramWebhookInfo.last_error_message}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Save button */}
-                <div className="flex justify-end pt-1">
-                  <button
-                    type="submit"
-                    disabled={isSavingTelegram}
-                    className="brutal-btn bg-[#229ED9] text-white hover:bg-sky-600 px-4 xs:px-6 py-2 sm:py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
-                  >
-                    <Save className="w-4 h-4" />
-                    <span>{isSavingTelegram ? 'MENYIMPAN...' : 'SIMPAN PENGATURAN BOT'}</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            {/* DATABASE & AUTO-DELETE 3 HARI (WIB) CLEANER SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
-                <div className="flex items-center gap-2 sm:gap-2.5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Database className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
-                      DATABASE & AUTO-DELETE (3 HARI WIB)
-                    </h3>
-                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
-                      Sistem menghapus email otomatis setelah 3 hari dan menyediakan opsi pembersihan manual kapan saja.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 bg-[var(--color-green)] text-white border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>AUTO-DELETE 3 HARI (72 JAM WIB) AKTIF</span>
-                </div>
-              </div>
-
-              {/* Retention & Lifetime Email Stats Bar */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-4">
-                <div className="p-3 bg-[#ecfdf5] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
-                  <span className="text-[9px] font-mono-custom font-black uppercase text-emerald-700 dark:text-emerald-400 block">
-                    Total Email Masuk (All-Time):
-                  </span>
-                  <span className="text-base sm:text-lg font-heading font-black text-emerald-700 dark:text-emerald-400 block">
-                    {cleanupStats?.totalReceivedAllTime ?? stats?.totalReceivedAllTime ?? cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
-                  </span>
-                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
-                    Akumulatif (tetap tercatat aman)
-                  </span>
-                </div>
-
-                <div className="p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
-                  <span className="text-[9px] font-mono-custom font-black uppercase text-[var(--color-blue)] block">
-                    Pesan Aktif di DB Saat Ini:
-                  </span>
-                  <span className="text-base sm:text-lg font-heading font-black text-[var(--color-blue)] block">
-                    {cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
-                  </span>
-                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
-                    {cleanupStats?.uniqueActiveMailboxes ?? 0} Alamat Mailbox Aktif
-                  </span>
-                </div>
-
-                <div className="p-3 bg-[#fef2f2] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
-                  <span className="text-[9px] font-mono-custom font-black uppercase text-red-600 dark:text-red-400 block">
-                    Pesan Kadaluwarsa (&gt; 3 Hari):
-                  </span>
-                  <span className="text-base sm:text-lg font-heading font-black text-[var(--color-red)] block">
-                    {cleanupStats?.expiredCount ?? 0} Pesan
-                  </span>
-                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
-                    Melebihi batas 72 jam
-                  </span>
-                </div>
-
-                <div className="p-3 bg-[#fdf4ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
-                  <span className="text-[9px] font-mono-custom font-black uppercase text-purple-700 dark:text-purple-400 block">
-                    Total Pesan Dihapus (All-Time):
-                  </span>
-                  <span className="text-base sm:text-lg font-heading font-black text-purple-700 dark:text-purple-400 block">
-                    {cleanupStats?.totalDeletedAllTime ?? 0} Pesan
-                  </span>
-                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
-                    Total dibersihkan seumur hidup
-                  </span>
-                </div>
-              </div>
-
-              {/* Information & WIB Schedule Card */}
-              <div className="p-3.5 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 shadow-[2px_2px_0px_var(--shadow-color)] space-y-2 mb-4">
-                <div className="flex items-center gap-1.5 text-xs font-mono-custom font-black text-emerald-800 dark:text-emerald-300 uppercase">
-                  <Clock className="w-4 h-4 text-emerald-600" />
-                  <span>KEBIJAKAN RETENSI OTOMATIS 3 HARI (ZONA WAKTU WIB / UTC+7)</span>
-                </div>
-                <div className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-main)] space-y-1">
-                  <p>
-                    Setiap email yang masuk ke sistem HeyFlatimo Temp Mail akan <strong>otomatis terhapus permanen setelah 3 hari (72 jam)</strong> oleh background task MongoDB TTL.
-                  </p>
-                  <p className="text-emerald-700 dark:text-emerald-400">
-                    <strong>Simulasi Jadwal:</strong> Email yang masuk saat ini akan otomatis dimusnahkan pada:{' '}
-                    <code className="bg-white dark:bg-zinc-950 px-1.5 py-0.5 border border-emerald-400 font-bold">
-                      {new Date(Date.now() + 72 * 3600000).toLocaleString('id-ID', {
-                        timeZone: 'Asia/Jakarta',
-                        dateStyle: 'full',
-                        timeStyle: 'medium',
-                      })}{' '}
-                      WIB
-                    </code>
-                  </p>
-                </div>
-              </div>
-
-              {/* Action Buttons: Clean >3 Days and Clean All */}
-              <div className="space-y-3">
-                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                  <div>
-                    <span className="text-xs font-mono-custom font-black text-[var(--text-main)] block">
-                      Pembersihan Manual Email Kadaluwarsa (&gt; 3 Hari)
-                    </span>
-                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
-                      Paksa hapus pesan yang usianya sudah lebih dari 72 jam sekarang tanpa menunggu background worker.
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleCleanExpired}
-                    disabled={isCleaningExpired}
-                    className="brutal-btn bg-[var(--color-orange)] text-white hover:bg-orange-600 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>{isCleaningExpired ? 'MEMBERSIHKAN...' : 'BERSIHKAN EMAIL > 3 HARI'}</span>
-                  </button>
-                </div>
-
-                {/* Emergency Clear All Action */}
-                <div className="p-3 bg-red-50 dark:bg-red-950/40 border-[2px] border-dashed border-red-300 dark:border-red-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                  <div>
-                    <span className="text-xs font-mono-custom font-black text-red-700 dark:text-red-300 block">
-                      Pembersihan Total: Hapus Semua Pesan Saat Ini
-                    </span>
-                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-zinc-500 block">
-                      Menghapus seluruh pesan email yang ada di database saat ini, termasuk yang baru masuk (&lt; 1 hari atau &lt; 3 hari).
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowCleanAllModal(true)}
-                    className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-700 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 cursor-pointer"
-                  >
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>HAPUS SEMUA PESAN</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* CONFIRM CLEAN ALL MODAL */}
-            {showCleanAllModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
-                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                      <AlertTriangle className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
-                        HAPUS SELURUH PESAN?
-                      </h4>
-                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
-                        Tindakan ini permanen dan tidak dapat dibatalkan
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-3 leading-relaxed">
-                    Apakah Anda yakin ingin menghapus <strong>seluruh pesan email</strong> yang ada di database saat ini?
-                  </p>
-
-                  <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-[11px] font-mono-custom text-amber-900 dark:text-amber-200 mb-5">
-                    <strong>Perhatian:</strong> Pesan yang baru masuk (walaupun belum sampai 1 hari atau 3 hari) juga akan <strong>langsung ikut terhapus</strong>. Namun total statistik email masuk all-time Anda tetap aman.
-                  </div>
-
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowCleanAllModal(false)}
-                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold cursor-pointer"
-                    >
-                      BATAL
-                    </button>
-                    <button
-                      type="button"
-                      onClick={confirmCleanAll}
-                      disabled={isCleaningAll}
-                      className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-700 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>{isCleaningAll ? 'MEMBERSIHKAN...' : 'YA, HAPUS SEMUA PESAN'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-              <div className="brutal-card p-3.5 sm:p-4 bg-[#eff6ff] dark:bg-zinc-900 flex items-center gap-3">
-                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-[var(--color-blue)] border-[2.5px] border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                  <Server className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
-                    STATUS REST API
-                  </span>
-                  <span className="font-heading font-black text-base sm:text-lg text-[var(--color-blue)] truncate block">
-                    ONLINE (v1 READY)
-                  </span>
-                </div>
-              </div>
-
-              <div className="brutal-card p-3.5 sm:p-4 bg-[#ecfdf5] dark:bg-zinc-900 flex items-center gap-3">
-                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-[var(--color-green)] border-[2.5px] border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                  <Database className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-emerald-700 dark:text-emerald-400 uppercase block truncate">
-                    TOTAL EMAIL MASUK (ALL-TIME)
-                  </span>
-                  <span className="font-heading font-black text-base sm:text-lg text-[var(--color-green)] truncate block">
-                    {cleanupStats?.totalReceivedAllTime ?? stats?.totalReceivedAllTime ?? cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
-                  </span>
-                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block truncate">
-                    {cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} aktif di DB ({cleanupStats?.totalDeletedAllTime ?? 0} dibersihkan)
-                  </span>
-                </div>
-              </div>
-
-              <div className="brutal-card p-3.5 sm:p-4 bg-[#fefce8] dark:bg-zinc-900 flex items-center gap-3">
-                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-[var(--color-yellow)] border-[2.5px] border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                  <Cpu className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
-                    BOT AUTO-EXTRACT
-                  </span>
-                  <span className="font-heading font-black text-base sm:text-lg text-black dark:text-white truncate block">
-                    OTP + LINKS AKTIF
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* API KEY SELECTOR FOR INTEGRATION & LIVE TESTER */}
-            <div className="brutal-card p-3.5 sm:p-4 bg-[var(--card-bg)] flex flex-col md:flex-row md:items-center justify-between gap-3 border-[2px] border-[var(--border-color)]">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                  <Key className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)] block">
-                    PILIH API KEY UNTUK INTEGRASI KODE & LIVE TESTER
-                  </span>
-                  <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
-                    Pilih API Key aktif yang akan disematkan pada contoh kode (Python, Node, cURL, PHP) dan pengujian live di bawah.
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <label className="text-[11px] font-mono-custom font-bold uppercase text-[var(--text-main)] hidden sm:inline">
-                  Key Aktif:
-                </label>
-                <select
-                  value={safeKey}
-                  onChange={(e) => setSelectedApiKey(e.target.value)}
-                  className="brutal-input text-xs font-mono-custom font-bold py-2 px-3 bg-white dark:bg-zinc-900 cursor-pointer w-full md:w-auto min-w-[260px]"
-                >
-                  {apiKeys.map((k) => (
-                    <option key={k.id} value={k.key}>
-                      {k.name} ({k.isSingleBot ? (k.boundIdentifier ? '1-BOT LOCKED' : '1-BOT LOCK') : 'MULTI-BOT'}) {!k.isActive ? '[NONAKTIF]' : ''}
-                    </option>
-                  ))}
-                  {apiKeys.length === 0 && <option value={safeKey}>Default Master Key</option>}
-                </select>
-              </div>
-            </div>
-
-            {/* PRIVATE REST API & WEBHOOK SPECIFICATION SECTION (KHUSUS OWNER) */}
+            {/* TAB 4: SPESIFIKASI ENDPOINT & WEBHOOK */}
+            {activeAdminTab === 'endpoints' && (
+              <div className="space-y-5 sm:space-y-6 motion-fade-in">
+                {/* PRIVATE REST API & WEBHOOK SPECIFICATION SECTION (KHUSUS OWNER) */}
             <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] space-y-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 sm:pb-4 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2.5">
@@ -3910,8 +3378,266 @@ if (!empty($otpData['found'])) {
                 </div>
               </div>
             </div>
+              </div>
+            )}
 
-            {/* Two Column Layout: Code Generator & Live Interactive Tester */}
+
+            {/* TAB 5: INTEGRASI BOT & LIVE TESTER */}
+            {activeAdminTab === 'bot_tester' && (
+              <div className="space-y-5 sm:space-y-6 motion-fade-in">
+                {/* TELEGRAM BOT INTEGRATION SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#229ED9] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <Send className="w-4 h-4 sm:w-5 sm:h-5 -translate-y-0.5 translate-x-0.5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                      INTEGRASI BOT TELEGRAM (INBOX & OTP READER)
+                    </h3>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                      Hubungkan Bot Telegram untuk membaca email dan mengambil kode OTP secara interaktif via tombol inline.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Status Badge */}
+                <div
+                  className={`text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5 ${
+                    telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
+                      ? 'bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7]'
+                      : telegramEnabled
+                      ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'
+                      : 'bg-zinc-200 dark:bg-zinc-800 text-[var(--text-muted)]'
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
+                        ? 'bg-[var(--color-green)]'
+                        : telegramEnabled
+                        ? 'bg-amber-500'
+                        : 'bg-zinc-500'
+                    } motion-pulse-dot`}
+                  />
+                  <span>
+                    {telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
+                      ? `BOT AKTIF ${telegramBotUsername ? `(@${telegramBotUsername})` : ''}`
+                      : telegramEnabled
+                      ? 'BOT AKTIF (BELUM SET WEBHOOK HTTPS)'
+                      : 'BOT NONAKTIF'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Step-by-Step Info Banner */}
+              <div className="p-3 sm:p-4 bg-[#eff6ff] dark:bg-sky-950/40 border-[2px] border-[var(--border-color)] mb-4 space-y-2 shadow-[2px_2px_0px_var(--shadow-color)]">
+                <div className="flex items-center gap-2 font-mono-custom font-black text-xs text-[var(--color-blue)] uppercase">
+                  <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
+                  <span>Panduan Menghubungkan Bot Telegram:</span>
+                </div>
+                <div className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-muted)] space-y-1 pl-6">
+                  <p>1. Buka <strong>@BotFather</strong> di Telegram, kirim perintah <code>/newbot</code> dan ikuti langkah pembuatan bot.</p>
+                  <p>2. Salin <strong>HTTP API Token</strong> yang diberikan dan tempel pada kolom Token Bot di bawah.</p>
+                  <p>3. Ubah saklar status ke <strong>AKTIF (ON)</strong> lalu klik tombol <strong>SET WEBHOOK</strong> atau <strong>SIMPAN PENGATURAN BOT</strong>.</p>
+                  <p>4. Buka bot Anda di Telegram dan kirim pesan <code>/start</code> atau ketik email langsung untuk cek OTP secara instan!</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveTelegram} className="space-y-4">
+                {/* On/Off Toggle */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#f0f9ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <div>
+                    <span className="font-mono-custom font-bold text-xs sm:text-sm block text-[var(--text-main)]">
+                      Status Integrasi Bot Telegram
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
+                      Aktifkan bot untuk merespons perintah <code>/start</code>, <code>/generate</code>, <code>/otp &lt;email&gt;</code>, dan <code>/inbox &lt;email&gt;</code>.
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setTelegramEnabled(!telegramEnabled)}
+                    className={`brutal-btn px-4 py-1.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)] ${
+                      telegramEnabled
+                        ? 'bg-[var(--color-green)] text-white'
+                        : 'bg-zinc-300 dark:bg-zinc-800 text-black dark:text-white'
+                    }`}
+                  >
+                    {telegramEnabled ? (
+                      <>
+                        <ToggleRight className="w-4 h-4" />
+                        <span>AKTIF (ON)</span>
+                      </>
+                    ) : (
+                      <>
+                        <ToggleLeft className="w-4 h-4" />
+                        <span>NONAKTIF (OFF)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Bot Token Input */}
+                <div>
+                  <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-blue)] dark:text-[var(--color-cyan)]">
+                    Token Bot Telegram (Dari @BotFather):
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={telegramBotTokenInput}
+                        onChange={(e) => setTelegramBotTokenInput(e.target.value)}
+                        placeholder="Contoh: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
+                        className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
+                        autoComplete="off"
+                        spellCheck="false"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleTestBot}
+                      disabled={isTestingBot || !telegramBotTokenInput.trim()}
+                      className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
+                    >
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>{isTestingBot ? 'MEMERIKSA...' : 'TES KONEKSI BOT'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Webhook Configuration & URL Display */}
+                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[10px] font-mono-custom font-black uppercase text-[var(--text-muted)] block mb-0.5">
+                        Webhook Endpoint Otomatis:
+                      </span>
+                      <code className="text-xs font-mono-custom font-bold text-[var(--color-blue)] break-all block">
+                        {origin}/api/webhook/telegram
+                      </code>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={handleSetWebhook}
+                        disabled={isSettingWebhook || !telegramBotTokenInput.trim()}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-3 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isSettingWebhook ? 'animate-spin-fast' : ''}`} />
+                        <span>{isSettingWebhook ? 'MENDAFTAR...' : 'SET WEBHOOK'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => fetchWebhookInfo(telegramBotTokenInput.trim())}
+                        disabled={isCheckingWebhookInfo || !telegramBotTokenInput.trim()}
+                        className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
+                        title="Cek Status Webhook Langsung dari Telegram API"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${isCheckingWebhookInfo ? 'animate-spin-fast' : ''}`} />
+                        <span>CEK LIVE</span>
+                      </button>
+
+                      {(telegramWebhookUrl || telegramWebhookInfo?.url) && (
+                        <button
+                          type="button"
+                          onClick={handleDeleteWebhook}
+                          disabled={isDeletingWebhook}
+                          className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)]"
+                          title="Hapus Webhook"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>HAPUS</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Live Webhook Diagnostics Card */}
+                {telegramWebhookInfo && (
+                  <div className="p-3 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 space-y-1.5 text-xs font-mono-custom shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in">
+                    <div className="flex items-center justify-between gap-2 border-b border-dashed border-emerald-300 dark:border-emerald-800 pb-1">
+                      <span className="font-black text-emerald-800 dark:text-emerald-300 uppercase flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>STATUS WEBHOOK DI TELEGRAM SERVER</span>
+                      </span>
+                      {telegramWebhookInfo.url ? (
+                        <span className="bg-emerald-200 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 px-1.5 py-0.2 text-[10px] font-bold border border-emerald-400">
+                          TERDAFTAR
+                        </span>
+                      ) : (
+                        <span className="bg-amber-200 dark:bg-amber-950 text-amber-900 dark:text-amber-200 px-1.5 py-0.2 text-[10px] font-bold border border-amber-400">
+                          BELUM TERDAFTAR
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-[var(--text-main)] space-y-0.5">
+                      <p><strong>URL Terdaftar:</strong> {telegramWebhookInfo.url || '(Belum diset ke Telegram)'}</p>
+                      <p><strong>Pending Updates:</strong> {telegramWebhookInfo.pending_update_count ?? 0} pesan</p>
+                      {telegramWebhookInfo.last_error_message && (
+                        <div className="p-2 bg-red-100 dark:bg-red-950/60 border border-red-400 text-red-800 dark:text-red-300 mt-1">
+                          <strong>Error Terakhir dari Telegram:</strong> {telegramWebhookInfo.last_error_message}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Save button */}
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={isSavingTelegram}
+                    className="brutal-btn bg-[#229ED9] text-white hover:bg-sky-600 px-4 xs:px-6 py-2 sm:py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isSavingTelegram ? 'MENYIMPAN...' : 'SIMPAN PENGATURAN BOT'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+                {/* API KEY SELECTOR FOR INTEGRATION & LIVE TESTER */}
+            <div className="brutal-card p-3.5 sm:p-4 bg-[var(--card-bg)] flex flex-col md:flex-row md:items-center justify-between gap-3 border-[2px] border-[var(--border-color)]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                  <Key className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)] block">
+                    PILIH API KEY UNTUK INTEGRASI KODE & LIVE TESTER
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
+                    Pilih API Key aktif yang akan disematkan pada contoh kode (Python, Node, cURL, PHP) dan pengujian live di bawah.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <label className="text-[11px] font-mono-custom font-bold uppercase text-[var(--text-main)] hidden sm:inline">
+                  Key Aktif:
+                </label>
+                <select
+                  value={safeKey}
+                  onChange={(e) => setSelectedApiKey(e.target.value)}
+                  className="brutal-input text-xs font-mono-custom font-bold py-2 px-3 bg-white dark:bg-zinc-900 cursor-pointer w-full md:w-auto min-w-[260px]"
+                >
+                  {apiKeys.map((k) => (
+                    <option key={k.id} value={k.key}>
+                      {k.name} ({k.isSingleBot ? (k.boundIdentifier ? '1-BOT LOCKED' : '1-BOT LOCK') : 'MULTI-BOT'}) {!k.isActive ? '[NONAKTIF]' : ''}
+                    </option>
+                  ))}
+                  {apiKeys.length === 0 && <option value={safeKey}>Default Master Key</option>}
+                </select>
+              </div>
+            </div>
+                {/* Two Column Layout: Code Generator & Live Interactive Tester */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-7">
               {/* Left Column: Code Generator for Bots */}
               <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] flex flex-col">
@@ -4040,6 +3766,588 @@ if (!empty($otpData['found'])) {
                 </div>
               </div>
             </div>
+              </div>
+            )}
+
+
+            {/* TAB 6: PENGATURAN & RETENSI DATABASE */}
+            {activeAdminTab === 'settings' && (
+              <div className="space-y-5 sm:space-y-6 motion-fade-in">
+                {/* ADMIN LOGIN CREDENTIALS MANAGEMENT SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-purple)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                      KREDENSIAL LOGIN ADMIN (USERNAME & PASSWORD)
+                    </h3>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                      Ubah Username dan Password yang digunakan untuk masuk ke Menu Dashboard Admin ini.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5" />
+                  <span>AKUN UTAMA ADMIN</span>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveCredentials} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+                  <div>
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-blue)] dark:text-[var(--color-cyan)]">
+                      Username Admin Baru:
+                    </label>
+                    <input
+                      type="text"
+                      value={adminUserInput}
+                      onChange={(e) => setAdminUserInput(e.target.value)}
+                      placeholder="Ketik Username Admin Baru"
+                      autoComplete="off"
+                      className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-purple)] dark:text-[var(--color-pink)]">
+                      Password Admin Baru:
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showAdminPass ? 'text' : 'password'}
+                        value={adminPassInput}
+                        onChange={(e) => setAdminPassInput(e.target.value)}
+                        placeholder="Ketik Password Admin Baru"
+                        autoComplete="new-password"
+                        className="brutal-input w-full pl-3 pr-10 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAdminPass(!showAdminPass)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-muted)] hover:text-black dark:hover:text-white"
+                      >
+                        {showAdminPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={isSavingCreds}
+                    className="brutal-btn bg-[var(--color-purple)] text-white hover:bg-purple-700 px-4 xs:px-6 py-2 sm:py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isSavingCreds ? 'MENYIMPAN...' : 'SIMPAN KREDENSIAL ADMIN'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+                {/* ACCESS KEY GATE MANAGEMENT SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                      KODE AKSES WEB TMAIL (ACCESS GATE)
+                    </h3>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                      Proteksi website TMail dengan kode akses/PIN sebelum pengunjung bisa menggunakan email.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Status Badge */}
+                <div className={`text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5 ${
+                  accessEnabled
+                    ? 'bg-[var(--color-red)] text-white'
+                    : 'bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7]'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full ${accessEnabled ? 'bg-white' : 'bg-[var(--color-green)]'} motion-pulse-dot`} />
+                  <span>{accessEnabled ? 'STATUS: PROTEKSI AKTIF (LOCKED)' : 'STATUS: BEBAS (TANPA KUNCI)'}</span>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveAccess} className="space-y-4">
+                {/* On/Off Toggle Button */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <div>
+                    <span className="font-mono-custom font-bold text-xs sm:text-sm block text-[var(--text-main)]">
+                      Aktifkan Proteksi Kode Akses Web
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
+                      Jika aktif, setiap pengguna wajib memasukkan kode akses sebelum bisa membuka mailbox.
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setAccessEnabled(!accessEnabled)}
+                    className={`brutal-btn px-4 py-1.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)] ${
+                      accessEnabled
+                        ? 'bg-[var(--color-green)] text-white'
+                        : 'bg-zinc-300 dark:bg-zinc-800 text-black dark:text-white'
+                    }`}
+                  >
+                    {accessEnabled ? (
+                      <>
+                        <ToggleRight className="w-4 h-4" />
+                        <span>AKTIF (ON)</span>
+                      </>
+                    ) : (
+                      <>
+                        <ToggleLeft className="w-4 h-4" />
+                        <span>NONAKTIF (OFF)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Key and Message Configuration */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+                  <div>
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-blue)] dark:text-[var(--color-cyan)]">
+                      Kode Akses Kustom (Password / Key):
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showAccessKey ? 'text' : 'password'}
+                        value={accessKeyInput}
+                        onChange={(e) => setAccessKeyInput(e.target.value)}
+                        placeholder="Contoh: VIP2026 atau 123456"
+                        className="brutal-input w-full pl-3 pr-10 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
+                        required={accessEnabled}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAccessKey(!showAccessKey)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-muted)] hover:text-black dark:hover:text-white"
+                      >
+                        {showAccessKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-purple)] dark:text-[var(--color-pink)]">
+                      Pesan Petunjuk untuk Pengunjung:
+                    </label>
+                    <input
+                      type="text"
+                      value={accessMessageInput}
+                      onChange={(e) => setAccessMessageInput(e.target.value)}
+                      placeholder="Petunjuk atau info kontak jika butuh akses..."
+                      className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={isSavingAccess}
+                    className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-4 xs:px-6 py-2 sm:py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isSavingAccess ? 'MENYIMPAN...' : 'SIMPAN PENGATURAN KODE AKSES'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+                {/* BROADCAST / POPUP ANNOUNCEMENT SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <Megaphone className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                      POP-UP PENGUMUMAN / BROADCAST
+                    </h3>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                      Tampilkan modal pop-up pemberitahuan otomatis saat pengunjung membuka website TMail.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Status Badge */}
+                <div className={`text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5 ${
+                  announcementEnabled
+                    ? 'bg-[var(--color-green)] text-white'
+                    : 'bg-zinc-200 dark:bg-zinc-800 text-[var(--text-muted)]'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full ${announcementEnabled ? 'bg-white' : 'bg-zinc-500'} motion-pulse-dot`} />
+                  <span>{announcementEnabled ? 'POPUP: AKTIF (TAMPIL)' : 'POPUP: NONAKTIF'}</span>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveAnnouncement} className="space-y-4">
+                {/* On/Off Toggle Button */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#fffbeb] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <div>
+                    <span className="font-mono-custom font-bold text-xs sm:text-sm block text-[var(--text-main)]">
+                      Aktifkan Pop-Up Pengumuman Saat Buka Web
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
+                      Munculkan pesan broadcast penting secara otomatis ke semua pengguna.
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setAnnouncementEnabled(!announcementEnabled)}
+                    className={`brutal-btn px-4 py-1.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)] ${
+                      announcementEnabled
+                        ? 'bg-[var(--color-green)] text-white'
+                        : 'bg-zinc-300 dark:bg-zinc-800 text-black dark:text-white'
+                    }`}
+                  >
+                    {announcementEnabled ? (
+                      <>
+                        <ToggleRight className="w-4 h-4" />
+                        <span>AKTIF (ON)</span>
+                      </>
+                    ) : (
+                      <>
+                        <ToggleLeft className="w-4 h-4" />
+                        <span>NONAKTIF (OFF)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Form Fields: Tag, Title, Display Mode */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                      Tag / Badge Label:
+                    </label>
+                    <input
+                      type="text"
+                      value={announcementTagInput}
+                      onChange={(e) => setAnnouncementTagInput(e.target.value)}
+                      placeholder="PENGUMUMAN RESMI"
+                      className="brutal-input w-full px-3 py-2 text-xs font-mono-custom font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                      Judul Pop-Up:
+                    </label>
+                    <input
+                      type="text"
+                      value={announcementTitleInput}
+                      onChange={(e) => setAnnouncementTitleInput(e.target.value)}
+                      placeholder="Update Layanan TMail Pro"
+                      className="brutal-input w-full px-3 py-2 text-xs font-mono-custom font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                      Pengaturan Muncul Pop-Up:
+                    </label>
+                    <select
+                      value={announcementDisplayModeInput}
+                      onChange={(e) => setAnnouncementDisplayModeInput(e.target.value as any)}
+                      className="brutal-input w-full px-3 py-2 text-xs font-mono-custom font-bold bg-white dark:bg-zinc-900 cursor-pointer"
+                    >
+                      <option value="once_per_device">Sekali per Perangkat (Sampai Diubah)</option>
+                      <option value="once_per_session">Sekali per Sesi Buka Browser</option>
+                      <option value="always">Selalu Muncul Setiap Buka / Refresh</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Content Textarea */}
+                <div>
+                  <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-orange)]">
+                    Isi Pesan Pengumuman:
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={announcementContentInput}
+                    onChange={(e) => setAnnouncementContentInput(e.target.value)}
+                    placeholder="Tulis pesan pengumuman atau broadcast lengkap di sini..."
+                    className="brutal-input w-full p-3 text-xs sm:text-sm font-mono-custom font-bold bg-[#f8fafc] dark:bg-zinc-900"
+                  />
+                </div>
+
+                {/* Actions: Preview & Save */}
+                <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowAnnouncementPreview(true)}
+                    className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 xs:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)]"
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span>PREVIEW POP-UP</span>
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={isSavingAnnouncement}
+                    className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-4 xs:px-6 py-2 sm:py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isSavingAnnouncement ? 'MENYIMPAN...' : 'SIMPAN PENGUMUMAN'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* PREVIEW ANNOUNCEMENT MODAL FOR ADMIN */}
+            {showAnnouncementPreview && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-3 xs:p-4 bg-black/80 backdrop-blur-xs">
+                <div className="brutal-card w-full max-w-lg p-5 xs:p-6 sm:p-7 bg-white dark:bg-zinc-900 relative shadow-[6px_6px_0px_var(--shadow-color)] sm:shadow-[8px_8px_0px_var(--shadow-color)] border-[3px] sm:border-[4px] border-[var(--border-color)] motion-modal-in">
+                  <div className="flex items-start justify-between gap-3 mb-3.5 pb-3 border-b-[2.5px] border-dashed border-[var(--border-color)]">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                        <Megaphone className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="inline-block bg-[var(--color-orange)] text-white text-[9px] font-mono-custom font-black px-1.5 py-0.2 border border-[var(--border-color)] uppercase mb-0.5">
+                          {announcementTagInput || 'PENGUMUMAN'}
+                        </span>
+                        <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)] truncate">
+                          {announcementTitleInput || 'Pemberitahuan Sistem'}
+                        </h3>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAnnouncementPreview(false)}
+                      className="brutal-btn bg-[var(--color-red)] text-white w-7 h-7 xs:w-8 xs:h-8 flex items-center justify-center text-xs hover:bg-red-600 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
+                    </button>
+                  </div>
+
+                  <div className="p-3.5 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] mb-4 max-h-64 overflow-y-auto">
+                    <p className="text-xs sm:text-sm font-mono-custom text-[var(--text-main)] leading-relaxed whitespace-pre-wrap">
+                      {announcementContentInput || 'Belum ada isi pengumuman.'}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowAnnouncementPreview(false)}
+                    className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 w-full py-2.5 sm:py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-[3px_3px_0px_var(--shadow-color)]"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>TUTUP PREVIEW</span>
+                  </button>
+                </div>
+              </div>
+            )}
+                {/* DATABASE & AUTO-DELETE 3 HARI (WIB) CLEANER SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <Database className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                      DATABASE & AUTO-DELETE (3 HARI WIB)
+                    </h3>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                      Sistem menghapus email otomatis setelah 3 hari dan menyediakan opsi pembersihan manual kapan saja.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 bg-[var(--color-green)] text-white border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>AUTO-DELETE 3 HARI (72 JAM WIB) AKTIF</span>
+                </div>
+              </div>
+
+              {/* Retention & Lifetime Email Stats Bar */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-4">
+                <div className="p-3 bg-[#ecfdf5] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <span className="text-[9px] font-mono-custom font-black uppercase text-emerald-700 dark:text-emerald-400 block">
+                    Total Email Masuk (All-Time):
+                  </span>
+                  <span className="text-base sm:text-lg font-heading font-black text-emerald-700 dark:text-emerald-400 block">
+                    {cleanupStats?.totalReceivedAllTime ?? stats?.totalReceivedAllTime ?? cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
+                  </span>
+                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
+                    Akumulatif (tetap tercatat aman)
+                  </span>
+                </div>
+
+                <div className="p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <span className="text-[9px] font-mono-custom font-black uppercase text-[var(--color-blue)] block">
+                    Pesan Aktif di DB Saat Ini:
+                  </span>
+                  <span className="text-base sm:text-lg font-heading font-black text-[var(--color-blue)] block">
+                    {cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
+                  </span>
+                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
+                    {cleanupStats?.uniqueActiveMailboxes ?? 0} Alamat Mailbox Aktif
+                  </span>
+                </div>
+
+                <div className="p-3 bg-[#fef2f2] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <span className="text-[9px] font-mono-custom font-black uppercase text-red-600 dark:text-red-400 block">
+                    Pesan Kadaluwarsa (&gt; 3 Hari):
+                  </span>
+                  <span className="text-base sm:text-lg font-heading font-black text-[var(--color-red)] block">
+                    {cleanupStats?.expiredCount ?? 0} Pesan
+                  </span>
+                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
+                    Melebihi batas 72 jam
+                  </span>
+                </div>
+
+                <div className="p-3 bg-[#fdf4ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <span className="text-[9px] font-mono-custom font-black uppercase text-purple-700 dark:text-purple-400 block">
+                    Total Pesan Dihapus (All-Time):
+                  </span>
+                  <span className="text-base sm:text-lg font-heading font-black text-purple-700 dark:text-purple-400 block">
+                    {cleanupStats?.totalDeletedAllTime ?? 0} Pesan
+                  </span>
+                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block mt-0.5">
+                    Total dibersihkan seumur hidup
+                  </span>
+                </div>
+              </div>
+
+              {/* Information & WIB Schedule Card */}
+              <div className="p-3.5 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 shadow-[2px_2px_0px_var(--shadow-color)] space-y-2 mb-4">
+                <div className="flex items-center gap-1.5 text-xs font-mono-custom font-black text-emerald-800 dark:text-emerald-300 uppercase">
+                  <Clock className="w-4 h-4 text-emerald-600" />
+                  <span>KEBIJAKAN RETENSI OTOMATIS 3 HARI (ZONA WAKTU WIB / UTC+7)</span>
+                </div>
+                <div className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-main)] space-y-1">
+                  <p>
+                    Setiap email yang masuk ke sistem HeyFlatimo Temp Mail akan <strong>otomatis terhapus permanen setelah 3 hari (72 jam)</strong> oleh background task MongoDB TTL.
+                  </p>
+                  <p className="text-emerald-700 dark:text-emerald-400">
+                    <strong>Simulasi Jadwal:</strong> Email yang masuk saat ini akan otomatis dimusnahkan pada:{' '}
+                    <code className="bg-white dark:bg-zinc-950 px-1.5 py-0.5 border border-emerald-400 font-bold">
+                      {new Date(Date.now() + 72 * 3600000).toLocaleString('id-ID', {
+                        timeZone: 'Asia/Jakarta',
+                        dateStyle: 'full',
+                        timeStyle: 'medium',
+                      })}{' '}
+                      WIB
+                    </code>
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons: Clean >3 Days and Clean All */}
+              <div className="space-y-3">
+                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div>
+                    <span className="text-xs font-mono-custom font-black text-[var(--text-main)] block">
+                      Pembersihan Manual Email Kadaluwarsa (&gt; 3 Hari)
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
+                      Paksa hapus pesan yang usianya sudah lebih dari 72 jam sekarang tanpa menunggu background worker.
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCleanExpired}
+                    disabled={isCleaningExpired}
+                    className="brutal-btn bg-[var(--color-orange)] text-white hover:bg-orange-600 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>{isCleaningExpired ? 'MEMBERSIHKAN...' : 'BERSIHKAN EMAIL > 3 HARI'}</span>
+                  </button>
+                </div>
+
+                {/* Emergency Clear All Action */}
+                <div className="p-3 bg-red-50 dark:bg-red-950/40 border-[2px] border-dashed border-red-300 dark:border-red-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div>
+                    <span className="text-xs font-mono-custom font-black text-red-700 dark:text-red-300 block">
+                      Pembersihan Total: Hapus Semua Pesan Saat Ini
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-zinc-500 block">
+                      Menghapus seluruh pesan email yang ada di database saat ini, termasuk yang baru masuk (&lt; 1 hari atau &lt; 3 hari).
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowCleanAllModal(true)}
+                    className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-700 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 cursor-pointer"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>HAPUS SEMUA PESAN</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* CONFIRM CLEAN ALL MODAL */}
+            {showCleanAllModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
+                        HAPUS SELURUH PESAN?
+                      </h4>
+                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
+                        Tindakan ini permanen dan tidak dapat dibatalkan
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-3 leading-relaxed">
+                    Apakah Anda yakin ingin menghapus <strong>seluruh pesan email</strong> yang ada di database saat ini?
+                  </p>
+
+                  <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-[11px] font-mono-custom text-amber-900 dark:text-amber-200 mb-5">
+                    <strong>Perhatian:</strong> Pesan yang baru masuk (walaupun belum sampai 1 hari atau 3 hari) juga akan <strong>langsung ikut terhapus</strong>. Namun total statistik email masuk all-time Anda tetap aman.
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCleanAllModal(false)}
+                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold cursor-pointer"
+                    >
+                      BATAL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={confirmCleanAll}
+                      disabled={isCleaningAll}
+                      className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-700 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>{isCleaningAll ? 'MEMBERSIHKAN...' : 'YA, HAPUS SEMUA PESAN'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+              </div>
+            )}
+
+
           </div>
         )}
       </main>
