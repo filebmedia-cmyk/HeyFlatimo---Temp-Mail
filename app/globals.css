@@ -29,7 +29,7 @@
   --brand-accent: var(--color-yellow);
   --brand-danger: var(--color-red);
 
-  --grid-color: rgba(0, 0, 0, 0.08);
+  --grid-color: rgba(0, 0, 0, 0.12);
   --badge-bg: #e6ffed;
   --badge-text: #00701a;
 }
@@ -59,7 +59,7 @@
   --brand-accent: var(--color-yellow);
   --brand-danger: var(--color-red);
 
-  --grid-color: rgba(255, 255, 255, 0.04);
+  --grid-color: rgba(255, 255, 255, 0.08);
   --badge-bg: #003d19;
   --badge-text: #00ff66;
 }

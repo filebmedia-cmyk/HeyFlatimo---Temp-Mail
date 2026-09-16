@@ -1078,7 +1078,7 @@ if (!empty($otpData['found'])) {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--bg-color)] flex flex-col selection:bg-[var(--color-blue)] selection:text-white max-w-full overflow-x-hidden">
+    <div className="min-h-screen bg-transparent flex flex-col selection:bg-[var(--color-blue)] selection:text-white max-w-full overflow-x-hidden">
       <Toast message={toastMsg} type={toastType} onClose={() => setToastMsg(null)} />
 
       {!isLoggedIn ? (
