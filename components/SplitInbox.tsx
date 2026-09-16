@@ -61,7 +61,7 @@ export default function SplitInbox({
     <div className="fixed inset-0 z-50 bg-[var(--bg-color)] flex flex-col h-full h-[100dvh] min-h-[100dvh] overflow-hidden safe-top safe-bottom">
       {/* Top Navbar Header (Visible on Desktop, or on Mobile only when viewing Message List) */}
       <header
-        className={`border-b-[2.5px] sm:border-b-[3.5px] border-[var(--border-color)] bg-[var(--card-bg)] justify-between items-center px-3 xs:px-4 sm:px-6 py-2 sm:py-2.5 flex-shrink-0 shadow-[0px_2px_0px_var(--shadow-color)] sm:shadow-[0px_3px_0px_var(--shadow-color)] z-20 ${
+        className={`border-b-[2.5px] sm:border-b-[3.5px] border-[var(--border-color)] bg-[var(--card-bg)] justify-between items-center px-2 xs:px-3 sm:px-6 py-1.5 xs:py-2 sm:py-2.5 flex-shrink-0 shadow-[0px_2px_0px_var(--shadow-color)] sm:shadow-[0px_3px_0px_var(--shadow-color)] z-20 w-full max-w-full overflow-hidden ${
           mobileShowReader ? 'hidden md:flex' : 'flex'
         }`}
       >

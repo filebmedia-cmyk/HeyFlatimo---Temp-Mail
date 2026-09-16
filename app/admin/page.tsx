@@ -1269,8 +1269,8 @@ if (!empty($otpData['found'])) {
       <Toast message={toastMsg} type={toastType} onClose={() => setToastMsg(null)} />
 
       {/* Top Navbar */}
-      <header className="border-b-[3px] sm:border-b-[4px] border-[var(--border-color)] bg-[var(--card-bg)] sticky top-0 z-40 shadow-[0px_3px_0px_var(--shadow-color)] sm:shadow-[0px_4px_0px_var(--shadow-color)]">
-        <div className="max-w-6xl mx-auto px-3 xs:px-4 sm:px-6 py-2.5 sm:py-3.5 flex justify-between items-center gap-2">
+      <header className="border-b-[3px] sm:border-b-[4px] border-[var(--border-color)] bg-[var(--card-bg)] sticky top-0 z-40 shadow-[0px_3px_0px_var(--shadow-color)] sm:shadow-[0px_4px_0px_var(--shadow-color)] w-full max-w-full overflow-hidden">
+        <div className="max-w-6xl mx-auto px-2.5 xs:px-4 sm:px-6 py-2 sm:py-3 flex justify-between items-center gap-2 w-full max-w-full min-w-0">
           <Link
             href="/"
             onClick={() => {
