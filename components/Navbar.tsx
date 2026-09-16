@@ -10,6 +10,8 @@ import {
   Inbox,
   Sparkles,
   KeyRound,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { playSound } from '@/lib/sound';
 
@@ -93,6 +95,23 @@ export default function Navbar({
               <span className="relative w-1.5 h-1.5 rounded-full bg-[var(--color-green)]" />
             </div>
           </div>
+
+          {/* Dark / Light Mode Toggle Button */}
+          {onToggleTheme && (
+            <button
+              type="button"
+              onClick={onToggleTheme}
+              className="brutal-btn w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 bg-[var(--color-yellow)] dark:bg-zinc-800 text-black dark:text-[var(--color-yellow)] border-[1.5px] sm:border-[2px] border-[var(--border-color)] flex items-center justify-center shadow-[1.5px_1.5px_0px_var(--shadow-color)] sm:shadow-[2px_2px_0px_var(--shadow-color)] group cursor-pointer p-0 flex-shrink-0"
+              title="Ganti Tema Gelap / Terang"
+              aria-label="Toggle Dark Mode"
+            >
+              {isDark ? (
+                <Sun className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-[var(--color-yellow)] fill-[var(--color-yellow)] group-hover:rotate-90 transition-transform duration-300" />
+              ) : (
+                <Moon className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-black group-hover:-rotate-45 transition-transform duration-300" />
+              )}
+            </button>
+          )}
 
           {/* Admin / API Key Portal Button */}
           <Link

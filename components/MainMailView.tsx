@@ -13,6 +13,7 @@ import QrCodeModal from '@/components/QrCodeModal';
 import { EmailMessage } from '@/components/MessageReader';
 import { generateRandomPrefix } from '@/lib/generator';
 import { playSound, unlockAudio, getSoundEnabled, setSoundEnabled } from '@/lib/sound';
+import { isDarkModeActive, applyTheme, initThemeListener } from '@/lib/theme';
 
 const AUTO_SYNC_INTERVAL = 3; // 3 Detik Realtime
 
@@ -87,15 +88,13 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
 
   // 1. Inisialisasi Tema, App Name, & VIP Session State
   useEffect(() => {
-    const savedTheme = localStorage.getItem('tmail_theme');
-    const shouldDark = savedTheme === 'dark';
+    const activeDark = isDarkModeActive();
+    setIsDark(activeDark);
+    applyTheme(activeDark);
 
-    setIsDark(shouldDark);
-    if (shouldDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    const unsubscribeTheme = initThemeListener((dark) => {
+      setIsDark(dark);
+    });
 
     if (process.env.NEXT_PUBLIC_APP_NAME) {
       setAppName(process.env.NEXT_PUBLIC_APP_NAME);
@@ -111,6 +110,10 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     if (isVipActive) {
       setIsVipUnlocked(true);
     }
+
+    return () => {
+      unsubscribeTheme();
+    };
   }, []);
 
   const handleToggleSound = () => {
@@ -131,13 +134,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     playSound('click');
     const nextDark = !isDark;
     setIsDark(nextDark);
-    if (nextDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('tmail_theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('tmail_theme', 'light');
-    }
+    applyTheme(nextDark);
   };
 
 

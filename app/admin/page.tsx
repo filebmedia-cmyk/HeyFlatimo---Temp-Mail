@@ -47,9 +47,12 @@ import {
   Menu,
   Bot,
   LayoutDashboard,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 import { playSound, getSoundEnabled, setSoundEnabled, unlockAudio } from '@/lib/sound';
+import { isDarkModeActive, applyTheme, initThemeListener } from '@/lib/theme';
 
 export interface ApiKeyItem {
   id: string;
@@ -77,6 +80,7 @@ type AdminSection =
   | 'cleaner';
 
 export default function AdminPage() {
+  const [isDark, setIsDark] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [adminAuth, setAdminAuth] = useState<string>('');
   const [adminToken, setAdminToken] = useState<string>('');
@@ -252,6 +256,14 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const activeDark = isDarkModeActive();
+      setIsDark(activeDark);
+      applyTheme(activeDark);
+
+      const unsubscribeTheme = initThemeListener((dark) => {
+        setIsDark(dark);
+      });
+
       setOrigin(window.location.origin);
       // Strict Security: Selalu wajib login ulang setiap refresh halaman / buka browser
       sessionStorage.removeItem('heyflatimo_admin_logged');
@@ -263,8 +275,19 @@ export default function AdminPage() {
       setAdminToken('');
       // Sinkronkan daftar domain publik segera saat halaman dibuka
       fetchDomains();
+
+      return () => {
+        unsubscribeTheme();
+      };
     }
   }, []);
+
+  const toggleTheme = () => {
+    playSound('click');
+    const nextDark = !isDark;
+    setIsDark(nextDark);
+    applyTheme(nextDark);
+  };
 
   const getAdminHeaders = (authOverride?: any, tokenOverride?: any, keyOverride?: any): Record<string, string> => {
     const auth = typeof authOverride === 'string' ? authOverride : adminAuth;
@@ -1212,6 +1235,23 @@ if (!empty($otpData['found'])) {
         <div className="min-h-screen flex flex-col justify-center items-center p-3 xs:p-4 sm:p-6 w-full max-w-full">
           <div className="max-w-md w-full my-4 sm:my-8">
             <div className="brutal-card p-4 xs:p-6 sm:p-8 bg-[var(--card-bg)] relative shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[7px_7px_0px_var(--shadow-color)]">
+              {/* Top-Right Theme Toggle */}
+              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="brutal-btn w-7 h-7 xs:w-8 xs:h-8 bg-[var(--color-yellow)] dark:bg-zinc-800 text-black dark:text-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center shadow-[1.5px_1.5px_0px_var(--shadow-color)] group cursor-pointer p-0"
+                  title="Ganti Tema Gelap / Terang"
+                  aria-label="Toggle Dark Mode"
+                >
+                  {isDark ? (
+                    <Sun className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-[var(--color-yellow)] fill-[var(--color-yellow)]" />
+                  ) : (
+                    <Moon className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-black" />
+                  )}
+                </button>
+              </div>
+
               <div className="text-center mb-5 sm:mb-6">
                 <div className="w-12 h-12 xs:w-14 xs:h-14 bg-[var(--color-blue)] border-[2.5px] sm:border-[3px] border-[var(--border-color)] flex items-center justify-center mx-auto mb-2.5 sm:mb-3 shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] motion-float">
                   <Shield className="w-6 h-6 xs:w-7 xs:h-7 text-[var(--color-yellow)]" />
@@ -1308,6 +1348,20 @@ if (!empty($otpData['found'])) {
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <button
                   type="button"
+                  onClick={toggleTheme}
+                  className="brutal-btn w-7 h-7 bg-[var(--color-yellow)] dark:bg-zinc-800 text-black dark:text-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center shadow-[1.5px_1.5px_0px_var(--shadow-color)] cursor-pointer p-0"
+                  title="Ganti Tema Gelap / Terang"
+                  aria-label="Toggle Dark Mode"
+                >
+                  {isDark ? (
+                    <Sun className="w-3.5 h-3.5 text-[var(--color-yellow)] fill-[var(--color-yellow)]" />
+                  ) : (
+                    <Moon className="w-3.5 h-3.5 text-black" />
+                  )}
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => {
                     playSound('click');
                     setIsMobileMenuOpen(true);
@@ -1388,6 +1442,24 @@ if (!empty($otpData['found'])) {
 
                 {/* Drawer Footer Actions */}
                 <div className="pt-4 border-t-2 border-dashed border-[var(--border-color)] space-y-2">
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white w-full py-2 text-xs flex items-center justify-center gap-1.5 font-bold shadow-[2px_2px_0px_var(--shadow-color)] cursor-pointer"
+                  >
+                    {isDark ? (
+                      <>
+                        <Sun className="w-3.5 h-3.5 text-[var(--color-yellow)] fill-[var(--color-yellow)]" />
+                        <span>TEMA: GELAP (DARK)</span>
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="w-3.5 h-3.5 text-black" />
+                        <span>TEMA: TERANG (LIGHT)</span>
+                      </>
+                    )}
+                  </button>
+
                   <Link
                     href="/"
                     onClick={() => {
@@ -1504,6 +1576,24 @@ if (!empty($otpData['found'])) {
 
             {/* Sidebar Footer Controls */}
             <div className="pt-4 border-t-2 border-dashed border-[var(--border-color)] space-y-2">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white w-full py-2 text-xs flex items-center justify-center gap-1.5 font-bold shadow-[2px_2px_0px_var(--shadow-color)] cursor-pointer"
+              >
+                {isDark ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-[var(--color-yellow)] fill-[var(--color-yellow)]" />
+                    <span>TEMA: GELAP (DARK)</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-black" />
+                    <span>TEMA: TERANG (LIGHT)</span>
+                  </>
+                )}
+              </button>
+
               <Link
                 href="/"
                 onClick={() => {
