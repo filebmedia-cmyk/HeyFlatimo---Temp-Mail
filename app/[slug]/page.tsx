@@ -1,4 +1,4 @@
-﻿import MainMailView from '@/components/MainMailView';
+import MainMailView from '@/components/MainMailView';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,5 +9,6 @@ interface PageProps {
 }
 
 export default function SlugMailPage({ params }: PageProps) {
-  return <MainMailView initialSlug={params.slug} />;
+  const decodedSlug = params?.slug ? decodeURIComponent(params.slug) : '';
+  return <MainMailView initialSlug={decodedSlug} />;
 }
