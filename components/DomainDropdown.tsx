@@ -99,9 +99,7 @@ export default function DomainDropdown({
     return normalizedDomains.filter((d) => d.domain.toLowerCase().includes(q));
   }, [normalizedDomains, searchQuery]);
 
-  const handleSelect = (e: React.MouseEvent, domain: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleSelect = (domain: string) => {
     const selectedItem = normalizedDomains.find((d) => d.domain.toLowerCase() === domain.toLowerCase());
     if (selectedItem?.isVip && !isVipUnlocked) {
       playSound('pop');
@@ -125,7 +123,7 @@ export default function DomainDropdown({
           playSound('pop');
           setIsOpen(!isOpen);
         }}
-        className="brutal-btn bg-white dark:bg-[#151922] text-[var(--text-main)] px-2.5 xs:px-3.5 py-2 sm:py-2.5 text-[11px] xs:text-xs font-mono-custom font-bold flex items-center justify-between gap-1.5 xs:gap-2 w-full shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] hover:bg-[#f0f9ff] dark:hover:bg-[#1e2535] transition-colors"
+        className="brutal-btn bg-white dark:bg-[#151922] text-[var(--text-main)] px-2.5 xs:px-3.5 py-2 sm:py-2.5 text-[11px] xs:text-xs font-mono-custom font-bold flex items-center justify-between gap-1.5 xs:gap-2 w-full shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] hover:bg-[#f0f9ff] dark:hover:bg-[#1e2535] transition-colors cursor-pointer"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
@@ -178,7 +176,7 @@ export default function DomainDropdown({
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-black"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-black cursor-pointer"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -186,27 +184,32 @@ export default function DomainDropdown({
             </div>
           )}
 
-          {/* List of Domains with Scroll */}
-          <ul className="max-h-56 sm:max-h-64 overflow-y-auto overscroll-contain touch-pan-y space-y-1 select-none pr-0.5" role="listbox">
+          {/* List of Domains with Native Touch & Mouse Scrolling */}
+          <div
+            className="max-h-56 sm:max-h-64 overflow-y-auto overflow-x-hidden space-y-1 p-0.5 pr-1 touch-auto"
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'thin',
+            }}
+            role="listbox"
+          >
             {filteredDomains.length === 0 ? (
-              <li className="px-3 py-4 text-center text-xs font-mono-custom text-[var(--text-muted)]">
+              <div className="px-3 py-4 text-center text-xs font-mono-custom text-[var(--text-muted)]">
                 Tidak ada domain &quot;{searchQuery}&quot;
-              </li>
+              </div>
             ) : (
               filteredDomains.map((item) => {
                 const isSelected = item.domain.toLowerCase() === selectedDomain.toLowerCase();
                 return (
-                  <li
+                  <button
                     key={item.domain}
+                    type="button"
                     role="option"
                     aria-selected={isSelected}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                    }}
-                    onClick={(e) => handleSelect(e, item.domain)}
-                    className={`px-2.5 py-2 text-xs font-mono-custom font-bold flex items-center justify-between gap-2 rounded-none border-[1.5px] cursor-pointer transition-all duration-150 ${
+                    onClick={() => handleSelect(item.domain)}
+                    className={`w-full text-left px-2.5 py-2 text-xs font-mono-custom font-bold flex items-center justify-between gap-2 border-[1.5px] cursor-pointer transition-all duration-150 ${
                       isSelected
-                        ? 'bg-[var(--color-yellow)] text-black border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] -translate-y-0.5'
+                        ? 'bg-[var(--color-yellow)] text-black border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] -translate-y-0.5 font-black'
                         : 'bg-transparent text-[var(--text-main)] border-transparent hover:border-[var(--border-color)] hover:bg-[#f1f5f9] dark:hover:bg-[#1e2535] hover:translate-x-1'
                     }`}
                   >
@@ -230,11 +233,11 @@ export default function DomainDropdown({
                         <Check className="w-3 h-3 text-[var(--color-yellow)]" />
                       </div>
                     )}
-                  </li>
+                  </button>
                 );
               })
             )}
-          </ul>
+          </div>
         </div>
       )}
     </div>
