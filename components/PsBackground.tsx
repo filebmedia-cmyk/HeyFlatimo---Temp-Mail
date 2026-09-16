@@ -30,7 +30,7 @@ const TOKENS: PsToken[] = [
     animDuration: '22s',
     rotDuration: '28s',
     delay: '0s',
-    opacity: 0.32,
+    opacity: 0.18,
     animType: 'ps-float-1',
     rotDir: 'clockwise',
   },
@@ -45,7 +45,7 @@ const TOKENS: PsToken[] = [
     animDuration: '18s',
     rotDuration: '24s',
     delay: '-3s',
-    opacity: 0.3,
+    opacity: 0.16,
     animType: 'ps-float-2',
     rotDir: 'counter',
   },
@@ -60,7 +60,7 @@ const TOKENS: PsToken[] = [
     animDuration: '20s',
     rotDuration: '26s',
     delay: '-6s',
-    opacity: 0.28,
+    opacity: 0.15,
     animType: 'ps-float-3',
     rotDir: 'clockwise',
   },
@@ -75,7 +75,7 @@ const TOKENS: PsToken[] = [
     animDuration: '19s',
     rotDuration: '25s',
     delay: '-2s',
-    opacity: 0.3,
+    opacity: 0.16,
     animType: 'ps-float-4',
     rotDir: 'counter',
   },
@@ -90,7 +90,7 @@ const TOKENS: PsToken[] = [
     animDuration: '21s',
     rotDuration: '27s',
     delay: '-8s',
-    opacity: 0.28,
+    opacity: 0.15,
     animType: 'ps-float-2',
     rotDir: 'clockwise',
   },
@@ -105,7 +105,7 @@ const TOKENS: PsToken[] = [
     animDuration: '24s',
     rotDuration: '30s',
     delay: '-5s',
-    opacity: 0.28,
+    opacity: 0.15,
     animType: 'ps-float-1',
     rotDir: 'counter',
   },
@@ -120,7 +120,7 @@ const TOKENS: PsToken[] = [
     animDuration: '17s',
     rotDuration: '22s',
     delay: '-4s',
-    opacity: 0.25,
+    opacity: 0.14,
     animType: 'ps-float-4',
     rotDir: 'counter',
   },
@@ -135,7 +135,7 @@ const TOKENS: PsToken[] = [
     animDuration: '23s',
     rotDuration: '29s',
     delay: '-9s',
-    opacity: 0.25,
+    opacity: 0.14,
     animType: 'ps-float-3',
     rotDir: 'clockwise',
   },
@@ -150,7 +150,7 @@ const TOKENS: PsToken[] = [
     animDuration: '16s',
     rotDuration: '20s',
     delay: '-1s',
-    opacity: 0.22,
+    opacity: 0.13,
     animType: 'ps-float-1',
     rotDir: 'clockwise',
   },
@@ -165,14 +165,14 @@ const TOKENS: PsToken[] = [
     animDuration: '25s',
     rotDuration: '31s',
     delay: '-7s',
-    opacity: 0.22,
+    opacity: 0.13,
     animType: 'ps-float-2',
     rotDir: 'counter',
   },
 ];
 
 function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }) {
-  const glowStyle = { color, filter: 'drop-shadow(0 0 2.5px currentColor)' };
+  const iconStyle = { color };
   switch (shape) {
     case 'triangle':
       return (
@@ -181,7 +181,7 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="w-full h-full p-2"
-          style={glowStyle}
+          style={iconStyle}
         >
           <polygon
             points="50,16 88,82 12,82"
@@ -200,7 +200,7 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="w-full h-full p-2"
-          style={glowStyle}
+          style={iconStyle}
         >
           <circle cx="50" cy="50" r="35" stroke="currentColor" strokeWidth="12" fill="none" />
         </svg>
@@ -212,7 +212,7 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="w-full h-full p-2"
-          style={glowStyle}
+          style={iconStyle}
         >
           <line
             x1="22"
@@ -241,7 +241,7 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="w-full h-full p-2"
-          style={glowStyle}
+          style={iconStyle}
         >
           <rect
             x="18"
