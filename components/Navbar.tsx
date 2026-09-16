@@ -40,7 +40,7 @@ export default function Navbar({
         >
           {/* Logo Badge */}
           <div className="w-7 h-7 xs:w-8 xs:h-8 sm:w-11 sm:h-11 bg-[var(--color-blue)] border-[2px] sm:border-[3.5px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3.5px_3.5px_0px_var(--shadow-color)] group-hover:-translate-y-0.5 group-hover:rotate-6 transition-all duration-200 flex-shrink-0">
-            <Zap className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-6 sm:h-6 text-[var(--color-yellow)] fill-[var(--color-yellow)] anim-zap" />
+            <Zap className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-6 sm:h-6 text-[var(--color-yellow)] fill-[var(--color-yellow)]" />
           </div>
 
           <div className="flex flex-col">
@@ -48,7 +48,7 @@ export default function Navbar({
               <span className="font-heading font-black text-sm xs:text-base sm:text-2xl tracking-tight text-[var(--text-main)] uppercase whitespace-nowrap">
                 {appName}
               </span>
-              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--color-yellow)] fill-[var(--color-yellow)] anim-sparkle flex-shrink-0 hidden xs:inline-block" />
+              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--color-yellow)] fill-[var(--color-yellow)] flex-shrink-0 hidden xs:inline-block" />
               <span className="bg-[var(--color-yellow)] text-black text-[7px] xs:text-[8px] sm:text-[9px] font-mono-custom font-black px-1 py-0.2 border border-[var(--border-color)] uppercase flex-shrink-0">
                 PRO
               </span>
@@ -95,7 +95,7 @@ export default function Navbar({
             className="brutal-btn bg-[var(--color-orange)] text-white hover:bg-orange-600 px-2 xs:px-2.5 sm:px-4 py-1.5 sm:py-2 text-[10px] xs:text-[11px] sm:text-xs flex items-center gap-1 sm:gap-1.5 group cursor-pointer font-black z-10 shadow-[1.5px_1.5px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)]"
             title="Buka Menu Admin & Bot API Key"
           >
-            <KeyRound className="w-3 h-3 xs:w-3.5 xs:h-3.5 anim-key flex-shrink-0" />
+            <KeyRound className="w-3 h-3 xs:w-3.5 xs:h-3.5 flex-shrink-0" />
             <span className="font-heading tracking-wide">ADMIN</span>
           </Link>
 

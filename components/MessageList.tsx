@@ -51,7 +51,7 @@ export default function MessageList({
       <div className="bg-[#f0f9ff] dark:bg-zinc-900 border-b-[2.5px] sm:border-b-[3.5px] border-[var(--border-color)] px-3 xs:px-4 py-2.5 sm:px-5 sm:py-3.5 flex flex-col sm:flex-row justify-between sm:items-center gap-2.5 sm:gap-3 select-none">
         <div className="font-mono-custom font-bold text-xs sm:text-sm flex items-center gap-2 min-w-0">
           <div className="w-6 h-6 sm:w-7 sm:h-7 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white flex-shrink-0 shadow-[1.5px_1.5px_0px_var(--shadow-color)] sm:shadow-[2px_2px_0px_var(--shadow-color)]">
-            <Inbox className="w-3.5 h-3.5 sm:w-4 sm:h-4 anim-mail" />
+            <Inbox className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
           <span className="text-[var(--text-muted)] font-black flex-shrink-0">INBOX:</span>
           <span className="text-[var(--color-blue)] font-black break-all">
@@ -71,7 +71,7 @@ export default function MessageList({
               className="brutal-btn bg-[var(--color-red)] text-white px-2 xs:px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] xs:text-[11px] font-bold font-mono-custom flex items-center gap-1 hover:bg-red-600 group shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
               title="Kosongkan semua pesan di inbox ini"
             >
-              <Trash2 className="w-3 h-3 xs:w-3.5 xs:h-3.5 anim-trash flex-shrink-0" />
+              <Trash2 className="w-3 h-3 xs:w-3.5 xs:h-3.5 flex-shrink-0" />
               <span className="hidden xs:inline">BERSIHKAN</span>
             </button>
           )}
@@ -103,7 +103,7 @@ export default function MessageList({
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-[var(--color-blue)] opacity-40 mailbox-radar-wave-2" />
               </div>
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#f0f9ff] dark:bg-[#151922] border-[3px] border-[var(--border-color)] flex items-center justify-center shadow-[4px_4px_0px_var(--shadow-color)] mx-auto relative group motion-float">
-                <Mail className="w-7 h-7 sm:w-8 sm:h-8 text-[var(--color-blue)] anim-mail" />
+                <Mail className="w-7 h-7 sm:w-8 sm:h-8 text-[var(--color-blue)]" />
               </div>
             </div>
             <h3 className="font-heading font-black text-sm xs:text-base sm:text-lg uppercase text-[var(--text-main)] mb-1">
@@ -153,7 +153,7 @@ export default function MessageList({
                       </div>
 
                       <div className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] flex items-center gap-1.5 mt-1">
-                        <Clock className="w-3 h-3 text-[var(--color-orange)] anim-clock flex-shrink-0" />
+                        <Clock className="w-3 h-3 text-[var(--color-orange)] flex-shrink-0" />
                         <span>{formatDateWIB(msg.createdAt)}</span>
                       </div>
                     </div>
@@ -191,7 +191,7 @@ export default function MessageList({
                         className="brutal-btn bg-[var(--color-red)] text-white p-1.5 text-xs shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-red-600"
                         title="Hapus pesan"
                       >
-                        <Trash2 className="w-3.5 h-3.5 anim-trash" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -207,7 +207,7 @@ export default function MessageList({
                             <div className="p-2.5 xs:p-3 bg-amber-50 dark:bg-amber-950/40 border-[2px] border-amber-400 dark:border-amber-600 flex flex-wrap items-center justify-between gap-2 shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in">
                               <div className="flex items-center gap-2 min-w-0">
                                 <div className="w-6 h-6 bg-[var(--color-yellow)] text-black border border-[var(--border-color)] flex items-center justify-center flex-shrink-0 shadow-[1px_1px_0px_var(--shadow-color)]">
-                                  <Zap className="w-3.5 h-3.5 text-black fill-black anim-zap" />
+                                  <Zap className="w-3.5 h-3.5 text-black fill-black" />
                                 </div>
                                 <div>
                                   <span className="text-[9px] font-mono-custom font-black text-amber-700 dark:text-amber-300 uppercase block leading-none">
@@ -235,7 +235,7 @@ export default function MessageList({
                             <div className="p-2.5 xs:p-3 bg-[#ecfdf5] dark:bg-emerald-950/50 border-[2px] border-[var(--color-green)] flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in">
                               <div className="min-w-0 flex items-center gap-2">
                                 <div className="w-6 h-6 bg-[var(--color-green)] text-white border border-[var(--border-color)] flex items-center justify-center flex-shrink-0 shadow-[1px_1px_0px_var(--shadow-color)]">
-                                  <Sparkles className="w-3.5 h-3.5 text-white anim-sparkle" />
+                                  <Sparkles className="w-3.5 h-3.5 text-white" />
                                 </div>
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -247,7 +247,7 @@ export default function MessageList({
                                         &quot;{linksRes.primaryLabel}&quot;
                                       </span>
                                     )}
-                                    <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0 anim-shield" />
+                                    <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                                   </div>
                                   <p className="font-mono-custom text-[10px] xs:text-[11px] text-zinc-600 dark:text-zinc-300 truncate max-w-xs sm:max-w-sm">
                                     {linksRes.primaryLink}

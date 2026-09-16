@@ -97,7 +97,7 @@ export default function SplitInbox({
               className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-2 xs:px-2.5 py-1.5 text-xs hidden sm:flex items-center gap-1 group shadow-[2px_2px_0px_var(--shadow-color)]"
               title="Bersihkan Semua Pesan"
             >
-              <Trash2 className="w-3 h-3 xs:w-3.5 xs:h-3.5 group-hover:rotate-12 transition-transform anim-trash" />
+              <Trash2 className="w-3 h-3 xs:w-3.5 xs:h-3.5 group-hover:rotate-12 transition-transform" />
               <span className="text-[10px] font-bold font-mono-custom">BERSIHKAN</span>
             </button>
           )}
@@ -134,7 +134,7 @@ export default function SplitInbox({
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-[var(--color-yellow)] opacity-40 mailbox-radar-wave-2" />
                 </div>
                 <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[var(--color-yellow)] border-[2.5px] sm:border-[3px] border-[var(--border-color)] flex items-center justify-center shadow-[2.5px_2.5px_0px_var(--shadow-color)] motion-float relative">
-                  <Inbox className="w-6 h-6 sm:w-7 sm:h-7 text-black anim-mail" />
+                  <Inbox className="w-6 h-6 sm:w-7 sm:h-7 text-black" />
                 </div>
               </div>
               <p className="font-heading font-black text-sm uppercase mb-1 text-[var(--text-main)]">
