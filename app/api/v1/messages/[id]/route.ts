@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKeyDetailed } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/mongodb';
-import { Message } from '@/lib/models/Message';
+import {
+  findMessageByIdMultiCluster,
+  deleteMessageByIdMultiCluster,
+} from '@/lib/models/Message';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,11 +25,7 @@ export async function GET(
   try {
     await connectToDatabase();
 
-    const message: any = await Message.findByIdAndUpdate(
-      id,
-      { $set: { isRead: true } },
-      { new: true }
-    ).lean();
+    const message: any = await findMessageByIdMultiCluster(id, { isRead: true });
 
     if (!message) {
       return NextResponse.json({ error: 'Message not found' }, { status: 404 });
@@ -35,7 +34,7 @@ export async function GET(
     return NextResponse.json({
       success: true,
       message: {
-        id: message._id.toString(),
+        id: message._id ? message._id.toString() : message.id,
         recipient: message.recipient,
         sender: message.sender,
         senderName: message.senderName,
@@ -75,9 +74,9 @@ export async function DELETE(
   try {
     await connectToDatabase();
 
-    const result = await Message.findByIdAndDelete(id);
+    const deleted = await deleteMessageByIdMultiCluster(id);
 
-    if (!result) {
+    if (!deleted) {
       return NextResponse.json({ error: 'Message not found' }, { status: 404 });
     }
 

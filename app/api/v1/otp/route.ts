@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKeyDetailed } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/mongodb';
-import { Message } from '@/lib/models/Message';
+import { findLatestMessageMultiCluster } from '@/lib/models/Message';
 import { extractOtp } from '@/lib/otpParser';
 
 export const dynamic = 'force-dynamic';
-
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
 
 export async function GET(req: NextRequest) {
   const auth = await validateApiKeyDetailed(req);
@@ -34,17 +30,8 @@ export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
 
-    let query: any = {};
-    if (email.includes('@')) {
-      query.recipient = email;
-    } else {
-      query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
-    }
-
-    // Ambil pesan terbaru
-    const latestMessage: any = await Message.findOne(query)
-      .sort({ createdAt: -1 })
-      .lean();
+    // Ambil pesan terbaru dari seluruh cluster database
+    const latestMessage: any = await findLatestMessageMultiCluster(email);
 
     if (!latestMessage) {
       return NextResponse.json({
@@ -71,7 +58,7 @@ export async function GET(req: NextRequest) {
       subject: latestMessage.subject,
       sender: latestMessage.sender,
       receivedAt: latestMessage.createdAt,
-      messageId: latestMessage._id.toString(),
+      messageId: latestMessage._id ? latestMessage._id.toString() : latestMessage.id,
     });
   } catch (err: any) {
     return NextResponse.json({

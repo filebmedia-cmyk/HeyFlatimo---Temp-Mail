@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import { Message } from '@/lib/models/Message';
+import {
+  cleanAllMessagesMultiCluster,
+  cleanExpiredMessagesMultiCluster,
+  getClusterStatsMultiCluster,
+} from '@/lib/models/Message';
 import { getRetentionSettings } from '@/lib/settings';
 import { verifyAdminRequest } from '@/lib/auth';
 import { getSystemStats, recordDeletedEmails } from '@/lib/stats';
@@ -19,25 +23,20 @@ export async function GET(req: NextRequest) {
 
     await connectToDatabase();
     const systemStats = await getSystemStats();
-
-    let expiredCount = 0;
-    if (systemStats.retentionHours > 0) {
-      const expiryDate = new Date(Date.now() - systemStats.retentionHours * 60 * 60 * 1000);
-      expiredCount = await Message.countDocuments({ createdAt: { $lt: expiryDate } });
-    }
+    const clusterStats = await getClusterStatsMultiCluster(systemStats.retentionHours || 72);
 
     return NextResponse.json({
       success: true,
-      totalMessages: systemStats.activeMessages,
-      activeMessages: systemStats.activeMessages,
+      totalMessages: clusterStats.totalMessages,
+      activeMessages: clusterStats.totalMessages,
       totalReceivedAllTime: systemStats.totalReceivedAllTime,
       totalDeletedAllTime: systemStats.totalDeletedAllTime,
       totalGeneratedAllTime: systemStats.totalGeneratedAllTime,
-      uniqueActiveMailboxes: systemStats.uniqueActiveMailboxes,
+      uniqueActiveMailboxes: clusterStats.uniqueActiveMailboxes || systemStats.uniqueActiveMailboxes,
       unreadMessages: systemStats.unreadMessages,
-      expiredCount,
-      oldestCreatedAt: systemStats.oldestCreatedAt,
-      retentionHours: systemStats.retentionHours,
+      expiredCount: clusterStats.expiredCount,
+      oldestCreatedAt: clusterStats.oldestCreatedAt || systemStats.oldestCreatedAt,
+      retentionHours: systemStats.retentionHours || 72,
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -62,21 +61,20 @@ export async function POST(req: NextRequest) {
     await connectToDatabase();
 
     if (action === 'clean_all') {
-      const result = await Message.deleteMany({});
-      const deletedCount = result.deletedCount || 0;
+      const deletedCount = await cleanAllMessagesMultiCluster();
       if (deletedCount > 0) {
         await recordDeletedEmails(deletedCount).catch(() => null);
       }
       return NextResponse.json({
         success: true,
         deletedCount: deletedCount,
-        message: `Berhasil menghapus seluruh ${deletedCount} pesan email dari database.`,
+        message: `Berhasil menghapus seluruh ${deletedCount} pesan email dari semua cluster database.`,
       });
     }
 
     // Default: clean expired based on hours
     const retention = await getRetentionSettings();
-    const hours = typeof body.hours === 'number' ? body.hours : retention.retentionHours;
+    const hours = typeof body.hours === 'number' ? body.hours : (retention.retentionHours || 72);
 
     if (hours <= 0) {
       return NextResponse.json({
@@ -86,9 +84,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const expiryDate = new Date(Date.now() - hours * 60 * 60 * 1000);
-    const result = await Message.deleteMany({ createdAt: { $lt: expiryDate } });
-    const deletedCount = result.deletedCount || 0;
+    const deletedCount = await cleanExpiredMessagesMultiCluster(hours);
     if (deletedCount > 0) {
       await recordDeletedEmails(deletedCount).catch(() => null);
     }
@@ -96,7 +92,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       deletedCount: deletedCount,
-      message: `Berhasil membersihkan ${deletedCount} pesan email yang lebih lama dari ${hours} jam.`,
+      message: `Berhasil membersihkan ${deletedCount} pesan email yang lebih lama dari ${hours} jam dari semua cluster database.`,
     });
   } catch (error: any) {
     return NextResponse.json(

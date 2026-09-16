@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKeyDetailed } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/mongodb';
-import { Message } from '@/lib/models/Message';
+import {
+  findMessagesMultiCluster,
+  deleteMessagesMultiCluster,
+} from '@/lib/models/Message';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,13 +43,13 @@ export async function GET(req: NextRequest) {
       query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
     }
 
-    const messages = await Message.find(query)
-      .sort({ createdAt: -1 })
-      .limit(100)
-      .lean();
+    const messages = await findMessagesMultiCluster(query, {
+      sort: { createdAt: -1 },
+      limit: 100,
+    });
 
     const formatted = messages.map((m: any) => ({
-      id: m._id.toString(),
+      id: m._id ? m._id.toString() : m.id,
       recipient: m.recipient,
       sender: m.sender,
       senderName: m.senderName,
@@ -108,8 +111,7 @@ export async function DELETE(req: NextRequest) {
       query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
     }
 
-    const result = await Message.deleteMany(query);
-    const deletedCount = result.deletedCount || 0;
+    const deletedCount = await deleteMessagesMultiCluster(query);
     if (deletedCount > 0) {
       const { recordDeletedEmails } = await import('@/lib/stats');
       await recordDeletedEmails(deletedCount).catch(() => null);

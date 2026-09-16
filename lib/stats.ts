@@ -128,17 +128,12 @@ export async function getSystemStats(): Promise<SystemStats> {
       } catch (e) {}
     }
 
-    // Auto-purge expired messages if retention is active (e.g. 72h / 3 days)
+    // Auto-purge expired messages if retention is active (e.g. 72h / 3 days) across all clusters
     if (retention.retentionHours > 0) {
-      const expiryDate = new Date(Date.now() - retention.retentionHours * 60 * 60 * 1000);
-      const purgeResult = await Message.deleteMany({
-        $or: [
-          { expiresAt: { $lte: new Date() } },
-          { createdAt: { $lt: expiryDate } },
-        ],
-      });
-      if (purgeResult.deletedCount && purgeResult.deletedCount > 0) {
-        metrics.totalDeletedAllTime += purgeResult.deletedCount;
+      const { cleanExpiredMessagesMultiCluster } = await import('@/lib/models/Message');
+      const purgedCount = await cleanExpiredMessagesMultiCluster(retention.retentionHours);
+      if (purgedCount > 0) {
+        metrics.totalDeletedAllTime += purgedCount;
         await Setting.findOneAndUpdate(
           { key: 'system_metrics' },
           { value: JSON.stringify(metrics), updatedAt: new Date() },
@@ -147,11 +142,13 @@ export async function getSystemStats(): Promise<SystemStats> {
       }
     }
 
-    // Live counts from MongoDB
-    const activeMessages = await Message.countDocuments();
-    const unreadMessages = await Message.countDocuments({ isRead: false });
-    const uniqueRecipients = await Message.distinct('recipient');
-    const oldestMessage = await Message.findOne().sort({ createdAt: 1 }).select('createdAt').lean();
+    // Live counts from all active message clusters
+    const { getClusterStatsMultiCluster } = await import('@/lib/models/Message');
+    const clusterStats = await getClusterStatsMultiCluster(retention.retentionHours || 72);
+
+    const activeMessages = clusterStats.totalMessages;
+    const uniqueActiveMailboxes = clusterStats.uniqueActiveMailboxes;
+    const oldestCreatedAt = clusterStats.oldestCreatedAt;
 
     // Baseline safeguard: totalReceivedAllTime should be at least activeMessages + totalDeletedAllTime
     const calculatedMinimum = activeMessages + metrics.totalDeletedAllTime;
@@ -169,12 +166,12 @@ export async function getSystemStats(): Promise<SystemStats> {
     return {
       totalReceivedAllTime: totalReceived,
       activeMessages: activeMessages,
-      unreadMessages: unreadMessages,
+      unreadMessages: 0,
       totalDeletedAllTime: metrics.totalDeletedAllTime,
       totalGeneratedAllTime: metrics.totalGeneratedAllTime,
-      uniqueActiveMailboxes: uniqueRecipients.length,
-      oldestCreatedAt: oldestMessage ? ((oldestMessage as any).createdAt?.toISOString() || null) : null,
-      retentionHours: retention.retentionHours,
+      uniqueActiveMailboxes: uniqueActiveMailboxes,
+      oldestCreatedAt: oldestCreatedAt,
+      retentionHours: retention.retentionHours || 72,
     };
   } catch (err: any) {
     console.error('Error fetching system stats:', err);
