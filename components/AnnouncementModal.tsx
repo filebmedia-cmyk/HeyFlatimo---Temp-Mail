@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Megaphone, X, CheckCircle, Sparkles } from 'lucide-react';
+import { Megaphone, X, CheckCircle, ExternalLink, Sparkles } from 'lucide-react';
 import { playSound } from '@/lib/sound';
 
 interface AnnouncementModalProps {
@@ -11,6 +11,9 @@ interface AnnouncementModalProps {
   title: string;
   content: string;
   displayMode: 'always' | 'once_per_session' | 'once_per_device';
+  buttonEnabled?: boolean;
+  buttonText?: string;
+  buttonLink?: string;
   onClose: () => void;
 }
 
@@ -21,6 +24,9 @@ export default function AnnouncementModal({
   title,
   content,
   displayMode,
+  buttonEnabled = false,
+  buttonText = 'Buka Tautan',
+  buttonLink = '',
   onClose,
 }: AnnouncementModalProps) {
   if (!isOpen) return null;
@@ -34,6 +40,11 @@ export default function AnnouncementModal({
     }
     onClose();
   };
+
+  const hasCustomBtn = Boolean(buttonEnabled && buttonLink.trim());
+  const formattedLink = buttonLink.trim().startsWith('http://') || buttonLink.trim().startsWith('https://')
+    ? buttonLink.trim()
+    : `https://${buttonLink.trim()}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 xs:p-4 bg-black/75 backdrop-blur-xs animate-fadeIn">
@@ -71,15 +82,35 @@ export default function AnnouncementModal({
           </p>
         </div>
 
-        {/* Action Button */}
-        <button
-          type="button"
-          onClick={handleDismiss}
-          className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 w-full py-2.5 sm:py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-[3px_3px_0px_var(--shadow-color)]"
-        >
-          <CheckCircle className="w-4 h-4" />
-          <span>SAYA MENGERTI / TUTUP</span>
-        </button>
+        {/* Action Buttons Toolbar */}
+        <div className="flex flex-col sm:flex-row gap-2.5">
+          {hasCustomBtn && (
+            <a
+              href={formattedLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => {
+                playSound('click');
+                handleDismiss();
+              }}
+              className="brutal-btn bg-[var(--color-blue)] hover:bg-blue-600 text-white flex-1 py-2.5 sm:py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-[3px_3px_0px_var(--shadow-color)]"
+            >
+              <ExternalLink className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">{buttonText.trim() || 'Kunjungi Tautan'}</span>
+            </a>
+          )}
+
+          <button
+            type="button"
+            onClick={handleDismiss}
+            className={`brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 ${
+              hasCustomBtn ? 'flex-1' : 'w-full'
+            } py-2.5 sm:py-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-[3px_3px_0px_var(--shadow-color)]`}
+          >
+            <CheckCircle className="w-4 h-4 flex-shrink-0" />
+            <span>SAYA MENGERTI / TUTUP</span>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -194,12 +194,16 @@ export default function AdminPage() {
   const [announcementTitleInput, setAnnouncementTitleInput] = useState('');
   const [announcementContentInput, setAnnouncementContentInput] = useState('');
   const [announcementDisplayModeInput, setAnnouncementDisplayModeInput] = useState<'once' | 'always'>('once');
+  const [announcementButtonEnabled, setAnnouncementButtonEnabled] = useState(false);
+  const [announcementButtonTextInput, setAnnouncementButtonTextInput] = useState('Kunjungi Tautan');
+  const [announcementButtonLinkInput, setAnnouncementButtonLinkInput] = useState('');
   const [isSavingAnnouncement, setIsSavingAnnouncement] = useState(false);
   const [showAnnouncementPreview, setShowAnnouncementPreview] = useState(false);
 
   // Telegram Bot State
   const [telegramEnabled, setTelegramEnabled] = useState(false);
   const [telegramBotTokenInput, setTelegramBotTokenInput] = useState('');
+  const [telegramAdminIdInput, setTelegramAdminIdInput] = useState('');
   const [telegramApiBaseUrlInput, setTelegramApiBaseUrlInput] = useState('');
   const [isSavingTelegram, setIsSavingTelegram] = useState(false);
   const [isTestingTelegram, setIsTestingTelegram] = useState(false);
@@ -629,10 +633,14 @@ export default function AdminPage() {
           if (data.announcement.title) setAnnouncementTitleInput(data.announcement.title);
           if (data.announcement.content) setAnnouncementContentInput(data.announcement.content);
           if (data.announcement.displayMode) setAnnouncementDisplayModeInput(data.announcement.displayMode);
+          setAnnouncementButtonEnabled(Boolean(data.announcement.buttonEnabled));
+          if (data.announcement.buttonText) setAnnouncementButtonTextInput(data.announcement.buttonText);
+          if (data.announcement.buttonLink) setAnnouncementButtonLinkInput(data.announcement.buttonLink);
         }
         if (data.telegram) {
           setTelegramEnabled(Boolean(data.telegram.enabled));
           if (data.telegram.botToken) setTelegramBotTokenInput(data.telegram.botToken);
+          if (data.telegram.adminId) setTelegramAdminIdInput(data.telegram.adminId);
           if (data.telegram.apiBaseUrl) setTelegramApiBaseUrlInput(data.telegram.apiBaseUrl);
         }
       }
@@ -728,6 +736,19 @@ export default function AdminPage() {
             title: announcementTitleInput.trim(),
             content: announcementContentInput.trim(),
             displayMode: announcementDisplayModeInput,
+            buttonEnabled: announcementButtonEnabled,
+            buttonText: announcementButtonTextInput.trim(),
+            buttonLink: announcementButtonLinkInput.trim(),
+          },
+          announcement: {
+            enabled: announcementEnabled,
+            tag: announcementTagInput.trim(),
+            title: announcementTitleInput.trim(),
+            content: announcementContentInput.trim(),
+            displayMode: announcementDisplayModeInput,
+            buttonEnabled: announcementButtonEnabled,
+            buttonText: announcementButtonTextInput.trim(),
+            buttonLink: announcementButtonLinkInput.trim(),
           },
         }),
       });
@@ -759,6 +780,13 @@ export default function AdminPage() {
           data: {
             enabled: telegramEnabled,
             botToken: telegramBotTokenInput.trim(),
+            adminId: telegramAdminIdInput.trim(),
+            apiBaseUrl: telegramApiBaseUrlInput.trim() || undefined,
+          },
+          telegram: {
+            enabled: telegramEnabled,
+            botToken: telegramBotTokenInput.trim(),
+            adminId: telegramAdminIdInput.trim(),
             apiBaseUrl: telegramApiBaseUrlInput.trim() || undefined,
           },
         }),
@@ -2594,7 +2622,7 @@ if (!empty($otpData['found'])) {
                       <div className="flex flex-col sm:flex-row gap-2">
                         <div className="relative flex-1 min-w-0">
                           <input
-                            type="password"
+                            type="text"
                             value={telegramBotTokenInput}
                             onChange={(e) => setTelegramBotTokenInput(e.target.value)}
                             placeholder="1234567890:ABCdefGHIjklMNOpqrSTUvwxYZ..."
@@ -2612,6 +2640,22 @@ if (!empty($otpData['found'])) {
                           <span>{isTestingTelegram ? 'MENGUJI...' : 'TES KONEKSI BOT'}</span>
                         </button>
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                        ID Admin / Chat ID Telegram (Opsional):
+                      </label>
+                      <input
+                        type="text"
+                        value={telegramAdminIdInput}
+                        onChange={(e) => setTelegramAdminIdInput(e.target.value)}
+                        placeholder="Contoh: 123456789 (Hanya ID ini yang dapat mengontrol bot jika diisi)"
+                        className="brutal-input w-full px-3 py-2 text-xs sm:text-sm font-mono-custom font-bold"
+                      />
+                      <p className="text-[10px] font-mono-custom text-[var(--text-muted)] mt-1">
+                        Jika diisi, bot hanya akan merespon perintah dari ID Telegram admin ini. Jika dikosongkan, bot dapat diakses oleh publik.
+                      </p>
                     </div>
 
                     {telegramTestResult && (
@@ -3036,6 +3080,57 @@ if (!empty($otpData['found'])) {
                     />
                   </div>
 
+                  <div className="p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ExternalLink className="w-4 h-4 text-[var(--color-blue)]" />
+                        <span className="text-xs font-black uppercase font-mono-custom text-[var(--text-main)]">
+                          Tombol Tautan Kustom (CTA Link):
+                        </span>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={announcementButtonEnabled}
+                          onChange={(e) => setAnnouncementButtonEnabled(e.target.checked)}
+                          className="w-4 h-4 accent-[var(--color-blue)]"
+                        />
+                        <span className="text-[11px] font-mono-custom font-black uppercase">
+                          {announcementButtonEnabled ? 'TOMBOL AKTIF' : 'TOMBOL MATI'}
+                        </span>
+                      </label>
+                    </div>
+
+                    {announcementButtonEnabled && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-dashed border-[var(--border-color)]">
+                        <div>
+                          <label className="block text-[10px] xs:text-[11px] font-bold uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                            Nama / Teks Tombol:
+                          </label>
+                          <input
+                            type="text"
+                            value={announcementButtonTextInput}
+                            onChange={(e) => setAnnouncementButtonTextInput(e.target.value)}
+                            placeholder="Contoh: Gabung Channel / Beli VIP"
+                            className="brutal-input w-full px-3 py-2 text-xs font-mono-custom font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] xs:text-[11px] font-bold uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                            Tautan / Link Tujuan (URL):
+                          </label>
+                          <input
+                            type="text"
+                            value={announcementButtonLinkInput}
+                            onChange={(e) => setAnnouncementButtonLinkInput(e.target.value)}
+                            placeholder="https://t.me/channelkamu atau https://..."
+                            className="brutal-input w-full px-3 py-2 text-xs font-mono-custom font-bold"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
                     <button
                       type="button"
@@ -3442,13 +3537,33 @@ if (!empty($otpData['found'])) {
               {announcementContentInput || 'Ini adalah contoh tampilan pesan pengumuman pop-up yang akan muncul pada layar pengunjung.'}
             </p>
 
-            <button
-              type="button"
-              onClick={() => setShowAnnouncementPreview(false)}
-              className="brutal-btn bg-[var(--color-blue)] text-white w-full py-2 text-xs font-black"
-            >
-              MENGERTI
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              {announcementButtonEnabled && announcementButtonLinkInput.trim() && (
+                <a
+                  href={
+                    announcementButtonLinkInput.trim().startsWith('http://') ||
+                    announcementButtonLinkInput.trim().startsWith('https://')
+                      ? announcementButtonLinkInput.trim()
+                      : `https://${announcementButtonLinkInput.trim()}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="brutal-btn bg-[var(--color-blue)] text-white flex-1 py-2 text-xs font-black flex items-center justify-center gap-1.5"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span className="truncate">{announcementButtonTextInput.trim() || 'Kunjungi Tautan'}</span>
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowAnnouncementPreview(false)}
+                className={`brutal-btn bg-[var(--color-green)] text-white ${
+                  announcementButtonEnabled && announcementButtonLinkInput.trim() ? 'flex-1' : 'w-full'
+                } py-2 text-xs font-black`}
+              >
+                MENGERTI
+              </button>
+            </div>
           </div>
         </div>
       )}

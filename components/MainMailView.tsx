@@ -49,6 +49,9 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     content: string;
     tag: string;
     displayMode: 'always' | 'once_per_session' | 'once_per_device';
+    buttonEnabled?: boolean;
+    buttonText?: string;
+    buttonLink?: string;
   } | null>(null);
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
 
@@ -661,6 +664,9 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
           title={announcementData.title}
           content={announcementData.content}
           displayMode={announcementData.displayMode}
+          buttonEnabled={announcementData.buttonEnabled}
+          buttonText={announcementData.buttonText}
+          buttonLink={announcementData.buttonLink}
           onClose={() => {
             playSound('click');
             setIsAnnouncementOpen(false);

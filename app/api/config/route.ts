@@ -19,6 +19,9 @@ export async function GET() {
         content: announcement.content,
         tag: announcement.tag,
         displayMode: announcement.displayMode,
+        buttonEnabled: Boolean(announcement.buttonEnabled),
+        buttonText: announcement.buttonText || '',
+        buttonLink: announcement.buttonLink || '',
       },
     });
   } catch (error: any) {

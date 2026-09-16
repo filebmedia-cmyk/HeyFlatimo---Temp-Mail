@@ -14,6 +14,9 @@ export interface AnnouncementSettings {
   content: string;
   tag: string;
   displayMode: 'always' | 'once_per_session' | 'once_per_device';
+  buttonEnabled?: boolean;
+  buttonText?: string;
+  buttonLink?: string;
 }
 
 const DEFAULT_ACCESS_SETTINGS: AccessSettings = {
@@ -29,6 +32,9 @@ const DEFAULT_ANNOUNCEMENT_SETTINGS: AnnouncementSettings = {
   content: 'Selamat datang di layanan HeyFlatimo Personal Temp Mail.',
   tag: 'PENGUMUMAN',
   displayMode: 'once_per_device',
+  buttonEnabled: false,
+  buttonText: 'Kunjungi Tautan',
+  buttonLink: '',
 };
 
 export async function getAccessSettings(): Promise<AccessSettings> {
@@ -83,6 +89,9 @@ export async function saveAnnouncementSettings(
   const updated: AnnouncementSettings = {
     ...current,
     ...settings,
+    buttonEnabled: settings.buttonEnabled !== undefined ? Boolean(settings.buttonEnabled) : current.buttonEnabled,
+    buttonText: settings.buttonText !== undefined ? settings.buttonText.trim() : (current.buttonText || 'Kunjungi Tautan'),
+    buttonLink: settings.buttonLink !== undefined ? settings.buttonLink.trim() : (current.buttonLink || ''),
     id: `ann_${Date.now()}`, // Generate new ID whenever updated so once_per_device triggers again
   };
 
@@ -98,6 +107,7 @@ export async function saveAnnouncementSettings(
 export interface TelegramSettings {
   botToken: string;
   botUsername?: string;
+  adminId?: string;
   enabled: boolean;
   webhookUrl?: string;
 }
@@ -109,6 +119,7 @@ export interface RetentionSettings {
 const DEFAULT_TELEGRAM_SETTINGS: TelegramSettings = {
   botToken: '',
   botUsername: '',
+  adminId: '',
   enabled: false,
   webhookUrl: '',
 };
@@ -137,6 +148,7 @@ export async function saveTelegramSettings(settings: Partial<TelegramSettings>):
     ...current,
     ...settings,
     botToken: settings.botToken !== undefined ? settings.botToken.trim() : current.botToken,
+    adminId: settings.adminId !== undefined ? settings.adminId.trim() : (current.adminId || ''),
   };
 
   await Setting.findOneAndUpdate(

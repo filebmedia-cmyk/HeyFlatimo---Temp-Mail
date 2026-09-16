@@ -72,6 +72,9 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
+    if (body.section && body.data) {
+      body[body.section] = body.data;
+    }
     let updatedAccess = null;
     let updatedAnnouncement = null;
     let updatedTelegram = null;
@@ -189,6 +192,7 @@ export async function POST(req: NextRequest) {
     if (body.telegram) {
       const incomingTg = body.telegram;
       const cleanToken = (incomingTg.botToken || '').trim();
+      const adminId = incomingTg.adminId !== undefined ? String(incomingTg.adminId).trim() : '';
       const isEnabled = Boolean(incomingTg.enabled);
       let hookUrl = incomingTg.webhookUrl || '';
       let botUser = incomingTg.botUsername || '';
@@ -220,6 +224,7 @@ export async function POST(req: NextRequest) {
       updatedTelegram = await saveTelegramSettings({
         botToken: cleanToken,
         botUsername: botUser,
+        adminId: adminId,
         enabled: isEnabled,
         webhookUrl: hookUrl,
       });
