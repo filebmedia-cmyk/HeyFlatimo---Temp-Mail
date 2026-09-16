@@ -23,14 +23,14 @@ const TOKENS: PsToken[] = [
   {
     id: 1,
     shape: 'controller',
-    color: '#0055ff',
-    size: 88,
-    top: '7%',
-    left: '82%',
-    animDuration: '24s',
-    rotDuration: '30s',
+    color: '#0055ff', // Electric Blue
+    size: 94,
+    top: '6%',
+    left: '84%',
+    animDuration: '22s',
+    rotDuration: '28s',
     delay: '0s',
-    opacity: 0.58,
+    opacity: 0.92,
     animType: 'ps-float-1',
     rotDir: 'clockwise',
   },
@@ -38,14 +38,14 @@ const TOKENS: PsToken[] = [
   {
     id: 2,
     shape: 'triangle',
-    color: '#00c853',
-    size: 76,
-    top: '10%',
-    left: '6%',
-    animDuration: '20s',
-    rotDuration: '26s',
+    color: '#00c853', // Vivid Emerald Green
+    size: 82,
+    top: '8%',
+    left: '5%',
+    animDuration: '18s',
+    rotDuration: '24s',
     delay: '-3s',
-    opacity: 0.54,
+    opacity: 0.90,
     animType: 'ps-float-2',
     rotDir: 'counter',
   },
@@ -53,14 +53,14 @@ const TOKENS: PsToken[] = [
   {
     id: 3,
     shape: 'dpad',
-    color: '#ffe600',
-    size: 78,
-    top: '42%',
-    left: '87%',
-    animDuration: '22s',
-    rotDuration: '28s',
-    delay: '-6s',
-    opacity: 0.58,
+    color: '#ffe600', // Cyber Yellow
+    size: 84,
+    top: '38%',
+    left: '88%',
+    animDuration: '20s',
+    rotDuration: '26s',
+    delay: '-5s',
+    opacity: 0.92,
     animType: 'ps-float-3',
     rotDir: 'clockwise',
   },
@@ -68,14 +68,14 @@ const TOKENS: PsToken[] = [
   {
     id: 4,
     shape: 'circle',
-    color: '#ff003c',
-    size: 72,
-    top: '46%',
-    left: '5%',
-    animDuration: '19s',
-    rotDuration: '24s',
+    color: '#ff003c', // Electric Crimson Red
+    size: 80,
+    top: '44%',
+    left: '4%',
+    animDuration: '17s',
+    rotDuration: '22s',
     delay: '-2s',
-    opacity: 0.52,
+    opacity: 0.90,
     animType: 'ps-float-4',
     rotDir: 'counter',
   },
@@ -83,14 +83,14 @@ const TOKENS: PsToken[] = [
   {
     id: 5,
     shape: 'joystick',
-    color: '#7000ff',
-    size: 76,
-    top: '78%',
-    left: '10%',
-    animDuration: '23s',
-    rotDuration: '29s',
-    delay: '-8s',
-    opacity: 0.55,
+    color: '#7000ff', // Vivid Violet
+    size: 84,
+    top: '76%',
+    left: '7%',
+    animDuration: '21s',
+    rotDuration: '27s',
+    delay: '-7s',
+    opacity: 0.90,
     animType: 'ps-float-2',
     rotDir: 'clockwise',
   },
@@ -98,14 +98,14 @@ const TOKENS: PsToken[] = [
   {
     id: 6,
     shape: 'square',
-    color: '#ff007f',
-    size: 76,
-    top: '76%',
-    left: '80%',
-    animDuration: '25s',
-    rotDuration: '32s',
-    delay: '-5s',
-    opacity: 0.52,
+    color: '#ff007f', // Hot Pink
+    size: 82,
+    top: '74%',
+    left: '82%',
+    animDuration: '23s',
+    rotDuration: '30s',
+    delay: '-4s',
+    opacity: 0.90,
     animType: 'ps-float-1',
     rotDir: 'counter',
   },
@@ -113,14 +113,14 @@ const TOKENS: PsToken[] = [
   {
     id: 7,
     shape: 'cross',
-    color: '#0055ff',
-    size: 68,
-    top: '5%',
-    left: '46%',
-    animDuration: '18s',
-    rotDuration: '23s',
-    delay: '-4s',
-    opacity: 0.50,
+    color: '#0055ff', // Pure Blue
+    size: 76,
+    top: '4%',
+    left: '48%',
+    animDuration: '16s',
+    rotDuration: '20s',
+    delay: '-3.5s',
+    opacity: 0.88,
     animType: 'ps-float-4',
     rotDir: 'counter',
   },
@@ -128,45 +128,75 @@ const TOKENS: PsToken[] = [
   {
     id: 8,
     shape: 'controller',
-    color: '#00c853',
-    size: 82,
-    top: '84%',
-    left: '48%',
-    animDuration: '26s',
-    rotDuration: '34s',
-    delay: '-9s',
-    opacity: 0.54,
+    color: '#00c853', // Vivid Green
+    size: 90,
+    top: '86%',
+    left: '46%',
+    animDuration: '24s',
+    rotDuration: '32s',
+    delay: '-8s',
+    opacity: 0.90,
     animType: 'ps-float-3',
     rotDir: 'clockwise',
   },
-  // 9. D-PAD CONTROLLER - Mid Left Center
+  // 9. D-PAD CONTROLLER - Upper Mid Left
   {
     id: 9,
     shape: 'dpad',
-    color: '#ff5500',
-    size: 64,
-    top: '28%',
-    left: '18%',
-    animDuration: '17s',
-    rotDuration: '22s',
+    color: '#ff5500', // Blazing Orange
+    size: 74,
+    top: '24%',
+    left: '16%',
+    animDuration: '15s',
+    rotDuration: '21s',
     delay: '-1s',
-    opacity: 0.48,
+    opacity: 0.86,
     animType: 'ps-float-1',
     rotDir: 'clockwise',
   },
-  // 10. ANALOG JOYSTICK STICK - Mid Right Center
+  // 10. ANALOG JOYSTICK STICK - Upper Mid Right
   {
     id: 10,
     shape: 'joystick',
-    color: '#00f0ff',
-    size: 66,
-    top: '25%',
-    left: '74%',
-    animDuration: '27s',
-    rotDuration: '33s',
-    delay: '-7s',
-    opacity: 0.48,
+    color: '#00f0ff', // Electric Cyan
+    size: 76,
+    top: '22%',
+    left: '73%',
+    animDuration: '25s',
+    rotDuration: '31s',
+    delay: '-6s',
+    opacity: 0.86,
     animType: 'ps-float-2',
+    rotDir: 'counter',
+  },
+  // 11. TRIANGLE (Green) - Lower Mid Right
+  {
+    id: 11,
+    shape: 'triangle',
+    color: '#00c853',
+    size: 74,
+    top: '58%',
+    left: '76%',
+    animDuration: '19s',
+    rotDuration: '25s',
+    delay: '-9s',
+    opacity: 0.86,
+    animType: 'ps-float-4',
+    rotDir: 'clockwise',
+  },
+  // 12. CROSS / X (Blue) - Lower Mid Left
+  {
+    id: 12,
+    shape: 'cross',
+    color: '#0055ff',
+    size: 74,
+    top: '62%',
+    left: '19%',
+    animDuration: '21s',
+    rotDuration: '27s',
+    delay: '-5.5s',
+    opacity: 0.86,
+    animType: 'ps-float-3',
     rotDir: 'counter',
   },
 ];
@@ -180,25 +210,36 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           viewBox="0 0 100 100"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full p-2"
+          className="w-full h-full p-1.5"
           style={iconStyle}
         >
+          {/* L1 & R1 Shoulder Buttons */}
+          <rect x="22" y="23" width="16" height="6" rx="3" fill="currentColor" fillOpacity="0.4" stroke="currentColor" strokeWidth="2.5" />
+          <rect x="62" y="23" width="16" height="6" rx="3" fill="currentColor" fillOpacity="0.4" stroke="currentColor" strokeWidth="2.5" />
+          {/* Main Controller Body */}
           <path
-            d="M 22,32 C 16,32 10,48 10,68 C 10,80 18,84 26,80 C 34,76 38,62 44,62 L 56,62 C 62,62 66,76 74,80 C 82,84 90,80 90,68 C 90,48 84,32 78,32 C 70,32 64,36 50,36 C 36,36 30,32 22,32 Z"
+            d="M 24,30 C 16,30 10,46 10,68 C 10,82 18,86 28,82 C 36,78 40,64 45,64 L 55,64 C 60,64 64,78 72,82 C 82,86 90,82 90,68 C 90,46 84,30 76,30 C 68,30 62,34 50,34 C 38,34 32,30 24,30 Z"
             stroke="currentColor"
-            strokeWidth="6"
+            strokeWidth="6.5"
             strokeLinejoin="round"
             fill="currentColor"
-            fillOpacity="0.14"
+            fillOpacity="0.22"
           />
-          <rect x="23" y="45" width="4" height="12" rx="1" fill="currentColor" />
-          <rect x="19" y="49" width="12" height="4" rx="1" fill="currentColor" />
-          <circle cx="75" cy="46" r="2.2" fill="#00c853" />
-          <circle cx="80" cy="51" r="2.2" fill="#ff003c" />
-          <circle cx="75" cy="56" r="2.2" fill="#0055ff" />
-          <circle cx="70" cy="51" r="2.2" fill="#ff007f" />
-          <circle cx="38" cy="55" r="5" stroke="currentColor" strokeWidth="2.5" fill="none" />
-          <circle cx="62" cy="55" r="5" stroke="currentColor" strokeWidth="2.5" fill="none" />
+          {/* D-Pad on Left */}
+          <rect x="24" y="44" width="5" height="15" rx="1.5" fill="currentColor" />
+          <rect x="19" y="49" width="15" height="5" rx="1.5" fill="currentColor" />
+          {/* Action Buttons on Right: Triangle, Circle, Cross, Square */}
+          <circle cx="75" cy="44" r="3.2" fill="#00c853" stroke="#000000" strokeWidth="1.5" />
+          <circle cx="82" cy="51" r="3.2" fill="#ff003c" stroke="#000000" strokeWidth="1.5" />
+          <circle cx="75" cy="58" r="3.2" fill="#0055ff" stroke="#000000" strokeWidth="1.5" />
+          <circle cx="68" cy="51" r="3.2" fill="#ff007f" stroke="#000000" strokeWidth="1.5" />
+          {/* Center PS Button */}
+          <circle cx="50" cy="49" r="4.5" fill="currentColor" fillOpacity="0.8" />
+          {/* Dual Analog Thumbstick Rings */}
+          <circle cx="37" cy="58" r="6.5" stroke="currentColor" strokeWidth="3" fill="currentColor" fillOpacity="0.3" />
+          <circle cx="37" cy="58" r="2.5" fill="currentColor" />
+          <circle cx="63" cy="58" r="6.5" stroke="currentColor" strokeWidth="3" fill="currentColor" fillOpacity="0.3" />
+          <circle cx="63" cy="58" r="2.5" fill="currentColor" />
         </svg>
       );
     case 'dpad':
@@ -207,21 +248,25 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           viewBox="0 0 100 100"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full p-2"
+          className="w-full h-full p-1.5"
           style={iconStyle}
         >
+          {/* D-Pad Cross Body */}
           <path
-            d="M 38,18 L 62,18 L 62,38 L 82,38 L 82,62 L 62,62 L 62,82 L 38,82 L 38,62 L 18,62 L 18,38 L 38,38 Z"
+            d="M 37,16 L 63,16 L 63,37 L 84,37 L 84,63 L 63,63 L 63,84 L 37,84 L 37,63 L 16,63 L 16,37 L 37,37 Z"
             stroke="currentColor"
             strokeWidth="7"
             strokeLinejoin="round"
             fill="currentColor"
-            fillOpacity="0.16"
+            fillOpacity="0.25"
           />
-          <polygon points="50,24 44,33 56,33" fill="currentColor" />
-          <polygon points="50,76 44,67 56,67" fill="currentColor" />
-          <polygon points="24,50 33,44 33,56" fill="currentColor" />
-          <polygon points="76,50 67,44 67,56" fill="currentColor" />
+          {/* Directional Arrow Heads */}
+          <polygon points="50,22 42,32 58,32" fill="currentColor" stroke="#000000" strokeWidth="1" />
+          <polygon points="50,78 42,68 58,68" fill="currentColor" stroke="#000000" strokeWidth="1" />
+          <polygon points="22,50 32,42 32,58" fill="currentColor" stroke="#000000" strokeWidth="1" />
+          <polygon points="78,50 68,42 68,58" fill="currentColor" stroke="#000000" strokeWidth="1" />
+          {/* Center Pivot Dot */}
+          <circle cx="50" cy="50" r="4" fill="currentColor" />
         </svg>
       );
     case 'joystick':
@@ -230,16 +275,20 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           viewBox="0 0 100 100"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full p-2"
+          className="w-full h-full p-1.5"
           style={iconStyle}
         >
-          <circle cx="50" cy="50" r="36" stroke="currentColor" strokeWidth="6" strokeDasharray="6 4" fill="none" />
-          <circle cx="50" cy="50" r="24" stroke="currentColor" strokeWidth="6" fill="currentColor" fillOpacity="0.18" />
-          <circle cx="50" cy="38" r="3" fill="currentColor" />
-          <circle cx="50" cy="62" r="3" fill="currentColor" />
-          <circle cx="38" cy="50" r="3" fill="currentColor" />
-          <circle cx="62" cy="50" r="3" fill="currentColor" />
-          <circle cx="50" cy="50" r="4" fill="currentColor" />
+          {/* Outer Texture Ring */}
+          <circle cx="50" cy="50" r="38" stroke="currentColor" strokeWidth="6" strokeDasharray="6 4" fill="none" />
+          {/* Inner Base Dome */}
+          <circle cx="50" cy="50" r="28" stroke="currentColor" strokeWidth="6.5" fill="currentColor" fillOpacity="0.25" />
+          {/* 4 Directional Grip Dots */}
+          <circle cx="50" cy="36" r="4" fill="currentColor" />
+          <circle cx="50" cy="64" r="4" fill="currentColor" />
+          <circle cx="36" cy="50" r="4" fill="currentColor" />
+          <circle cx="64" cy="50" r="4" fill="currentColor" />
+          {/* Center Concave Pip */}
+          <circle cx="50" cy="50" r="6" fill="currentColor" stroke="#000000" strokeWidth="1.5" />
         </svg>
       );
     case 'triangle':
@@ -252,13 +301,13 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           style={iconStyle}
         >
           <polygon
-            points="50,15 87,81 13,81"
+            points="50,14 88,82 12,82"
             stroke="currentColor"
-            strokeWidth="12"
+            strokeWidth="14"
             strokeLinejoin="round"
             strokeLinecap="round"
             fill="currentColor"
-            fillOpacity="0.16"
+            fillOpacity="0.25"
           />
         </svg>
       );
@@ -271,7 +320,15 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           className="w-full h-full p-2"
           style={iconStyle}
         >
-          <circle cx="50" cy="50" r="34" stroke="currentColor" strokeWidth="12" fill="currentColor" fillOpacity="0.16" />
+          <circle
+            cx="50"
+            cy="50"
+            r="34"
+            stroke="currentColor"
+            strokeWidth="14"
+            fill="currentColor"
+            fillOpacity="0.25"
+          />
         </svg>
       );
     case 'cross':
@@ -284,21 +341,21 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           style={iconStyle}
         >
           <line
-            x1="22"
-            y1="22"
-            x2="78"
-            y2="78"
+            x1="20"
+            y1="20"
+            x2="80"
+            y2="80"
             stroke="currentColor"
-            strokeWidth="13"
+            strokeWidth="15"
             strokeLinecap="round"
           />
           <line
-            x1="78"
-            y1="22"
-            x2="22"
-            y2="78"
+            x1="80"
+            y1="20"
+            x2="20"
+            y2="80"
             stroke="currentColor"
-            strokeWidth="13"
+            strokeWidth="15"
             strokeLinecap="round"
           />
         </svg>
@@ -313,15 +370,15 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           style={iconStyle}
         >
           <rect
-            x="18"
-            y="18"
-            width="64"
-            height="64"
-            rx="10"
+            x="16"
+            y="16"
+            width="68"
+            height="68"
+            rx="12"
             stroke="currentColor"
-            strokeWidth="12"
+            strokeWidth="14"
             fill="currentColor"
-            fillOpacity="0.16"
+            fillOpacity="0.25"
           />
         </svg>
       );
@@ -340,6 +397,10 @@ export default function PsBackground() {
       aria-hidden="true"
       className="fixed inset-0 pointer-events-none select-none overflow-hidden z-0 bg-transparent"
     >
+      {/* Ambient Depth Glow */}
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-[var(--color-blue)]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[var(--color-green)]/10 rounded-full blur-3xl pointer-events-none" />
+
       {/* Floating Neo-Brutalist PlayStation Button & Controller Stick Tokens */}
       <div className="absolute inset-0">
         {TOKENS.map((token) => (
@@ -367,7 +428,7 @@ export default function PsBackground() {
               }}
             >
               {/* Neo-Brutalist Button Card with Solid Borders & 3D Shadow */}
-              <div className="w-full h-full bg-white/95 dark:bg-[#121622]/95 border-[2.5px] sm:border-[3px] border-[var(--border-color)] rounded-xl sm:rounded-2xl shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] dark:shadow-[3px_3px_0px_#000000] flex items-center justify-center transition-all backdrop-blur-xs">
+              <div className="w-full h-full bg-white dark:bg-[#0f1422] border-[3px] sm:border-[3.5px] border-[var(--border-color)] rounded-xl sm:rounded-2xl shadow-[4px_4px_0px_var(--shadow-color)] sm:shadow-[5px_5px_0px_var(--shadow-color)] dark:shadow-[4px_4px_0px_#000000] flex items-center justify-center transition-all">
                 <RenderIcon shape={token.shape} color={token.color} />
               </div>
             </div>

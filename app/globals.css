@@ -29,7 +29,7 @@
   --brand-accent: var(--color-yellow);
   --brand-danger: var(--color-red);
 
-  --grid-color: rgba(0, 0, 0, 0.12);
+  --grid-color: rgba(0, 0, 0, 0.16);
   --badge-bg: #e6ffed;
   --badge-text: #00701a;
 }
@@ -59,7 +59,7 @@
   --brand-accent: var(--color-yellow);
   --brand-danger: var(--color-red);
 
-  --grid-color: rgba(255, 255, 255, 0.08);
+  --grid-color: rgba(255, 255, 255, 0.12);
   --badge-bg: #003d19;
   --badge-text: #00ff66;
 }
@@ -78,7 +78,7 @@ body {
   background-image: 
     linear-gradient(to right, var(--grid-color) 2px, transparent 2px),
     linear-gradient(to bottom, var(--grid-color) 2px, transparent 2px);
-  background-size: 28px 28px;
+  background-size: 32px 32px;
   min-height: 100vh;
   min-height: 100dvh;
   max-width: 100vw;
