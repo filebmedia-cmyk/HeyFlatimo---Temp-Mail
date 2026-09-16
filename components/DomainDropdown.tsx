@@ -73,7 +73,15 @@ export default function DomainDropdown({
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleKeyDown);
       if (normalizedDomains.length >= 5) {
-        setTimeout(() => searchInputRef.current?.focus(), 50);
+        setTimeout(() => {
+          if (searchInputRef.current) {
+            try {
+              searchInputRef.current.focus({ preventScroll: true });
+            } catch (err) {
+              searchInputRef.current.focus();
+            }
+          }
+        }, 50);
       }
     } else {
       setSearchQuery('');
@@ -91,7 +99,9 @@ export default function DomainDropdown({
     return normalizedDomains.filter((d) => d.domain.toLowerCase().includes(q));
   }, [normalizedDomains, searchQuery]);
 
-  const handleSelect = (domain: string) => {
+  const handleSelect = (e: React.MouseEvent, domain: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     const selectedItem = normalizedDomains.find((d) => d.domain.toLowerCase() === domain.toLowerCase());
     if (selectedItem?.isVip && !isVipUnlocked) {
       playSound('pop');
@@ -177,7 +187,7 @@ export default function DomainDropdown({
           )}
 
           {/* List of Domains with Scroll */}
-          <ul className="max-h-56 sm:max-h-64 overflow-y-auto space-y-1 select-none pr-0.5" role="listbox">
+          <ul className="max-h-56 sm:max-h-64 overflow-y-auto overscroll-contain touch-pan-y space-y-1 select-none pr-0.5" role="listbox">
             {filteredDomains.length === 0 ? (
               <li className="px-3 py-4 text-center text-xs font-mono-custom text-[var(--text-muted)]">
                 Tidak ada domain &quot;{searchQuery}&quot;
@@ -190,7 +200,10 @@ export default function DomainDropdown({
                     key={item.domain}
                     role="option"
                     aria-selected={isSelected}
-                    onClick={() => handleSelect(item.domain)}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                    }}
+                    onClick={(e) => handleSelect(e, item.domain)}
                     className={`px-2.5 py-2 text-xs font-mono-custom font-bold flex items-center justify-between gap-2 rounded-none border-[1.5px] cursor-pointer transition-all duration-150 ${
                       isSelected
                         ? 'bg-[var(--color-yellow)] text-black border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] -translate-y-0.5'
