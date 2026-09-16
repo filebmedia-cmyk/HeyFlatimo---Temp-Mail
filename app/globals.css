@@ -69,6 +69,7 @@ html {
   width: 100%;
   overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
+  background-color: var(--bg-color);
 }
 
 body {
@@ -79,6 +80,8 @@ body {
     linear-gradient(to right, var(--grid-color) 2px, transparent 2px),
     linear-gradient(to bottom, var(--grid-color) 2px, transparent 2px);
   background-size: 32px 32px;
+  background-attachment: fixed;
+  background-repeat: repeat;
   min-height: 100vh;
   min-height: 100dvh;
   max-width: 100vw;

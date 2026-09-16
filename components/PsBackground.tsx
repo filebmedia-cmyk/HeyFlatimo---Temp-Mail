@@ -395,14 +395,37 @@ export default function PsBackground() {
   return (
     <div
       aria-hidden="true"
-      className="fixed inset-0 pointer-events-none select-none overflow-hidden z-0 bg-transparent"
+      className="fixed inset-0 w-screen h-screen pointer-events-none select-none overflow-hidden z-0"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 0,
+        pointerEvents: 'none',
+      }}
     >
+      {/* Fixed Neo-Brutalist Grid Canvas Layer (Immune to scroll) */}
+      <div
+        className="absolute inset-0 w-full h-full pointer-events-none opacity-100 transition-opacity"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, var(--grid-color) 2px, transparent 2px), linear-gradient(to bottom, var(--grid-color) 2px, transparent 2px)',
+          backgroundSize: '32px 32px',
+          backgroundPosition: '0 0',
+          backgroundRepeat: 'repeat',
+        }}
+      />
+
       {/* Ambient Depth Glow */}
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-[var(--color-blue)]/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[var(--color-green)]/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Floating Neo-Brutalist PlayStation Button & Controller Stick Tokens */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 w-full h-full pointer-events-none">
         {TOKENS.map((token) => (
           <div
             key={token.id}

@@ -197,7 +197,7 @@ export default function AdminPage() {
   const [announcementTagInput, setAnnouncementTagInput] = useState('INFO');
   const [announcementTitleInput, setAnnouncementTitleInput] = useState('');
   const [announcementContentInput, setAnnouncementContentInput] = useState('');
-  const [announcementDisplayModeInput, setAnnouncementDisplayModeInput] = useState<'once' | 'always'>('once');
+  const [announcementDisplayModeInput, setAnnouncementDisplayModeInput] = useState<'always' | 'once_per_session' | 'once_per_device'>('once_per_device');
   const [announcementButtonEnabled, setAnnouncementButtonEnabled] = useState(false);
   const [announcementButtonTextInput, setAnnouncementButtonTextInput] = useState('Kunjungi Tautan');
   const [announcementButtonLinkInput, setAnnouncementButtonLinkInput] = useState('');
@@ -3168,6 +3168,92 @@ if (!empty($otpData['found'])) {
                       placeholder="Tuliskan isi pengumuman lengkap di sini..."
                       className="brutal-input w-full px-3 py-2 text-xs sm:text-sm font-mono-custom font-bold"
                     />
+                  </div>
+
+                  {/* Frekuensi & Aturan Kemunculan Pop-Up */}
+                  <div className="p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] space-y-2">
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom text-[var(--text-main)]">
+                      Aturan & Frekuensi Kemunculan Pop-Up:
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                      {/* Opsi 1: once_per_device */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playSound('click');
+                          setAnnouncementDisplayModeInput('once_per_device');
+                        }}
+                        className={`p-2.5 sm:p-3 text-left border-[2px] transition-all cursor-pointer flex flex-col justify-between ${
+                          announcementDisplayModeInput === 'once_per_device'
+                            ? 'bg-purple-50 dark:bg-purple-950/60 border-[var(--color-purple)] shadow-[2.5px_2.5px_0px_var(--shadow-color)]'
+                            : 'bg-white dark:bg-zinc-900 border-[var(--border-color)] opacity-75 hover:opacity-100 hover:bg-zinc-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)]">
+                            1x Per Perangkat
+                          </span>
+                          <span className="bg-[var(--color-green)] text-white text-[8px] font-mono-custom font-black px-1.5 py-0.2 border border-[var(--border-color)] uppercase">
+                            DEFAULT
+                          </span>
+                        </div>
+                        <p className="text-[10px] font-mono-custom text-[var(--text-muted)] leading-relaxed">
+                          Muncul 1 kali per browser/device pengunjung (disimpan di LocalStorage).
+                        </p>
+                      </button>
+
+                      {/* Opsi 2: once_per_session */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playSound('click');
+                          setAnnouncementDisplayModeInput('once_per_session');
+                        }}
+                        className={`p-2.5 sm:p-3 text-left border-[2px] transition-all cursor-pointer flex flex-col justify-between ${
+                          announcementDisplayModeInput === 'once_per_session'
+                            ? 'bg-purple-50 dark:bg-purple-950/60 border-[var(--color-purple)] shadow-[2.5px_2.5px_0px_var(--shadow-color)]'
+                            : 'bg-white dark:bg-zinc-900 border-[var(--border-color)] opacity-75 hover:opacity-100 hover:bg-zinc-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)]">
+                            1x Per Sesi Kunjungan
+                          </span>
+                          <span className="bg-[var(--color-blue)] text-white text-[8px] font-mono-custom font-black px-1.5 py-0.2 border border-[var(--border-color)] uppercase">
+                            SESSION
+                          </span>
+                        </div>
+                        <p className="text-[10px] font-mono-custom text-[var(--text-muted)] leading-relaxed">
+                          Muncul 1 kali per sesi. Jika pengunjung menutup browser/tab lalu membuka kembali, pop-up akan muncul lagi.
+                        </p>
+                      </button>
+
+                      {/* Opsi 3: always */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playSound('click');
+                          setAnnouncementDisplayModeInput('always');
+                        }}
+                        className={`p-2.5 sm:p-3 text-left border-[2px] transition-all cursor-pointer flex flex-col justify-between ${
+                          announcementDisplayModeInput === 'always'
+                            ? 'bg-purple-50 dark:bg-purple-950/60 border-[var(--color-purple)] shadow-[2.5px_2.5px_0px_var(--shadow-color)]'
+                            : 'bg-white dark:bg-zinc-900 border-[var(--border-color)] opacity-75 hover:opacity-100 hover:bg-zinc-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)]">
+                            Selalu Muncul
+                          </span>
+                          <span className="bg-[var(--color-orange)] text-white text-[8px] font-mono-custom font-black px-1.5 py-0.2 border border-[var(--border-color)] uppercase">
+                            ALWAYS
+                          </span>
+                        </div>
+                        <p className="text-[10px] font-mono-custom text-[var(--text-muted)] leading-relaxed">
+                          Selalu muncul setiap kali pengunjung membuka atau me-refresh halaman website.
+                        </p>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] space-y-3">
