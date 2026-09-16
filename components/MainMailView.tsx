@@ -69,13 +69,17 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
 
   const previousCountRef = useRef<number>(0);
   const initializedRef = useRef<boolean>(false);
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const showToast = (msg: string, type: 'success' | 'error' | 'info' = 'success') => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
     setToastMessage(msg);
     setToastType(type);
-    setTimeout(() => {
+    toastTimeoutRef.current = setTimeout(() => {
       setToastMessage(null);
-    }, 2500);
+    }, 3000);
   };
 
   // 1. Inisialisasi Tema, App Name, & VIP Session State

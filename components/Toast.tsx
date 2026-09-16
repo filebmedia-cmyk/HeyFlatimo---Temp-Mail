@@ -1,15 +1,33 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { CheckCircle2, AlertCircle, Sparkles, X } from 'lucide-react';
 
 interface ToastProps {
   message: string | null;
   type?: 'success' | 'error' | 'info';
+  duration?: number;
   onClose?: () => void;
 }
 
-export default function Toast({ message, type = 'success', onClose }: ToastProps) {
+export default function Toast({
+  message,
+  type = 'success',
+  duration = 3000,
+  onClose,
+}: ToastProps) {
+  useEffect(() => {
+    if (!message || !onClose) return;
+
+    const timer = setTimeout(() => {
+      onClose();
+    }, duration);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [message, duration, onClose]);
+
   if (!message) return null;
 
   const typeConfig = {
@@ -36,7 +54,7 @@ export default function Toast({ message, type = 'success', onClose }: ToastProps
   const config = typeConfig[type] || typeConfig.success;
 
   return (
-    <div className="fixed top-3 xs:top-4 sm:top-5 left-1/2 -translate-x-1/2 z-[9999] motion-toast-in pointer-events-auto w-[calc(100vw-1.5rem)] max-w-md">
+    <div className="fixed top-3 xs:top-4 sm:top-5 left-1/2 -translate-x-1/2 z-[9999] motion-toast-in pointer-events-auto w-[calc(100vw-1.5rem)] max-w-md animate-in fade-in duration-200">
       <div
         style={{
           backgroundColor:
@@ -53,8 +71,9 @@ export default function Toast({ message, type = 'success', onClose }: ToastProps
         </span>
         {onClose && (
           <button
+            type="button"
             onClick={onClose}
-            className="p-1 text-white hover:bg-black/20 rounded transition-colors flex-shrink-0"
+            className="p-1 text-white hover:bg-black/20 rounded transition-colors flex-shrink-0 cursor-pointer"
             title="Tutup Notifikasi"
           >
             <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

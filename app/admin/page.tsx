@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   Shield,
@@ -213,11 +213,36 @@ export default function AdminPage() {
   const [isTesting, setIsTesting] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [origin, setOrigin] = useState('https://heyflatimo.com');
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
     setToastMsg(message);
     setToastType(type);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastMsg(null);
+    }, 3000);
   };
+
+  // Auto-dismiss keyNotice setelah 6 detik
+  useEffect(() => {
+    if (!keyNotice) return;
+    const timer = setTimeout(() => {
+      setKeyNotice(null);
+    }, 6000);
+    return () => clearTimeout(timer);
+  }, [keyNotice]);
+
+  // Auto-dismiss domainNotice setelah 6 detik
+  useEffect(() => {
+    if (!domainNotice) return;
+    const timer = setTimeout(() => {
+      setDomainNotice(null);
+    }, 6000);
+    return () => clearTimeout(timer);
+  }, [domainNotice]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
