@@ -1235,21 +1235,17 @@ if (!empty($otpData['found'])) {
         <div className="min-h-screen flex flex-col justify-center items-center p-3 xs:p-4 sm:p-6 w-full max-w-full">
           <div className="max-w-md w-full my-4 sm:my-8">
             <div className="brutal-card p-4 xs:p-6 sm:p-8 bg-[var(--card-bg)] relative shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[7px_7px_0px_var(--shadow-color)]">
-              {/* Top-Right Theme Toggle */}
+              {/* Top-Right Close Button */}
               <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  className="brutal-btn w-7 h-7 xs:w-8 xs:h-8 bg-[var(--color-yellow)] dark:bg-zinc-800 text-black dark:text-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center shadow-[1.5px_1.5px_0px_var(--shadow-color)] group cursor-pointer p-0"
-                  title="Ganti Tema Gelap / Terang"
-                  aria-label="Toggle Dark Mode"
+                <Link
+                  href="/"
+                  onClick={() => playSound('click')}
+                  className="brutal-btn w-7 h-7 xs:w-8 xs:h-8 bg-[var(--color-red)] text-white hover:bg-rose-600 border-2 border-[var(--border-color)] flex items-center justify-center shadow-[1.5px_1.5px_0px_var(--shadow-color)] cursor-pointer p-0 transition-transform active:translate-x-[1px] active:translate-y-[1px]"
+                  title="Tutup & Kembali ke Beranda"
+                  aria-label="Tutup"
                 >
-                  {isDark ? (
-                    <Sun className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-[var(--color-yellow)] fill-[var(--color-yellow)]" />
-                  ) : (
-                    <Moon className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-black" />
-                  )}
-                </button>
+                  <X className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-white" />
+                </Link>
               </div>
 
               <div className="text-center mb-5 sm:mb-6">
