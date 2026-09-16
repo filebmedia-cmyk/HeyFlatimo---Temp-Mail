@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateApiKey } from '@/lib/auth';
+import { validateApiKeyDetailed } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/mongodb';
 import { Message } from '@/lib/models/Message';
 import { extractLinks } from '@/lib/otpParser';
@@ -7,11 +7,11 @@ import { extractLinks } from '@/lib/otpParser';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  const isValid = await validateApiKey(req);
-  if (!isValid) {
+  const auth = await validateApiKeyDetailed(req);
+  if (!auth.valid) {
     return NextResponse.json(
-      { error: 'Unauthorized: Invalid or missing API Key' },
-      { status: 401 }
+      { error: auth.error || 'Unauthorized: Invalid or missing API Key' },
+      { status: auth.status || 401 }
     );
   }
 

@@ -42,8 +42,23 @@ import {
   Crown,
   Clock,
   Timer,
+  Power,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
+
+export interface ApiKeyItem {
+  id: string;
+  name: string;
+  key: string;
+  isSingleBot: boolean;
+  boundIdentifier: string | null;
+  boundAt: string | null;
+  lastUsedAt: string | null;
+  lastUsedIp: string | null;
+  totalRequests: number;
+  isActive: boolean;
+  createdAt: string;
+}
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -55,6 +70,20 @@ export default function AdminPage() {
   const [copiedKey, setCopiedKey] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
+
+  // Multi API Key & Single-Bot Lock State
+  const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([]);
+  const [isLoadingKeys, setIsLoadingKeys] = useState(false);
+  const [newKeyTitle, setNewKeyTitle] = useState('');
+  const [newKeyValue, setNewKeyValue] = useState('');
+  const [newKeySingleBot, setNewKeySingleBot] = useState(true);
+  const [isCreatingKey, setIsCreatingKey] = useState(false);
+  const [visibleKeyIds, setVisibleKeyIds] = useState<Set<string>>(new Set());
+  const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
+  const [selectedApiKey, setSelectedApiKey] = useState<string>('');
+  const [keyToDelete, setKeyToDelete] = useState<ApiKeyItem | null>(null);
+  const [isDeletingKey, setIsDeletingKey] = useState(false);
+  const [keyNotice, setKeyNotice] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
   // Domain Management State
   const [domains, setDomains] = useState<{ domain: string; isVip: boolean; createdAt?: string }[]>([]);
@@ -154,10 +183,11 @@ export default function AdminPage() {
       const savedAuth = sessionStorage.getItem('heyflatimo_admin_logged');
       if (savedAuth === 'true') {
         setIsLoggedIn(true);
-        fetchApiKey();
+        fetchApiKeys();
         fetchDomains();
         fetchStats();
         fetchSettings();
+        fetchCleanupStats();
       }
 
       // Auto logout when leaving web / closing tab
@@ -198,13 +228,15 @@ export default function AdminPage() {
         const loggedKey = data.admin?.apiKey;
         if (loggedKey) {
           setApiKey(loggedKey);
+          setSelectedApiKey(loggedKey);
         }
         sessionStorage.setItem('heyflatimo_admin_logged', 'true');
         showToast('Login Admin Berhasil! Selamat Datang.', 'success');
-        fetchApiKey();
+        fetchApiKeys();
         fetchDomains();
         fetchStats(loggedKey);
         fetchSettings();
+        fetchCleanupStats();
       } else {
         showToast(data.error || 'Username atau password salah', 'error');
       }
@@ -224,16 +256,153 @@ export default function AdminPage() {
     showToast('Berhasil Logout');
   };
 
-  const fetchApiKey = async () => {
+  const fetchApiKeys = async () => {
+    setIsLoadingKeys(true);
     try {
-      const res = await fetch('/api/admin/apikey', { headers: getAdminHeaders() });
+      const res = await fetch('/api/admin/apikeys', { headers: getAdminHeaders() });
       const data = await res.json();
-      if (data.success && data.apiKey) {
-        setApiKey(data.apiKey);
+      if (data.success && Array.isArray(data.keys)) {
+        setApiKeys(data.keys);
+        if (data.keys.length > 0) {
+          setSelectedApiKey((prev) => prev || data.keys[0].key);
+          setApiKey(data.keys[0].key);
+        }
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching API keys:', err);
+    } finally {
+      setIsLoadingKeys(false);
     }
+  };
+
+  const handleGenerateRandomKeyInput = () => {
+    const randomHex = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    setNewKeyValue(`hfl_live_${randomHex}`);
+  };
+
+  const handleCreateApiKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newKeyTitle.trim()) {
+      showToast('Judul / Nama Bot wajib diisi.', 'error');
+      return;
+    }
+
+    setIsCreatingKey(true);
+    setKeyNotice(null);
+    try {
+      const res = await fetch('/api/admin/apikeys', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({
+          name: newKeyTitle.trim(),
+          key: newKeyValue.trim(),
+          isSingleBot: newKeySingleBot,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('API Key baru berhasil dibuat.', 'success');
+        setKeyNotice({ type: 'success', message: `API Key "${data.key.name}" berhasil dibuat dan siap digunakan.` });
+        setNewKeyTitle('');
+        setNewKeyValue('');
+        setNewKeySingleBot(true);
+        fetchApiKeys();
+      } else {
+        showToast(data.error || 'Gagal membuat API Key', 'error');
+        setKeyNotice({ type: 'error', message: data.error || 'Gagal membuat API Key' });
+      }
+    } catch (err: any) {
+      showToast('Gagal membuat API Key', 'error');
+    } finally {
+      setIsCreatingKey(false);
+    }
+  };
+
+  const handleToggleKeyActive = async (id: string, currentStatus: boolean) => {
+    try {
+      const res = await fetch(`/api/admin/apikeys/${id}`, {
+        method: 'PATCH',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({ isActive: !currentStatus }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(`API Key berhasil ${!currentStatus ? 'diaktifkan' : 'dinonaktifkan'}.`, 'success');
+        fetchApiKeys();
+      } else {
+        showToast(data.error || 'Gagal mengubah status', 'error');
+      }
+    } catch (err) {
+      showToast('Gagal mengubah status API Key', 'error');
+    }
+  };
+
+  const handleResetKeyBinding = async (id: string, name: string) => {
+    if (!confirm(`Lepas kunci binding untuk "${name}"? Bot baru yang pertama kali konek akan otomatis mengunci key ini.`)) return;
+
+    try {
+      const res = await fetch(`/api/admin/apikeys/${id}`, {
+        method: 'PATCH',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({ resetBinding: true }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('Kunci bot berhasil dilepas (Reset)!', 'success');
+        setKeyNotice({ type: 'success', message: `Kunci binding untuk "${name}" telah dilepas. Siap dihubungkan ke bot baru.` });
+        fetchApiKeys();
+      } else {
+        showToast(data.error || 'Gagal mereset kunci', 'error');
+      }
+    } catch (err) {
+      showToast('Gagal mereset kunci binding', 'error');
+    }
+  };
+
+  const handleDeleteApiKey = async () => {
+    if (!keyToDelete) return;
+
+    setIsDeletingKey(true);
+    try {
+      const res = await fetch(`/api/admin/apikeys/${keyToDelete.id}`, {
+        method: 'DELETE',
+        headers: getAdminHeaders(),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(`API Key "${keyToDelete.name}" berhasil dihapus.`, 'success');
+        setKeyNotice({ type: 'info', message: `API Key "${keyToDelete.name}" telah dihapus permanen.` });
+        setKeyToDelete(null);
+        fetchApiKeys();
+      } else {
+        showToast(data.error || 'Gagal menghapus API Key', 'error');
+      }
+    } catch (err) {
+      showToast('Gagal menghapus API Key', 'error');
+    } finally {
+      setIsDeletingKey(false);
+    }
+  };
+
+  const handleCopySingleKey = (keyVal: string, id: string) => {
+    navigator.clipboard.writeText(keyVal);
+    setCopiedKeyId(id);
+    showToast('API Key berhasil disalin ke clipboard!');
+    setTimeout(() => setCopiedKeyId(null), 2000);
+  };
+
+  const toggleKeyVisibility = (id: string) => {
+    setVisibleKeyIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   };
 
   const fetchDomains = async () => {
@@ -795,7 +964,11 @@ export default function AdminPage() {
     }
   };
 
-  const safeKey = apiKey || 'hfl_key_8899aabbccddeeff00112233';
+  const safeKey =
+    selectedApiKey ||
+    apiKeys.find((k) => k.isActive)?.key ||
+    apiKey ||
+    'hfl_key_8899aabbccddeeff00112233';
 
   const runTest = async (endpoint: string, params: string = '') => {
     setIsTesting(true);
@@ -1043,64 +1216,348 @@ if (!empty($otpData['found'])) {
         ) : (
           /* ADMIN DASHBOARD */
           <div className="space-y-5 sm:space-y-7">
-            {/* Top API Key Banner + Reset Button */}
+            {/* MULTI-API KEY & BOT CONNECTION MANAGEMENT SECTION */}
             <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 sm:gap-4">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 brutal-badge bg-[var(--color-yellow)] text-black px-2.5 py-0.5 text-[9px] xs:text-[10px] mb-1.5">
-                    <Sparkles className="w-3 h-3 text-[var(--color-orange)]" />
-                    <span>MASTER DEVELOPER KEY</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <Key className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <h2 className="font-heading font-black text-lg xs:text-xl sm:text-2xl uppercase tracking-tight text-[var(--text-main)]">
-                    API KEY & KONEKSI BOT
-                  </h2>
-                  <p className="font-mono-custom text-[11px] xs:text-xs text-[var(--text-muted)] mt-0.5 leading-relaxed">
-                    Gunakan API Key ini pada header <code className="bg-[#eff6ff] dark:bg-zinc-800 px-1 py-0.5 border">x-api-key</code> di script bot / program Anda.
-                  </p>
+                  <div>
+                    <h2 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                      KELOLA MULTI-API KEY & KONEKSI BOT
+                    </h2>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                      Buat dan kelola API Key tanpa batas dengan judul kustom serta fitur penguncian 1 Bot / 1 SC.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="relative w-full sm:flex-1 md:w-80">
-                    <input
-                      type={showApiKey ? 'text' : 'password'}
-                      readOnly
-                      value={apiKey}
-                      className="brutal-input w-full font-mono-custom text-xs sm:text-sm py-2 sm:py-2.5 pl-3 pr-10 font-bold select-all truncate"
-                    />
-                    <button
-                      onClick={() => setShowApiKey(!showApiKey)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-muted)] hover:text-black"
-                      title={showApiKey ? 'Sembunyikan' : 'Tampilkan'}
-                    >
-                      {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={handleCopyKey}
-                    className={`brutal-btn px-3 xs:px-4 py-2 sm:py-2.5 text-xs flex-1 sm:flex-none flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] ${
-                      copiedKey
-                        ? 'bg-[var(--color-green)] text-white'
-                        : 'bg-[var(--color-blue)] text-white hover:bg-sky-600'
-                    }`}
-                  >
-                    {copiedKey ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    <span>{copiedKey ? 'TERSALIN' : 'SALIN'}</span>
-                  </button>
-
-                  {/* Reset API Key Button */}
-                  <button
-                    onClick={handleResetApiKey}
-                    disabled={isResettingKey}
-                    className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-3 xs:px-3.5 py-2 sm:py-2.5 text-xs flex-1 sm:flex-none flex items-center justify-center gap-1.5 group shadow-[2px_2px_0px_var(--shadow-color)]"
-                    title="Buat API Key baru dan batalkan key lama"
-                  >
-                    <RotateCcw className={`w-3.5 h-3.5 ${isResettingKey ? 'animate-spin-fast' : 'group-hover:-rotate-180 transition-transform'}`} />
-                    <span>RESET KEY</span>
-                  </button>
+                <div className="text-[10px] xs:text-xs font-mono-custom font-black bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto">
+                  {apiKeys.length} API KEY TERDAFTAR
                 </div>
               </div>
+
+              {/* Dynamic Notification Notice Banner for API Keys */}
+              {keyNotice && (
+                <div
+                  className={`p-3 sm:p-3.5 mb-4 sm:mb-5 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] flex items-start justify-between gap-2.5 sm:gap-3 ${
+                    keyNotice.type === 'success'
+                      ? 'bg-[#ecfdf5] dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200'
+                      : keyNotice.type === 'error'
+                      ? 'bg-[#fef2f2] dark:bg-red-950 text-red-800 dark:text-red-200'
+                      : 'bg-[#eff6ff] dark:bg-sky-950 text-sky-800 dark:text-sky-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 text-xs font-mono-custom font-black">
+                    {keyNotice.type === 'success' ? (
+                      <CheckCircle2 className="w-4 h-4 text-[var(--color-green)] flex-shrink-0" />
+                    ) : keyNotice.type === 'error' ? (
+                      <AlertCircle className="w-4 h-4 text-[var(--color-red)] flex-shrink-0" />
+                    ) : (
+                      <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
+                    )}
+                    <span className="break-words">{keyNotice.message}</span>
+                  </div>
+                  <button
+                    onClick={() => setKeyNotice(null)}
+                    className="text-xs hover:opacity-70 font-bold px-1 flex-shrink-0 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {/* CREATE NEW API KEY FORM */}
+              <form onSubmit={handleCreateApiKey} className="p-3.5 sm:p-4 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] space-y-3.5 mb-6">
+                <div className="flex items-center gap-1.5 text-xs font-mono-custom font-black uppercase text-[var(--color-blue)] dark:text-[var(--color-cyan)]">
+                  <Plus className="w-4 h-4" />
+                  <span>BUAT / GENERATE API KEY BARU</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                      Judul / Nama Bot / Klien:
+                    </label>
+                    <input
+                      type="text"
+                      value={newKeyTitle}
+                      onChange={(e) => setNewKeyTitle(e.target.value)}
+                      placeholder="Contoh: Bot WhatsApp V1 / SC Register VIP"
+                      className="brutal-input w-full px-3 py-2 text-xs sm:text-sm font-mono-custom font-bold"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                      API Key Kustom (Opsional):
+                    </label>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        value={newKeyValue}
+                        onChange={(e) => setNewKeyValue(e.target.value)}
+                        placeholder="Kosongkan untuk otomatis di-generate"
+                        className="brutal-input flex-1 px-3 py-2 text-xs sm:text-sm font-mono-custom font-bold"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleGenerateRandomKeyInput}
+                        className="brutal-btn bg-[var(--color-yellow)] text-black px-2.5 sm:px-3 py-2 text-[11px] font-black flex items-center gap-1 flex-shrink-0 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
+                        title="Buat nilai API key acak"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>RANDOM</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Single Bot Lock Toggle Checkbox */}
+                <label className="flex items-start gap-2.5 p-3 bg-white dark:bg-zinc-950 border-[2px] border-amber-300 dark:border-amber-700 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]">
+                  <input
+                    type="checkbox"
+                    checked={newKeySingleBot}
+                    onChange={(e) => setNewKeySingleBot(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 accent-amber-500 cursor-pointer flex-shrink-0"
+                  />
+                  <div>
+                    <span className="font-mono-custom font-black text-xs text-amber-900 dark:text-amber-200 block">
+                      KUNCI 1 BOT / 1 SC (SINGLE INSTANCE LOCK)
+                    </span>
+                    <span className="font-mono-custom text-[10px] sm:text-[11px] text-[var(--text-muted)] block mt-0.5 leading-relaxed">
+                      Jika dicentang, API Key ini akan otomatis mengikat IP / Bot pertama yang melakukan request. Script atau IP lain yang mencoba memakai key yang sama akan ditolak (403 Forbidden).
+                    </span>
+                  </div>
+                </label>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={isCreatingKey || !newKeyTitle.trim()}
+                    className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-4 xs:px-5 py-2 text-xs font-black flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{isCreatingKey ? 'MEMBUAT API KEY...' : 'BUAT API KEY BARU'}</span>
+                  </button>
+                </div>
+              </form>
+
+              {/* API KEYS LIST */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2 pb-1">
+                  <span className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)]">
+                    DAFTAR API KEY AKTIF & STATUS PENGUNCIAN
+                  </span>
+                  <button
+                    type="button"
+                    onClick={fetchApiKeys}
+                    disabled={isLoadingKeys}
+                    className="text-[11px] font-mono-custom font-bold text-[var(--color-blue)] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isLoadingKeys ? 'animate-spin-fast' : ''}`} />
+                    <span>REFRESH</span>
+                  </button>
+                </div>
+
+                {isLoadingKeys && apiKeys.length === 0 ? (
+                  <div className="p-6 text-center text-xs font-mono-custom text-[var(--text-muted)] border-2 border-dashed border-[var(--border-color)]">
+                    Memuat daftar API Key...
+                  </div>
+                ) : apiKeys.length === 0 ? (
+                  <div className="p-6 text-center text-xs font-mono-custom text-[var(--text-muted)] border-2 border-dashed border-[var(--border-color)]">
+                    Belum ada API Key. Silakan gunakan formulir di atas untuk membuat API Key baru.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {apiKeys.map((keyItem) => {
+                      const isKeyVisible = visibleKeyIds.has(keyItem.id);
+                      const isKeyCopied = copiedKeyId === keyItem.id;
+
+                      return (
+                        <div
+                          key={keyItem.id}
+                          className={`p-3.5 sm:p-4 border-[2px] sm:border-[2.5px] border-[var(--border-color)] bg-white dark:bg-zinc-950 shadow-[3px_3px_0px_var(--shadow-color)] space-y-3 ${
+                            !keyItem.isActive ? 'opacity-70 bg-zinc-100 dark:bg-zinc-900' : ''
+                          }`}
+                        >
+                          {/* Title & Badges Bar */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="font-heading font-black text-sm sm:text-base uppercase tracking-tight text-[var(--text-main)]">
+                                {keyItem.name}
+                              </h4>
+                              {keyItem.isActive ? (
+                                <span className="bg-[#ecfdf5] dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 text-[9px] sm:text-[10px] font-mono-custom font-black px-2 py-0.5 border border-emerald-500">
+                                  AKTIF
+                                </span>
+                              ) : (
+                                <span className="bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[9px] sm:text-[10px] font-mono-custom font-black px-2 py-0.5 border border-zinc-400">
+                                  NONAKTIF
+                                </span>
+                              )}
+
+                              {keyItem.isSingleBot ? (
+                                keyItem.boundIdentifier ? (
+                                  <span className="bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-200 text-[9px] sm:text-[10px] font-mono-custom font-black px-2 py-0.5 border border-red-400 flex items-center gap-1">
+                                    <Lock className="w-3 h-3" />
+                                    <span>TERKUNCI: {keyItem.boundIdentifier}</span>
+                                  </span>
+                                ) : (
+                                  <span className="bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 text-[9px] sm:text-[10px] font-mono-custom font-black px-2 py-0.5 border border-amber-400 flex items-center gap-1">
+                                    <Lock className="w-3 h-3" />
+                                    <span>KUNCI 1-BOT: SIAP BINDING</span>
+                                  </span>
+                                )
+                              ) : (
+                                <span className="bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-200 text-[9px] sm:text-[10px] font-mono-custom font-black px-2 py-0.5 border border-blue-400">
+                                  MULTI-BOT (BEBAS)
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2 text-[10px] font-mono-custom text-[var(--text-muted)] self-start sm:self-auto">
+                              <span>Total Request: <strong className="text-[var(--text-main)]">{keyItem.totalRequests}</strong></span>
+                            </div>
+                          </div>
+
+                          {/* Key Input & Copy Row */}
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <div className="relative flex-1">
+                              <input
+                                type={isKeyVisible ? 'text' : 'password'}
+                                readOnly
+                                value={keyItem.key}
+                                className="brutal-input w-full font-mono-custom text-xs py-2 pl-3 pr-10 font-bold select-all bg-zinc-50 dark:bg-zinc-900"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => toggleKeyVisibility(keyItem.id)}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-muted)] hover:text-black dark:hover:text-white cursor-pointer"
+                                title={isKeyVisible ? 'Sembunyikan' : 'Tampilkan'}
+                              >
+                                {isKeyVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                              </button>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleCopySingleKey(keyItem.key, keyItem.id)}
+                              className={`brutal-btn px-3 py-2 text-xs flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] cursor-pointer flex-shrink-0 ${
+                                isKeyCopied
+                                  ? 'bg-[var(--color-green)] text-white'
+                                  : 'bg-[var(--color-blue)] text-white hover:bg-sky-600'
+                              }`}
+                            >
+                              {isKeyCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                              <span>{isKeyCopied ? 'TERSALIN' : 'SALIN KEY'}</span>
+                            </button>
+                          </div>
+
+                          {/* Binding Info & Action Buttons */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)] border-t border-dashed border-zinc-200 dark:border-zinc-800">
+                            <div>
+                              {keyItem.boundAt && (
+                                <span>Terkunci pada: {new Date(keyItem.boundAt).toLocaleString('id-ID')} | </span>
+                              )}
+                              <span>
+                                Terakhir dipakai:{' '}
+                                {keyItem.lastUsedAt
+                                  ? `${new Date(keyItem.lastUsedAt).toLocaleString('id-ID')} (${keyItem.lastUsedIp || '-'})`
+                                  : 'Belum pernah digunakan'}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {keyItem.isSingleBot && keyItem.boundIdentifier && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleResetKeyBinding(keyItem.id, keyItem.name)}
+                                  className="brutal-btn bg-[var(--color-orange)] text-white hover:bg-orange-600 px-2.5 py-1 text-[10px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] cursor-pointer"
+                                  title="Lepas ikatan IP agar bisa digunakan bot lain/baru"
+                                >
+                                  <RotateCcw className="w-3 h-3" />
+                                  <span>RESET KUNCI</span>
+                                </button>
+                              )}
+
+                              <button
+                                type="button"
+                                onClick={() => handleToggleKeyActive(keyItem.id, keyItem.isActive)}
+                                className={`brutal-btn px-2.5 py-1 text-[10px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] cursor-pointer ${
+                                  keyItem.isActive
+                                    ? 'bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white'
+                                    : 'bg-[var(--color-green)] text-white'
+                                }`}
+                              >
+                                <Power className="w-3 h-3" />
+                                <span>{keyItem.isActive ? 'NONAKTIFKAN' : 'AKTIFKAN'}</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => setKeyToDelete(keyItem)}
+                                className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-2.5 py-1 text-[10px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] cursor-pointer"
+                                title="Hapus API Key ini"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                <span>HAPUS</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* DELETE API KEY CONFIRMATION MODAL */}
+            {keyToDelete && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
+                        HAPUS API KEY?
+                      </h4>
+                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
+                        Konfirmasi penghapusan API Key
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
+                    Apakah Anda yakin ingin menghapus API Key <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">{keyToDelete.name}</span>? Bot yang masih menggunakan key ini akan segera terputus dan tidak dapat mengakses API.
+                  </p>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setKeyToDelete(null)}
+                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold cursor-pointer"
+                    >
+                      BATAL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteApiKey}
+                      disabled={isDeletingKey}
+                      className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>{isDeletingKey ? 'MENGHAPUS...' : 'YA, HAPUS KEY'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* DOMAIN MANAGEMENT SECTION */}
             <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
@@ -2231,6 +2688,41 @@ if (!empty($otpData['found'])) {
                     OTP + LINKS AKTIF
                   </span>
                 </div>
+              </div>
+            </div>
+
+            {/* API KEY SELECTOR FOR INTEGRATION & LIVE TESTER */}
+            <div className="brutal-card p-3.5 sm:p-4 bg-[var(--card-bg)] flex flex-col md:flex-row md:items-center justify-between gap-3 border-[2px] border-[var(--border-color)]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                  <Key className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)] block">
+                    PILIH API KEY UNTUK INTEGRASI KODE & LIVE TESTER
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
+                    Pilih API Key aktif yang akan disematkan pada contoh kode (Python, Node, cURL, PHP) dan pengujian live di bawah.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <label className="text-[11px] font-mono-custom font-bold uppercase text-[var(--text-main)] hidden sm:inline">
+                  Key Aktif:
+                </label>
+                <select
+                  value={safeKey}
+                  onChange={(e) => setSelectedApiKey(e.target.value)}
+                  className="brutal-input text-xs font-mono-custom font-bold py-2 px-3 bg-white dark:bg-zinc-900 cursor-pointer w-full md:w-auto min-w-[260px]"
+                >
+                  {apiKeys.map((k) => (
+                    <option key={k.id} value={k.key}>
+                      {k.name} ({k.isSingleBot ? (k.boundIdentifier ? '1-BOT LOCKED' : '1-BOT LOCK') : 'MULTI-BOT'}) {!k.isActive ? '[NONAKTIF]' : ''}
+                    </option>
+                  ))}
+                  {apiKeys.length === 0 && <option value={safeKey}>Default Master Key</option>}
+                </select>
               </div>
             </div>
 

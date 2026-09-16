@@ -100,8 +100,26 @@ export function verifyAdminSessionToken(token: string): { valid: boolean; userna
   }
 }
 
+import { ApiKey } from '@/lib/models/ApiKey';
+
 /**
- * Get current active API Key for Bot integration
+ * Extract Client IP Address cleanly from NextRequest
+ */
+export function getClientIp(req: NextRequest): string {
+  const forwardedFor = req.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    const firstIp = forwardedFor.split(',')[0].trim();
+    if (firstIp) return firstIp;
+  }
+  const realIp = req.headers.get('x-real-ip');
+  if (realIp) return realIp.trim();
+  const cfConnectingIp = req.headers.get('cf-connecting-ip');
+  if (cfConnectingIp) return cfConnectingIp.trim();
+  return (req as any).ip || '127.0.0.1';
+}
+
+/**
+ * Get current active master API Key for fallback
  */
 export async function getCurrentApiKey(): Promise<string> {
   const envKey = process.env.ADMIN_API_KEY || 'hfl_key_8899aabbccddeeff00112233';
@@ -117,10 +135,17 @@ export async function getCurrentApiKey(): Promise<string> {
   return envKey;
 }
 
+export interface ApiKeyValidationResult {
+  valid: boolean;
+  error?: string;
+  status?: number;
+  keyDoc?: any;
+}
+
 /**
- * Validate Bot API Key from Request (Headers, Bearer Token, or Query)
+ * Detailed API Key validation with Single-Bot / Instance Auto-Lock Protection
  */
-export async function validateApiKey(req: NextRequest): Promise<boolean> {
+export async function validateApiKeyDetailed(req: NextRequest): Promise<ApiKeyValidationResult> {
   let providedKey: string | null = null;
 
   // 1. Cek header x-api-key
@@ -147,13 +172,112 @@ export async function validateApiKey(req: NextRequest): Promise<boolean> {
   }
 
   if (!providedKey) {
-    return false;
+    return {
+      valid: false,
+      error: 'Unauthorized: Header "x-api-key" atau Bearer token wajib disertakan.',
+      status: 401,
+    };
   }
 
-  const activeKey = await getCurrentApiKey();
-  const envKey = process.env.ADMIN_API_KEY || 'hfl_key_8899aabbccddeeff00112233';
+  const clientIp = getClientIp(req);
+  const botIdHeader = req.headers.get('x-bot-id') || req.headers.get('x-instance-id');
+  const incomingIdentifier = botIdHeader ? botIdHeader.trim() : clientIp;
 
-  return safeCompare(providedKey, activeKey) || safeCompare(providedKey, envKey);
+  try {
+    await connectToDatabase();
+
+    // 1. Cari API Key di Database ApiKey
+    const apiKeyDoc = await ApiKey.findOne({ key: providedKey });
+
+    if (apiKeyDoc) {
+      if (!apiKeyDoc.isActive) {
+        return {
+          valid: false,
+          error: 'Forbidden: API Key ini dinonaktifkan oleh administrator.',
+          status: 403,
+        };
+      }
+
+      // Single-Bot (1 API Key = 1 Bot / 1 SC) Lock Mechanism
+      if (apiKeyDoc.isSingleBot) {
+        if (!apiKeyDoc.boundIdentifier) {
+          // Auto-Lock pada request pertama!
+          apiKeyDoc.boundIdentifier = incomingIdentifier;
+          apiKeyDoc.boundAt = new Date();
+          apiKeyDoc.lastUsedAt = new Date();
+          apiKeyDoc.lastUsedIp = clientIp;
+          apiKeyDoc.totalRequests = (apiKeyDoc.totalRequests || 0) + 1;
+          await apiKeyDoc.save();
+
+          return { valid: true, keyDoc: apiKeyDoc };
+        }
+
+        // Sudah terikat sebelumnya: periksa kecocokan
+        const isMatch =
+          apiKeyDoc.boundIdentifier === incomingIdentifier ||
+          apiKeyDoc.boundIdentifier === clientIp;
+
+        if (!isMatch) {
+          return {
+            valid: false,
+            error: `Forbidden: API Key ini sudah terkunci (terikat) pada bot/server lain (${apiKeyDoc.boundIdentifier}). Hubungi admin untuk mereset kunci.`,
+            status: 403,
+          };
+        }
+
+        // Identifier cocok: perbarui lastUsed
+        apiKeyDoc.lastUsedAt = new Date();
+        apiKeyDoc.lastUsedIp = clientIp;
+        apiKeyDoc.totalRequests = (apiKeyDoc.totalRequests || 0) + 1;
+        await apiKeyDoc.save();
+
+        return { valid: true, keyDoc: apiKeyDoc };
+      }
+
+      // Multi-Bot Mode (Bebas / Tanpa Kunci)
+      apiKeyDoc.lastUsedAt = new Date();
+      apiKeyDoc.lastUsedIp = clientIp;
+      apiKeyDoc.totalRequests = (apiKeyDoc.totalRequests || 0) + 1;
+      await apiKeyDoc.save();
+
+      return { valid: true, keyDoc: apiKeyDoc };
+    }
+
+    // 2. Fallback ke Master Key bawaan jika belum ada di database ApiKey
+    const masterKey = await getCurrentApiKey();
+    const envKey = process.env.ADMIN_API_KEY || 'hfl_key_8899aabbccddeeff00112233';
+
+    if (safeCompare(providedKey, masterKey) || safeCompare(providedKey, envKey)) {
+      return { valid: true };
+    }
+
+    return {
+      valid: false,
+      error: 'Unauthorized: API Key tidak valid atau tidak ditemukan.',
+      status: 401,
+    };
+  } catch (err: any) {
+    console.error('Error validating API Key:', err);
+    // Fallback jika offline
+    const masterKey = await getCurrentApiKey();
+    const envKey = process.env.ADMIN_API_KEY || 'hfl_key_8899aabbccddeeff00112233';
+    if (safeCompare(providedKey, masterKey) || safeCompare(providedKey, envKey)) {
+      return { valid: true };
+    }
+    return {
+      valid: false,
+      error: 'Unauthorized: Gagal memvalidasi API Key.',
+      status: 401,
+    };
+  }
+}
+
+/**
+ * Validate Bot API Key from Request (Boolean helper)
+ */
+export async function validateApiKey(req: NextRequest): Promise<boolean> {
+  const result = await validateApiKeyDetailed(req);
+  return result.valid;
 }
 
 export interface AdminCredentials {
