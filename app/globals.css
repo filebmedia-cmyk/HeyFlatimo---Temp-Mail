@@ -383,9 +383,129 @@ body {
   to { transform: rotate(360deg); }
 }
 
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(1000%); }
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes newBadgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.6);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 4px rgba(0, 200, 83, 0);
+  }
+}
+
+@keyframes mailboxRadarSweep {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* ============================================================
+   MOTION & LIVE SIGNAL UTILITIES
+   ============================================================ */
+
+.motion-float {
+  animation: floatSlow 3.5s ease-in-out infinite;
+}
+
+.motion-pulse-subtle {
+  animation: pulseSubtle 2s ease-in-out infinite;
+}
+
+.motion-live-badge {
+  animation: liveGlow 2.4s ease-in-out infinite;
+}
+
+.motion-radar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-color: var(--color-green);
+  opacity: 0.85;
+  animation: radarRipple 1.8s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+  pointer-events: none;
+}
+
+.motion-radar-ring-delayed {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-color: var(--color-green);
+  opacity: 0.85;
+  animation: radarRipple 1.8s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+  animation-delay: 0.9s;
+  pointer-events: none;
+}
+
+.signal-bar-1 {
+  animation: signalBar 1.2s ease-in-out infinite;
+  transform-origin: bottom;
+}
+.signal-bar-2 {
+  animation: signalBar 1.2s ease-in-out infinite;
+  animation-delay: 0.25s;
+  transform-origin: bottom;
+}
+.signal-bar-3 {
+  animation: signalBar 1.2s ease-in-out infinite;
+  animation-delay: 0.5s;
+  transform-origin: bottom;
+}
+
+.motion-toast-in {
+  animation: slideDownToast 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.motion-dropdown {
+  animation: dropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.motion-modal {
+  animation: modalScaleIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-spin-fast {
+  animation: spinFast 0.6s linear infinite;
+}
+
+.animate-spin-slow {
+  animation: spinFast 12s linear infinite;
+}
+
+.motion-message-item {
+  animation: messageSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.motion-new-badge {
+  animation: newBadgePulse 1.8s ease-in-out infinite;
+}
+
+.mailbox-radar-wave-1 {
+  animation: mailboxRadarSweep 2.5s cubic-bezier(0.1, 0.4, 0.8, 1) infinite;
+}
+
+.mailbox-radar-wave-2 {
+  animation: mailboxRadarSweep 2.5s cubic-bezier(0.1, 0.4, 0.8, 1) infinite;
+  animation-delay: 1.25s;
 }
 
 /* ============================================================

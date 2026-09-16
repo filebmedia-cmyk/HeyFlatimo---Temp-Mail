@@ -98,7 +98,11 @@ export default function MessageList({
           <div className="flex-1 flex flex-col items-center justify-center text-center py-7 sm:py-10">
             {/* Animated Radar Antenna & Floating Mailbox Beacon */}
             <div className="relative mb-4 sm:mb-5">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#f0f9ff] dark:bg-[#151922] border-[3px] border-[var(--border-color)] flex items-center justify-center shadow-[4px_4px_0px_var(--shadow-color)] mx-auto relative group">
+              <div className="absolute inset-0 -m-3 flex items-center justify-center pointer-events-none">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-[var(--color-blue)] opacity-40 mailbox-radar-wave-1" />
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-[var(--color-blue)] opacity-40 mailbox-radar-wave-2" />
+              </div>
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#f0f9ff] dark:bg-[#151922] border-[3px] border-[var(--border-color)] flex items-center justify-center shadow-[4px_4px_0px_var(--shadow-color)] mx-auto relative group motion-float">
                 <Mail className="w-7 h-7 sm:w-8 sm:h-8 text-[var(--color-blue)] anim-mail" />
               </div>
             </div>
@@ -120,7 +124,7 @@ export default function MessageList({
               return (
                 <div
                   key={msg.id}
-                  className={`border-[2.5px] sm:border-[3px] border-[var(--border-color)] transition-all ${
+                  className={`motion-message-item border-[2.5px] sm:border-[3px] border-[var(--border-color)] transition-all ${
                     !msg.isRead ? 'bg-[#f0fdf4] dark:bg-[#121b18] shadow-[3px_3px_0px_var(--shadow-color)]' : 'bg-[#fcfdfe] dark:bg-[#10141e] shadow-[2px_2px_0px_var(--shadow-color)]'
                   }`}
                 >
@@ -138,7 +142,7 @@ export default function MessageList({
                           {formatTimeAgo(msg.createdAt)}
                         </span>
                         {!msg.isRead && (
-                          <span className="bg-[var(--color-green)] text-white text-[9px] font-mono-custom font-black px-1.5 py-0.2 border border-[var(--border-color)] uppercase">
+                          <span className="bg-[var(--color-green)] text-white text-[9px] font-mono-custom font-black px-1.5 py-0.2 border border-[var(--border-color)] uppercase motion-new-badge">
                             BARU
                           </span>
                         )}

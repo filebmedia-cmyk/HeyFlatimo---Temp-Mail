@@ -128,8 +128,14 @@ export default function SplitInbox({
         >
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-6 sm:p-8 text-center opacity-75 my-auto select-none">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[var(--color-yellow)] border-[2.5px] sm:border-[3px] border-[var(--border-color)] flex items-center justify-center mb-3 shadow-[2.5px_2.5px_0px_var(--shadow-color)] motion-float">
-                <Inbox className="w-6 h-6 sm:w-7 sm:h-7 text-black anim-mail" />
+              <div className="relative mb-3">
+                <div className="absolute inset-0 -m-2 flex items-center justify-center pointer-events-none">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-[var(--color-yellow)] opacity-40 mailbox-radar-wave-1" />
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-[var(--color-yellow)] opacity-40 mailbox-radar-wave-2" />
+                </div>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[var(--color-yellow)] border-[2.5px] sm:border-[3px] border-[var(--border-color)] flex items-center justify-center shadow-[2.5px_2.5px_0px_var(--shadow-color)] motion-float relative">
+                  <Inbox className="w-6 h-6 sm:w-7 sm:h-7 text-black anim-mail" />
+                </div>
               </div>
               <p className="font-heading font-black text-sm uppercase mb-1 text-[var(--text-main)]">
                 Inbox Masih Kosong
@@ -147,7 +153,7 @@ export default function SplitInbox({
                   <div
                     key={msg.id}
                     onClick={() => handleMessageClick(msg)}
-                    className={`p-3 xs:p-3.5 sm:p-4 cursor-pointer transition-all group select-none active:scale-[0.99] ${
+                    className={`motion-message-item p-3 xs:p-3.5 sm:p-4 cursor-pointer transition-all group select-none active:scale-[0.99] ${
                       isSelected
                         ? 'bg-[var(--color-blue)] text-white border-l-[6px] sm:border-l-[8px] border-l-[var(--color-yellow)]'
                         : 'bg-white dark:bg-zinc-900 hover:bg-[#f1f5f9] dark:hover:bg-zinc-800 text-[var(--text-main)]'

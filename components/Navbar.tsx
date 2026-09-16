@@ -61,8 +61,8 @@ export default function Navbar({
 
         {/* Action Controls */}
         <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-3 flex-shrink-0">
-          {/* Status Badge (Tablet / Desktop): Animated INBOX READY */}
-          <div className="hidden lg:flex items-center gap-2 brutal-badge bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7] px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] border-[2px] sm:border-[2.5px] border-[var(--border-color)] motion-live-badge select-none">
+          {/* Status Badge (Tablet & Desktop): Animated INBOX READY */}
+          <div className="hidden sm:flex items-center gap-2 brutal-badge bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7] px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] border-[2px] sm:border-[2.5px] border-[var(--border-color)] motion-live-badge select-none">
             {/* Pulsing Sonar Beacon */}
             <div className="relative flex items-center justify-center w-3 h-3 flex-shrink-0">
               <span className="motion-radar-ring" />
@@ -78,6 +78,15 @@ export default function Navbar({
             </div>
 
             <span className="font-mono-custom font-black tracking-wide">INBOX READY</span>
+          </div>
+
+          {/* Compact Status Indicator (Mobile) */}
+          <div className="flex sm:hidden items-center gap-1.5 bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7] px-2 py-1 border-[1.5px] border-[var(--border-color)] motion-live-badge select-none" title="Inbox Signal Live">
+            <div className="relative flex items-center justify-center w-2.5 h-2.5 flex-shrink-0">
+              <span className="motion-radar-ring" />
+              <span className="relative w-1.5 h-1.5 rounded-full bg-[var(--color-green)]" />
+            </div>
+            <span className="font-mono-custom font-black text-[9px] tracking-wide">LIVE</span>
           </div>
 
           {/* Admin / API Key Portal Button */}
