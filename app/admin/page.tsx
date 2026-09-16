@@ -1382,17 +1382,14 @@ if (!empty($otpData['found'])) {
           /* ADMIN DASHBOARD */
           <div className="space-y-4 sm:space-y-6 w-full max-w-full min-w-0">
 
-            {/* Top Neo-Brutalist Navigation Tab Bar (Contained Mobile Scroller) */}
-            <div className="w-full max-w-full min-w-0 brutal-card p-1.5 xs:p-2 bg-[var(--card-bg)] border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] overflow-hidden">
-              <div
-                className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-0.5 scrollbar-none w-full min-w-0"
-                style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
-              >
+            {/* Top Neo-Brutalist Navigation Tab Grid (Fully Visible On All Screens - Zero Swipe/Cutoff) */}
+            <div className="w-full max-w-full min-w-0 brutal-card p-1.5 xs:p-2 sm:p-2.5 bg-[var(--card-bg)] border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] sm:shadow-[3.5px_3.5px_0px_var(--shadow-color)]">
+              <div className="grid grid-cols-2 xs:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2 w-full">
                 {[
                   { id: 'dashboard', label: 'DASHBOARD', icon: LayoutDashboard, badge: null },
                   { id: 'domains', label: 'DOMAIN EMAIL', icon: Globe, badge: domains.length },
                   { id: 'apikeys', label: 'API KEYS', icon: Key, badge: apiKeys.length },
-                  { id: 'endpoints', label: 'ENDPOINTS & DOCS', icon: Shield, badge: '9 API' },
+                  { id: 'endpoints', label: 'ENDPOINTS', icon: Shield, badge: '9 API' },
                   { id: 'bot_tester', label: 'BOT & TESTER', icon: Terminal, badge: telegramEnabled ? 'BOT ON' : null },
                   { id: 'settings', label: 'PENGATURAN', icon: Sliders, badge: null },
                 ].map((tab) => {
@@ -1406,17 +1403,17 @@ if (!empty($otpData['found'])) {
                         playSound('click');
                         setActiveAdminTab(tab.id as AdminTabType);
                       }}
-                      className={`brutal-btn px-2.5 xs:px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] xs:text-xs sm:text-sm font-black font-mono-custom flex items-center gap-1.5 sm:gap-2 uppercase whitespace-nowrap transition-all flex-shrink-0 cursor-pointer ${
+                      className={`brutal-btn w-full px-1.5 xs:px-2 sm:px-3 py-2 sm:py-2.5 text-[10px] xs:text-[11px] sm:text-xs font-black font-mono-custom flex items-center justify-center gap-1 xs:gap-1.5 uppercase transition-all cursor-pointer select-none text-center ${
                         isActive
-                          ? 'bg-[var(--color-yellow)] text-black shadow-[2.5px_2.5px_0px_var(--shadow-color)] scale-[1.01]'
+                          ? 'bg-[var(--color-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[2.5px_2.5px_0px_var(--shadow-color)] scale-[1.01]'
                           : 'bg-white dark:bg-zinc-900 text-[var(--text-main)] hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-[1px_1px_0px_var(--shadow-color)]'
                       }`}
                     >
                       <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${isActive ? 'text-black' : 'text-[var(--color-blue)]'}`} />
-                      <span>{tab.label}</span>
+                      <span className="truncate">{tab.label}</span>
                       {tab.badge !== null && (
                         <span
-                          className={`text-[9px] sm:text-[10px] px-1.5 py-0.2 border border-[var(--border-color)] font-mono-custom font-black flex-shrink-0 ${
+                          className={`text-[8px] xs:text-[9px] sm:text-[10px] px-1 py-0.2 border border-[var(--border-color)] font-mono-custom font-black flex-shrink-0 ${
                             isActive ? 'bg-black text-white' : 'bg-[var(--color-yellow)] text-black'
                           }`}
                         >
@@ -2524,11 +2521,11 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/generate`, 'ep_gen_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                         title="Salin Full URL Endpoint"
                       >
                         {copiedEndpointId === 'ep_gen_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
@@ -2543,7 +2540,7 @@ if (!empty($otpData['found'])) {
                             'ep_gen_curl'
                           )
                         }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                         title="Salin cURL Siap Pakai"
                       >
                         {copiedCurlId === 'ep_gen_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
@@ -2553,7 +2550,7 @@ if (!empty($otpData['found'])) {
                       <button
                         type="button"
                         onClick={() => toggleEndpointExpand('generate')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         <span>{expandedEndpoints.has('generate') ? 'TUTUP' : 'DETAIL'}</span>
                         {expandedEndpoints.has('generate') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -2625,11 +2622,11 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/inbox?email=user@domain.com`, 'ep_inbox_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedEndpointId === 'ep_inbox_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                         <span>SALIN URL</span>
@@ -2643,7 +2640,7 @@ if (!empty($otpData['found'])) {
                             'ep_inbox_curl'
                           )
                         }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedCurlId === 'ep_inbox_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
                         <span>cURL</span>
@@ -2652,7 +2649,7 @@ if (!empty($otpData['found'])) {
                       <button
                         type="button"
                         onClick={() => toggleEndpointExpand('inbox')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         <span>{expandedEndpoints.has('inbox') ? 'TUTUP' : 'DETAIL'}</span>
                         {expandedEndpoints.has('inbox') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -2731,11 +2728,11 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/messages/<MESSAGE_ID>`, 'ep_msg_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedEndpointId === 'ep_msg_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                         <span>SALIN URL</span>
@@ -2749,7 +2746,7 @@ if (!empty($otpData['found'])) {
                             'ep_msg_curl'
                           )
                         }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedCurlId === 'ep_msg_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
                         <span>cURL</span>
@@ -2758,7 +2755,7 @@ if (!empty($otpData['found'])) {
                       <button
                         type="button"
                         onClick={() => toggleEndpointExpand('messages')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         <span>{expandedEndpoints.has('messages') ? 'TUTUP' : 'DETAIL'}</span>
                         {expandedEndpoints.has('messages') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -2833,11 +2830,11 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/otp?email=user@domain.com`, 'ep_otp_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedEndpointId === 'ep_otp_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                         <span>SALIN URL</span>
@@ -2851,7 +2848,7 @@ if (!empty($otpData['found'])) {
                             'ep_otp_curl'
                           )
                         }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedCurlId === 'ep_otp_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
                         <span>cURL</span>
@@ -2860,7 +2857,7 @@ if (!empty($otpData['found'])) {
                       <button
                         type="button"
                         onClick={() => toggleEndpointExpand('otp')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         <span>{expandedEndpoints.has('otp') ? 'TUTUP' : 'DETAIL'}</span>
                         {expandedEndpoints.has('otp') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -2931,11 +2928,11 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/links?email=user@domain.com`, 'ep_links_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedEndpointId === 'ep_links_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                         <span>SALIN URL</span>
@@ -2949,7 +2946,7 @@ if (!empty($otpData['found'])) {
                             'ep_links_curl'
                           )
                         }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedCurlId === 'ep_links_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
                         <span>cURL</span>
@@ -2958,7 +2955,7 @@ if (!empty($otpData['found'])) {
                       <button
                         type="button"
                         onClick={() => toggleEndpointExpand('links')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         <span>{expandedEndpoints.has('links') ? 'TUTUP' : 'DETAIL'}</span>
                         {expandedEndpoints.has('links') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -3031,11 +3028,11 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/domains`, 'ep_dom_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedEndpointId === 'ep_dom_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                         <span>SALIN URL</span>
@@ -3049,7 +3046,7 @@ if (!empty($otpData['found'])) {
                             'ep_dom_curl'
                           )
                         }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedCurlId === 'ep_dom_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
                         <span>cURL</span>
@@ -3058,7 +3055,7 @@ if (!empty($otpData['found'])) {
                       <button
                         type="button"
                         onClick={() => toggleEndpointExpand('domains')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         <span>{expandedEndpoints.has('domains') ? 'TUTUP' : 'DETAIL'}</span>
                         {expandedEndpoints.has('domains') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -3118,11 +3115,11 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/stats`, 'ep_stats_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedEndpointId === 'ep_stats_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                         <span>SALIN URL</span>
@@ -3136,7 +3133,7 @@ if (!empty($otpData['found'])) {
                             'ep_stats_curl'
                           )
                         }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedCurlId === 'ep_stats_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
                         <span>cURL</span>
@@ -3145,7 +3142,7 @@ if (!empty($otpData['found'])) {
                       <button
                         type="button"
                         onClick={() => toggleEndpointExpand('stats')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         <span>{expandedEndpoints.has('stats') ? 'TUTUP' : 'DETAIL'}</span>
                         {expandedEndpoints.has('stats') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -3204,11 +3201,11 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="grid grid-cols-2 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/webhook/email`, 'ep_wh_email_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedEndpointId === 'ep_wh_email_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                         <span>SALIN URL</span>
@@ -3217,7 +3214,7 @@ if (!empty($otpData['found'])) {
                       <button
                         type="button"
                         onClick={() => toggleEndpointExpand('webhook_email')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         <span>{expandedEndpoints.has('webhook_email') ? 'TUTUP' : 'DETAIL'}</span>
                         {expandedEndpoints.has('webhook_email') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -3290,11 +3287,11 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-1.5 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="grid grid-cols-2 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleCopyEndpointUrl(`${origin}/api/webhook/telegram`, 'ep_wh_tg_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         {copiedEndpointId === 'ep_wh_tg_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                         <span>SALIN URL</span>
@@ -3303,7 +3300,7 @@ if (!empty($otpData['found'])) {
                       <button
                         type="button"
                         onClick={() => toggleEndpointExpand('webhook_telegram')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
                       >
                         <span>{expandedEndpoints.has('webhook_telegram') ? 'TUTUP' : 'DETAIL'}</span>
                         {expandedEndpoints.has('webhook_telegram') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -3609,7 +3606,7 @@ if (!empty($otpData['found'])) {
                   </div>
 
                   {/* Language Selector */}
-                  <div className="flex gap-1 flex-wrap">
+                  <div className="grid grid-cols-4 sm:flex gap-1 w-full sm:w-auto">
                     {(['python', 'node', 'curl', 'php'] as const).map((lang) => (
                       <button
                         key={lang}
