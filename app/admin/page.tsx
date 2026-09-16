@@ -37,6 +37,9 @@ import {
   Megaphone,
   Save,
   Sliders,
+  BellRing,
+  Bell,
+  BellOff,
   ToggleLeft,
   ToggleRight,
   Crown,
@@ -46,26 +49,23 @@ import {
   Edit3,
   ChevronDown,
   ChevronUp,
-  LayoutDashboard,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
-import { playSound } from '@/lib/sound';
+import { playSound, getSoundEnabled, setSoundEnabled, unlockAudio } from '@/lib/sound';
 
 export interface ApiKeyItem {
   id: string;
   name: string;
   key: string;
   isSingleBot: boolean;
-  boundIdentifier?: string | null;
-  boundAt?: string | null;
-  lastUsedAt?: string | null;
-  lastUsedIp?: string | null;
-  totalRequests?: number;
+  boundIdentifier: string | null;
+  boundAt: string | null;
+  lastUsedAt: string | null;
+  lastUsedIp: string | null;
+  totalRequests: number;
   isActive: boolean;
-  createdAt?: string;
+  createdAt: string;
 }
-
-export type AdminTabType = 'dashboard' | 'domains' | 'apikeys' | 'endpoints' | 'bot_tester' | 'settings';
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -78,9 +78,8 @@ export default function AdminPage() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
-  // Active Admin Navigation Tab (Dashboard, Domains, API Keys, Endpoints, Bot Tester, Settings)
-  const [activeAdminTab, setActiveAdminTab] = useState<AdminTabType>('dashboard');
-
+  // Sound FX State (Inherited from localStorage)
+  const [isSoundEnabled, setIsSoundEnabled] = useState(false);
 
   // Multi API Key & Single-Bot Lock State
   const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([]);
@@ -218,6 +217,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setOrigin(window.location.origin);
+      setIsSoundEnabled(getSoundEnabled());
       // Clear any legacy persistent storage
       localStorage.removeItem('heyflatimo_admin_logged');
       
@@ -233,6 +233,18 @@ export default function AdminPage() {
     }
   }, []);
 
+  const handleToggleSound = () => {
+    unlockAudio();
+    const next = !isSoundEnabled;
+    setIsSoundEnabled(next);
+    setSoundEnabled(next);
+    if (next) {
+      playSound('success');
+      showToast('Suara Notifikasi Admin Diaktifkan', 'info');
+    } else {
+      showToast('Suara Notifikasi Admin Dinonaktifkan (Mute)', 'info');
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1253,12 +1265,12 @@ if (!empty($otpData['found'])) {
   };
 
   return (
-    <div className="min-h-screen bg-transparent flex flex-col selection:bg-[var(--color-blue)] selection:text-white w-full max-w-full min-w-0 overflow-x-hidden">
+    <div className="min-h-screen bg-transparent flex flex-col selection:bg-[var(--color-blue)] selection:text-white">
       <Toast message={toastMsg} type={toastType} onClose={() => setToastMsg(null)} />
 
       {/* Top Navbar */}
-      <header className="border-b-[3px] sm:border-b-[4px] border-[var(--border-color)] bg-[var(--card-bg)] sticky top-0 z-40 shadow-[0px_3px_0px_var(--shadow-color)] sm:shadow-[0px_4px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-2.5 xs:px-4 sm:px-6 py-2.5 sm:py-3.5 flex justify-between items-center gap-1.5 xs:gap-2 w-full min-w-0">
+      <header className="border-b-[3px] sm:border-b-[4px] border-[var(--border-color)] bg-[var(--card-bg)] sticky top-0 z-40 shadow-[0px_3px_0px_var(--shadow-color)] sm:shadow-[0px_4px_0px_var(--shadow-color)]">
+        <div className="max-w-6xl mx-auto px-3 xs:px-4 sm:px-6 py-2.5 sm:py-3.5 flex justify-between items-center gap-2">
           <Link
             href="/"
             onClick={() => {
@@ -1281,6 +1293,8 @@ if (!empty($otpData['found'])) {
           </Link>
 
           <div className="flex items-center gap-1.5 xs:gap-2.5 flex-shrink-0">
+            
+
             <Link
               href="/"
               onClick={() => {
@@ -1309,7 +1323,7 @@ if (!empty($otpData['found'])) {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-2.5 xs:px-4 sm:px-6 py-4 sm:py-8 w-full max-w-full min-w-0 flex-1 overflow-x-hidden">
+      <main className="max-w-6xl mx-auto px-3 xs:px-4 sm:px-6 py-5 sm:py-8 w-full flex-1">
         {!isLoggedIn ? (
           /* LOGIN FORM */
           <div className="max-w-md mx-auto my-4 sm:my-8">
@@ -1380,634 +1394,77 @@ if (!empty($otpData['found'])) {
           </div>
         ) : (
           /* ADMIN DASHBOARD */
-          <div className="space-y-4 sm:space-y-6 w-full max-w-full min-w-0">
-
-            {/* Top Neo-Brutalist Navigation Tab Grid (Fully Visible On All Screens - Zero Swipe/Cutoff) */}
-            <div className="w-full max-w-full min-w-0 brutal-card p-1.5 xs:p-2 sm:p-2.5 bg-[var(--card-bg)] border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] sm:shadow-[3.5px_3.5px_0px_var(--shadow-color)]">
-              <div className="grid grid-cols-2 xs:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2 w-full">
-                {[
-                  { id: 'dashboard', label: 'DASHBOARD', icon: LayoutDashboard, badge: null },
-                  { id: 'domains', label: 'DOMAIN EMAIL', icon: Globe, badge: domains.length },
-                  { id: 'apikeys', label: 'API KEYS', icon: Key, badge: apiKeys.length },
-                  { id: 'endpoints', label: 'ENDPOINTS', icon: Shield, badge: '9 API' },
-                  { id: 'bot_tester', label: 'BOT & TESTER', icon: Terminal, badge: telegramEnabled ? 'BOT ON' : null },
-                  { id: 'settings', label: 'PENGATURAN', icon: Sliders, badge: null },
-                ].map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeAdminTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => {
-                        playSound('click');
-                        setActiveAdminTab(tab.id as AdminTabType);
-                      }}
-                      className={`brutal-btn w-full px-1.5 xs:px-2 sm:px-3 py-2 sm:py-2.5 text-[10px] xs:text-[11px] sm:text-xs font-black font-mono-custom flex items-center justify-center gap-1 xs:gap-1.5 uppercase transition-all cursor-pointer select-none text-center ${
-                        isActive
-                          ? 'bg-[var(--color-yellow)] text-black shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[2.5px_2.5px_0px_var(--shadow-color)] scale-[1.01]'
-                          : 'bg-white dark:bg-zinc-900 text-[var(--text-main)] hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-[1px_1px_0px_var(--shadow-color)]'
-                      }`}
-                    >
-                      <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${isActive ? 'text-black' : 'text-[var(--color-blue)]'}`} />
-                      <span className="truncate">{tab.label}</span>
-                      {tab.badge !== null && (
-                        <span
-                          className={`text-[8px] xs:text-[9px] sm:text-[10px] px-1 py-0.2 border border-[var(--border-color)] font-mono-custom font-black flex-shrink-0 ${
-                            isActive ? 'bg-black text-white' : 'bg-[var(--color-yellow)] text-black'
-                          }`}
-                        >
-                          {tab.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-
-            {/* TAB 1: DASHBOARD & RINGKASAN STATUS SISTEM */}
-            {activeAdminTab === 'dashboard' && (
-              <div className="space-y-4 sm:space-y-6 motion-fade-in w-full max-w-full min-w-0">
-                {/* Header Card */}
-                <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] space-y-4 w-full max-w-full min-w-0 overflow-hidden">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                        <LayoutDashboard className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </div>
-                      <div>
-                        <h2 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
-                          DASHBOARD UTAMA & STATUS SISTEM
-                        </h2>
-                        <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
-                          Ringkasan performa real-time, statistik lifetime email, dan status server.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 bg-[var(--color-green)] text-white border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-white motion-pulse-dot" />
-                      <span>SISTEM AKTIF (WIB)</span>
-                    </div>
-                  </div>
-
-                  {/* 6 KPI Cards Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                    {/* KPI 1 */}
-                    <div className="p-3.5 sm:p-4 bg-[#eff6ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex items-center gap-3 shadow-[2px_2px_0px_var(--shadow-color)]">
-                      <div className="w-10 h-10 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                        <Server className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
-                          STATUS REST API
-                        </span>
-                        <span className="font-heading font-black text-base sm:text-lg text-[var(--color-blue)] block truncate">
-                          ONLINE (v1 READY)
-                        </span>
-                        <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block">
-                          9 Endpoint Terproteksi
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* KPI 2 */}
-                    <div className="p-3.5 sm:p-4 bg-[#ecfdf5] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex items-center gap-3 shadow-[2px_2px_0px_var(--shadow-color)]">
-                      <div className="w-10 h-10 bg-[var(--color-green)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                        <Database className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-emerald-700 dark:text-emerald-400 uppercase block truncate">
-                          TOTAL EMAIL MASUK (ALL-TIME)
-                        </span>
-                        <span className="font-heading font-black text-base sm:text-lg text-[var(--color-green)] block truncate">
-                          {cleanupStats?.totalReceivedAllTime ?? stats?.totalReceivedAllTime ?? cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
-                        </span>
-                        <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block">
-                          Akumulatif Seumur Hidup
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* KPI 3 */}
-                    <div className="p-3.5 sm:p-4 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex items-center gap-3 shadow-[2px_2px_0px_var(--shadow-color)]">
-                      <div className="w-10 h-10 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                        <Zap className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
-                          PESAN AKTIF DI DB SAAT INI
-                        </span>
-                        <span className="font-heading font-black text-base sm:text-lg text-[var(--color-orange)] block truncate">
-                          {cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
-                        </span>
-                        <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block">
-                          {cleanupStats?.uniqueActiveMailboxes ?? 0} Mailbox Aktif
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* KPI 4 */}
-                    <div className="p-3.5 sm:p-4 bg-[#fdf4ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex items-center gap-3 shadow-[2px_2px_0px_var(--shadow-color)]">
-                      <div className="w-10 h-10 bg-[var(--color-purple)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                        <Clock className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-purple-700 dark:text-purple-400 uppercase block truncate">
-                          RETENSI DATABASE
-                        </span>
-                        <span className="font-heading font-black text-base sm:text-lg text-purple-700 dark:text-purple-400 block truncate">
-                          72 JAM (3 HARI WIB)
-                        </span>
-                        <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block">
-                          {cleanupStats?.totalDeletedAllTime ?? 0} Pesan Dihapus
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* KPI 5 */}
-                    <div className="p-3.5 sm:p-4 bg-[#fefce8] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex items-center gap-3 shadow-[2px_2px_0px_var(--shadow-color)]">
-                      <div className="w-10 h-10 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                        <Globe className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
-                          DOMAIN EMAIL AKTIF
-                        </span>
-                        <span className="font-heading font-black text-base sm:text-lg text-black dark:text-white block truncate">
-                          {domains.length} Domain
-                        </span>
-                        <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block">
-                          {domains.filter((d) => d.isVip).length} VIP | {domains.filter((d) => !d.isVip).length} Free
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* KPI 6 */}
-                    <div className="p-3.5 sm:p-4 bg-[#f0fdfa] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] flex items-center gap-3 shadow-[2px_2px_0px_var(--shadow-color)]">
-                      <div className="w-10 h-10 bg-[#229ED9] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                        <Send className="w-5 h-5 -translate-y-0.5 translate-x-0.5" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
-                          BOT TELEGRAM & API KEYS
-                        </span>
-                        <span className="font-heading font-black text-base sm:text-lg text-[#229ED9] block truncate">
-                          {telegramEnabled ? 'BOT TELEGRAM ON' : 'BOT TELEGRAM OFF'}
-                        </span>
-                        <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block">
-                          {apiKeys.length} Kunci API ({apiKeys.filter((k) => k.isActive).length} Aktif)
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* QUICK HUB SHORTCUTS (1-CLICK JUMP TO TABS) */}
-                  <div className="space-y-2.5 pt-2">
-                    <span className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)] block">
-                      PINTASAN MODUL ADMINISTRASI:
-                    </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          playSound('click');
-                          setActiveAdminTab('domains');
-                        }}
-                        className="brutal-card p-3 bg-white dark:bg-zinc-900 hover:bg-yellow-50 dark:hover:bg-zinc-800 text-left flex items-center justify-between group transition-all cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] flex items-center justify-center font-bold flex-shrink-0">
-                            <Globe className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="text-xs font-heading font-black uppercase block text-[var(--text-main)] truncate">
-                              KELOLA DOMAIN EMAIL
-                            </span>
-                            <span className="text-[10px] font-mono-custom text-[var(--text-muted)] block truncate">
-                              {domains.length} Domain terdaftar (Free / VIP)
-                            </span>
-                          </div>
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-black dark:group-hover:text-white flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          playSound('click');
-                          setActiveAdminTab('apikeys');
-                        }}
-                        className="brutal-card p-3 bg-white dark:bg-zinc-900 hover:bg-blue-50 dark:hover:bg-zinc-800 text-left flex items-center justify-between group transition-all cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] flex items-center justify-center font-bold flex-shrink-0">
-                            <Key className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="text-xs font-heading font-black uppercase block text-[var(--text-main)] truncate">
-                              KELOLA MULTI-API KEY
-                            </span>
-                            <span className="text-[10px] font-mono-custom text-[var(--text-muted)] block truncate">
-                              {apiKeys.length} Kunci API & Fitur 1-Bot Lock
-                            </span>
-                          </div>
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-black dark:group-hover:text-white flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          playSound('click');
-                          setActiveAdminTab('endpoints');
-                        }}
-                        className="brutal-card p-3 bg-white dark:bg-zinc-900 hover:bg-emerald-50 dark:hover:bg-zinc-800 text-left flex items-center justify-between group transition-all cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 bg-[var(--color-green)] text-white border-2 border-[var(--border-color)] flex items-center justify-center font-bold flex-shrink-0">
-                            <Shield className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="text-xs font-heading font-black uppercase block text-[var(--text-main)] truncate">
-                              ENDPOINTS & WEBHOOKS
-                            </span>
-                            <span className="text-[10px] font-mono-custom text-[var(--text-muted)] block truncate">
-                              Spesifikasi 9 API & Contoh cURL
-                            </span>
-                          </div>
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-black dark:group-hover:text-white flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          playSound('click');
-                          setActiveAdminTab('bot_tester');
-                        }}
-                        className="brutal-card p-3 bg-white dark:bg-zinc-900 hover:bg-sky-50 dark:hover:bg-zinc-800 text-left flex items-center justify-between group transition-all cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 bg-[#229ED9] text-white border-2 border-[var(--border-color)] flex items-center justify-center font-bold flex-shrink-0">
-                            <Send className="w-4 h-4 -translate-y-0.5 translate-x-0.5" />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="text-xs font-heading font-black uppercase block text-[var(--text-main)] truncate">
-                              BOT TELEGRAM & TESTER
-                            </span>
-                            <span className="text-[10px] font-mono-custom text-[var(--text-muted)] block truncate">
-                              Integrasi Bot, Tester Live & Snippets
-                            </span>
-                          </div>
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-black dark:group-hover:text-white flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          playSound('click');
-                          setActiveAdminTab('settings');
-                        }}
-                        className="brutal-card p-3 bg-white dark:bg-zinc-900 hover:bg-purple-50 dark:hover:bg-zinc-800 text-left flex items-center justify-between group transition-all cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 bg-[var(--color-purple)] text-white border-2 border-[var(--border-color)] flex items-center justify-center font-bold flex-shrink-0">
-                            <Sliders className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="text-xs font-heading font-black uppercase block text-[var(--text-main)] truncate">
-                              PENGATURAN & DATABASE
-                            </span>
-                            <span className="text-[10px] font-mono-custom text-[var(--text-muted)] block truncate">
-                              Kredensial, Akses Gate & Cleaner
-                            </span>
-                          </div>
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-black dark:group-hover:text-white flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Information & WIB Schedule Card */}
-                  <div className="p-3.5 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 shadow-[2px_2px_0px_var(--shadow-color)] space-y-1.5 mt-3">
-                    <div className="flex items-center gap-1.5 text-xs font-mono-custom font-black text-emerald-800 dark:text-emerald-300 uppercase">
-                      <Clock className="w-4 h-4 text-emerald-600" />
-                      <span>KEBIJAKAN RETENSI OTOMATIS 3 HARI (ZONA WAKTU WIB / UTC+7)</span>
-                    </div>
-                    <p className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-main)] leading-relaxed">
-                      Setiap email yang masuk ke sistem HeyFlatimo Temp Mail akan otomatis terhapus permanen setelah 3 hari (72 jam) oleh worker MongoDB TTL secara efisien.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-
-            {/* TAB 2: KELOLA DOMAIN EMAIL */}
-            {activeAdminTab === 'domains' && (
-              <div className="space-y-4 sm:space-y-6 motion-fade-in w-full max-w-full min-w-0">
-                {/* DOMAIN MANAGEMENT SECTION */}
-            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
+          <div className="space-y-5 sm:space-y-7 w-full max-w-full overflow-hidden">
+            {/* 1. RINGKASAN STATUS SISTEM (KPI DASHBOARD) */}
+            <div className="brutal-card p-3.5 xs:p-4 sm:p-6 bg-[var(--card-bg)] w-full max-w-full overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
-                <div className="flex items-center gap-2 sm:gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <Server className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-yellow)]" />
                   </div>
-                  <div>
-                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
-                      KELOLA DOMAIN EMAIL AKTIF
-                    </h3>
-                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
-                      Tambah atau hapus domain email yang tersedia di web dan API.
+                  <div className="min-w-0">
+                    <h2 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)] truncate">
+                      RINGKASAN STATUS SISTEM
+                    </h2>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)] truncate">
+                      Informasi real-time server, database, domain aktif, dan API key terdaftar.
                     </p>
                   </div>
                 </div>
-
-                <div className="text-[10px] xs:text-xs font-mono-custom font-black bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto">
-                  {domains.length} DOMAIN TERPASANG
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playSound('click');
+                    fetchStats();
+                    fetchCleanupStats();
+                    fetchDomains();
+                    fetchApiKeys();
+                    showToast('Data statistik berhasil disegarkan!', 'info');
+                  }}
+                  className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2.5 xs:px-3 py-1.5 text-[10px] xs:text-xs font-bold font-mono-custom flex items-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto cursor-pointer flex-shrink-0"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>REFRESH STATS</span>
+                </button>
               </div>
 
-              {/* Dynamic Notification Notice Banner */}
-              {domainNotice && (
-                <div
-                  className={`p-3 sm:p-3.5 mb-4 sm:mb-5 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] flex items-start justify-between gap-2.5 sm:gap-3 ${
-                    domainNotice.type === 'success'
-                      ? 'bg-[#ecfdf5] dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200'
-                      : domainNotice.type === 'error'
-                      ? 'bg-[#fef2f2] dark:bg-red-950 text-red-800 dark:text-red-200'
-                      : 'bg-[#eff6ff] dark:bg-sky-950 text-sky-800 dark:text-sky-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-xs font-mono-custom font-black">
-                    {domainNotice.type === 'success' ? (
-                      <CheckCircle2 className="w-4 h-4 text-[var(--color-green)] flex-shrink-0" />
-                    ) : domainNotice.type === 'error' ? (
-                      <AlertCircle className="w-4 h-4 text-[var(--color-red)] flex-shrink-0" />
-                    ) : (
-                      <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
-                    )}
-                    <span className="break-words">{domainNotice.message}</span>
-                  </div>
-                  <button
-                    onClick={() => setDomainNotice(null)}
-                    className="text-xs hover:opacity-70 font-bold px-1 flex-shrink-0"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 w-full">
+                <div className="p-2.5 sm:p-3 bg-[#eff6ff] dark:bg-sky-950/50 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] min-w-0">
+                  <div className="text-[10px] font-mono-custom font-bold text-sky-800 dark:text-sky-300 uppercase truncate">REST API</div>
+                  <div className="text-base sm:text-lg font-heading font-black text-[var(--color-blue)] mt-0.5 truncate">ONLINE</div>
+                  <div className="text-[9px] font-mono-custom text-[var(--text-muted)] mt-0.5 truncate">V1 (Private)</div>
                 </div>
-              )}
-
-              {/* Add Domain Form */}
-              <form onSubmit={handleAddDomainSubmit} className="space-y-2 mb-5 sm:mb-6">
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-2.5">
-                  <div className="relative flex-1">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none font-mono text-xs sm:text-sm font-bold text-[var(--text-muted)]">
-                      @
-                    </div>
-                    <input
-                      type="text"
-                      value={newDomainInput}
-                      onChange={(e) => setNewDomainInput(e.target.value)}
-                      placeholder="mail.domainbaru.com"
-                      className="brutal-input w-full pl-8 pr-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isAddingDomain || !newDomainInput.trim()}
-                    className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-4 xs:px-5 py-2 sm:py-2.5 text-xs flex items-center justify-center gap-1.5 disabled:opacity-50 font-black cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>{isAddingDomain ? 'MENAMBAHKAN...' : 'TAMBAH DOMAIN'}</span>
-                  </button>
+                <div className="p-2.5 sm:p-3 bg-[#fdf4ff] dark:bg-purple-950/50 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] min-w-0">
+                  <div className="text-[10px] font-mono-custom font-bold text-purple-800 dark:text-purple-300 uppercase truncate">TOTAL EMAIL</div>
+                  <div className="text-base sm:text-lg font-heading font-black text-purple-700 dark:text-purple-300 mt-0.5 truncate">{stats?.totalEmails ?? 0}</div>
+                  <div className="text-[9px] font-mono-custom text-[var(--text-muted)] mt-0.5 truncate">Semua Waktu</div>
                 </div>
-
-                <div className="flex items-center gap-2 pt-1">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-mono-custom font-bold text-[var(--text-main)] select-none">
-                    <input
-                      type="checkbox"
-                      checked={isNewDomainVip}
-                      onChange={(e) => setIsNewDomainVip(e.target.checked)}
-                      className="w-4 h-4 accent-amber-500 rounded-none border-2 border-[var(--border-color)]"
-                    />
-                    <span className="flex items-center gap-1.5">
-                      Jadikan Domain <strong className="text-amber-600 dark:text-amber-400 flex items-center gap-1"><Crown className="w-3.5 h-3.5 fill-amber-400 inline" /> VIP / Premium</strong>
-                    </span>
-                  </label>
+                <div className="p-2.5 sm:p-3 bg-[#ecfdf5] dark:bg-emerald-950/50 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] min-w-0">
+                  <div className="text-[10px] font-mono-custom font-bold text-emerald-800 dark:text-emerald-300 uppercase truncate">PESAN AKTIF</div>
+                  <div className="text-base sm:text-lg font-heading font-black text-emerald-700 dark:text-emerald-300 mt-0.5 truncate">{cleanupStats?.activeMessages ?? 0}</div>
+                  <div className="text-[9px] font-mono-custom text-[var(--text-muted)] mt-0.5 truncate">Di Database</div>
                 </div>
-              </form>
-
-              {/* Active Domains List */}
-              {domains.length === 0 ? (
-                <div className="p-4 border-2 border-dashed border-[var(--border-color)] text-center text-xs font-mono-custom text-[var(--text-muted)] bg-[var(--bg-color)]">
-                  Belum ada domain kustom yang ditambahkan. Menggunakan domain bawaan sistem.
+                <div className="p-2.5 sm:p-3 bg-[#fffbeb] dark:bg-amber-950/50 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] min-w-0">
+                  <div className="text-[10px] font-mono-custom font-bold text-amber-800 dark:text-amber-300 uppercase truncate">RETENSI DATA</div>
+                  <div className="text-base sm:text-lg font-heading font-black text-amber-700 dark:text-amber-300 mt-0.5 truncate">72 JAM</div>
+                  <div className="text-[9px] font-mono-custom text-[var(--text-muted)] mt-0.5 truncate">WIB Timezone</div>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
-                  {domains.map((domItem) => {
-                    const dom = typeof domItem === 'string' ? domItem : domItem.domain;
-                    const isVip = typeof domItem === 'object' ? Boolean(domItem.isVip) : false;
-                    return (
-                      <div
-                        key={dom}
-                        className={`p-2.5 sm:p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] flex items-center justify-between gap-2 ${
-                          isVip ? 'border-amber-400 bg-amber-50/40 dark:bg-amber-950/20' : ''
-                        }`}
-                      >
-                        <div className="min-w-0 flex items-center gap-1.5 xs:gap-2 flex-1">
-                          {isVip ? (
-                            <div className="w-5 h-5 bg-[var(--color-yellow)] border border-black flex items-center justify-center flex-shrink-0" title="Domain VIP">
-                              <Crown className="w-3 h-3 text-black fill-black" />
-                            </div>
-                          ) : (
-                            <span className="w-2 h-2 rounded-full bg-[var(--color-green)] motion-pulse-dot flex-shrink-0" />
-                          )}
-                          <span className="font-mono-custom font-bold text-xs sm:text-sm break-all">
-                            @{dom}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-                          {/* 1-Click VIP Toggle Button with Confirmation Modal */}
-                          {isVip ? (
-                            <button
-                              onClick={() => setDomainToToggleVip({ domain: dom, isVip: false })}
-                              className="brutal-btn bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 text-[10px] xs:text-[11px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-yellow-400 cursor-pointer flex-shrink-0"
-                              title="Klik untuk ubah status ke Free"
-                            >
-                              <Crown className="w-3 h-3 fill-black flex-shrink-0" />
-                              <span>VIP</span>
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setDomainToToggleVip({ domain: dom, isVip: true })}
-                              className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 xs:px-2.5 py-1 text-[10px] xs:text-[11px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-amber-100 dark:hover:bg-zinc-700 cursor-pointer flex-shrink-0"
-                              title="Klik untuk jadikan VIP"
-                            >
-                              <span>FREE</span>
-                            </button>
-                          )}
-
-                          {/* Delete Button */}
-                          <button
-                            onClick={() => handleDeleteClick(dom)}
-                            className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 p-1.5 text-xs flex-shrink-0 cursor-pointer shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
-                            title={`Hapus domain @${dom}`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="p-2.5 sm:p-3 bg-[#f0fdf4] dark:bg-green-950/50 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] min-w-0">
+                  <div className="text-[10px] font-mono-custom font-bold text-green-800 dark:text-green-300 uppercase truncate">DOMAIN AKTIF</div>
+                  <div className="text-base sm:text-lg font-heading font-black text-green-700 dark:text-green-300 mt-0.5 truncate">{domains.length}</div>
+                  <div className="text-[9px] font-mono-custom text-[var(--text-muted)] mt-0.5 truncate">Tersedia</div>
                 </div>
-              )}
+                <div className="p-2.5 sm:p-3 bg-[#fef2f2] dark:bg-rose-950/50 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] min-w-0">
+                  <div className="text-[10px] font-mono-custom font-bold text-rose-800 dark:text-rose-300 uppercase truncate">API KEY AKTIF</div>
+                  <div className="text-base sm:text-lg font-heading font-black text-rose-700 dark:text-rose-300 mt-0.5 truncate">{apiKeys.length}</div>
+                  <div className="text-[9px] font-mono-custom text-[var(--text-muted)] mt-0.5 truncate">Koneksi Bot</div>
+                </div>
+              </div>
             </div>
 
-            {/* TOGGLE VIP CONFIRMATION MODAL */}
-            {domainToToggleVip && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4 overflow-y-auto">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full max-w-full p-4 xs:p-5 sm:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in my-auto min-w-0 overflow-hidden">
-                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-amber-500">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                      <Crown className="w-5 h-5 fill-black text-black" />
-                    </div>
-                    <div>
-                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
-                        {domainToToggleVip.isVip ? 'JADIKAN DOMAIN VIP?' : 'HAPUS STATUS VIP?'}
-                      </h4>
-                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
-                        Konfirmasi perubahan status domain
-                      </p>
-                    </div>
-                  </div>
 
-                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
-                    Apakah Anda yakin ingin mengubah status domain{' '}
-                    <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">
-                      @{domainToToggleVip.domain}
-                    </span>{' '}
-                    menjadi{' '}
-                    <strong>{domainToToggleVip.isVip ? 'VIP (Mahkota Emas)' : 'FREE (Biasa)'}</strong>?
-                  </p>
-
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setDomainToToggleVip(null)}
-                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
-                    >
-                      BATAL
-                    </button>
-                    <button
-                      onClick={confirmToggleVipDomain}
-                      disabled={isTogglingVip}
-                      className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
-                    >
-                      <Check className="w-4 h-4" />
-                      <span>{isTogglingVip ? 'MEMPROSES...' : 'YA, UBAH STATUS'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ADD DOMAIN CONFIRMATION MODAL */}
-            {domainToAdd && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4 overflow-y-auto">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full max-w-full p-4 xs:p-5 sm:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in my-auto min-w-0 overflow-hidden">
-                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-green)]">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-green)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                      <Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3]" />
-                    </div>
-                    <div>
-                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
-                        TAMBAH DOMAIN BARU?
-                      </h4>
-                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
-                        Konfirmasi penambahan domain aktif
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
-                    Apakah Anda yakin ingin menambahkan domain <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">@{domainToAdd}</span> ke daftar email aktif HeyFlatimo?
-                  </p>
-
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setDomainToAdd(null)}
-                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
-                    >
-                      BATAL
-                    </button>
-                    <button
-                      onClick={confirmAddDomain}
-                      disabled={isAddingDomain}
-                      className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
-                    >
-                      <Check className="w-4 h-4" />
-                      <span>{isAddingDomain ? 'MENAMBAHKAN...' : 'YA, TAMBAHKAN'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* DELETE DOMAIN CONFIRMATION MODAL */}
-            {domainToDelete && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4 overflow-y-auto">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full max-w-full p-4 xs:p-5 sm:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in my-auto min-w-0 overflow-hidden">
-                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                      <AlertTriangle className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
-                        HAPUS DOMAIN?
-                      </h4>
-                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
-                        Konfirmasi penghapusan domain
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
-                    Apakah Anda yakin ingin menghapus domain <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">@{domainToDelete}</span> dari daftar email?
-                  </p>
-
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setDomainToDelete(null)}
-                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
-                    >
-                      BATAL
-                    </button>
-                    <button
-                      onClick={confirmDeleteDomain}
-                      className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>YA, HAPUS DOMAIN</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-              </div>
-            )}
-
-
-            {/* TAB 3: KELOLA MULTI-API KEY */}
-            {activeAdminTab === 'apikeys' && (
-              <div className="space-y-4 sm:space-y-6 motion-fade-in w-full max-w-full min-w-0">
-                {/* MULTI-API KEY & BOT CONNECTION MANAGEMENT SECTION */}
-            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
+            {/* MULTI-API KEY & BOT CONNECTION MANAGEMENT SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -2317,8 +1774,8 @@ if (!empty($otpData['found'])) {
 
             {/* EDIT API KEY MODAL */}
             {keyToEdit && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4 overflow-y-auto">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-lg w-full max-w-full p-4 xs:p-5 sm:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in my-auto min-w-0 overflow-hidden">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-lg w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
                   <div className="flex items-center gap-2.5 sm:gap-3 mb-4 text-[var(--color-blue)]">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
                       <Edit3 className="w-5 h-5" />
@@ -2415,8 +1872,8 @@ if (!empty($otpData['found'])) {
 
             {/* DELETE API KEY CONFIRMATION MODAL */}
             {keyToDelete && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4 overflow-y-auto">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full max-w-full p-4 xs:p-5 sm:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in my-auto min-w-0 overflow-hidden">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
                   <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
                       <AlertTriangle className="w-5 h-5" />
@@ -2456,1281 +1913,299 @@ if (!empty($otpData['found'])) {
                 </div>
               </div>
             )}
-              </div>
-            )}
 
-
-            {/* TAB 4: SPESIFIKASI ENDPOINT & WEBHOOK */}
-            {activeAdminTab === 'endpoints' && (
-              <div className="space-y-4 sm:space-y-6 motion-fade-in w-full max-w-full min-w-0">
-                {/* PRIVATE REST API & WEBHOOK SPECIFICATION SECTION (KHUSUS OWNER) */}
-            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] space-y-4 w-full max-w-full min-w-0 overflow-hidden">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 sm:pb-4 border-b-2 border-dashed border-[var(--border-color)]">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
-                      DOKUMENTASI ENDPOINT & WEBHOOK (KHUSUS OWNER)
-                    </h3>
-                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
-                      Spesifikasi teknis integrasi Bot & REST API private dengan otentikasi API Key terenkripsi.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-[10px] xs:text-xs font-mono-custom font-black px-3 py-1.5 bg-[#eff6ff] dark:bg-sky-950/60 text-[var(--color-blue)] dark:text-sky-300 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start md:self-auto flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>STATUS: 100% PRIVATE & TERPROTEKSI</span>
-                </div>
-              </div>
-
-              {/* Private Security Banner */}
-              <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] space-y-1.5">
-                <div className="flex items-center gap-2 text-xs font-mono-custom font-black text-[var(--text-main)] uppercase">
-                  <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
-                  <span>KEBIJAKAN AKSES & KEAMANAN SISTEM:</span>
-                </div>
-                <p className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-muted)] leading-relaxed">
-                  Semua endpoint <code>/api/v1/*</code> berstatus <strong>Private (Bukan Open Public)</strong> dan wajib menyertakan header <code>x-api-key</code> yang valid. Endpoint webhook <code>/api/webhook/email</code> dan <code>/api/webhook/telegram</code> diverifikasi secara ketat menggunakan secret signature token internal. Akses tanpa kredensial yang sah akan langsung ditolak dengan status HTTP <code>401 Unauthorized</code> atau <code>403 Forbidden</code>.
-                </p>
-              </div>
-
-              {/* Endpoint Cards List */}
-              <div className="space-y-3 pt-1">
-                {/* 1. GET /api/v1/generate */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
-                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
-                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
-                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
-                        GET
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
-                            /api/v1/generate
-                          </code>
-                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
-                            PRIVATE (x-api-key)
-                          </span>
-                        </div>
-                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
-                          Generate mailbox email sementara baru (random otomatis atau custom prefix & domain).
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/generate`, 'ep_gen_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                        title="Salin Full URL Endpoint"
-                      >
-                        {copiedEndpointId === 'ep_gen_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        <span>SALIN URL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleCopyEndpointCurl(
-                            `curl -X GET "${origin}/api/v1/generate" -H "x-api-key: ${safeKey}"`,
-                            'ep_gen_curl'
-                          )
-                        }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                        title="Salin cURL Siap Pakai"
-                      >
-                        {copiedCurlId === 'ep_gen_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
-                        <span>cURL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleEndpointExpand('generate')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        <span>{expandedEndpoints.has('generate') ? 'TUTUP' : 'DETAIL'}</span>
-                        {expandedEndpoints.has('generate') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {expandedEndpoints.has('generate') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                            Required Request Headers:
-                          </span>
-                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
-                            <code>x-api-key: {safeKey}</code>
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                            Optional Query Parameters:
-                          </span>
-                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] space-y-1 text-[11px]">
-                            <p><code>prefix</code>: Nama mailbox khusus (cth: <code>user1</code>)</p>
-                            <p><code>domain</code>: Domain spesifik (cth: <code>kingoutlook.my.id</code>)</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                          Contoh Respon Sukses (JSON):
-                        </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
-{`{
-  "success": true,
-  "email": "user1@kingoutlook.my.id",
-  "prefix": "user1",
-  "domain": "kingoutlook.my.id",
-  "createdAt": ${Date.now()},
-  "retentionHours": 72
-}`}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 2. GET /api/v1/inbox */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
-                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
-                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
-                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
-                        GET
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
-                            /api/v1/inbox
-                          </code>
-                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
-                            PRIVATE (x-api-key)
-                          </span>
-                        </div>
-                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
-                          Mengambil daftar seluruh pesan email yang masuk untuk mailbox target.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/inbox?email=user@domain.com`, 'ep_inbox_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedEndpointId === 'ep_inbox_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        <span>SALIN URL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleCopyEndpointCurl(
-                            `curl -X GET "${origin}/api/v1/inbox?email=user@domain.com" -H "x-api-key: ${safeKey}"`,
-                            'ep_inbox_curl'
-                          )
-                        }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedCurlId === 'ep_inbox_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
-                        <span>cURL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleEndpointExpand('inbox')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        <span>{expandedEndpoints.has('inbox') ? 'TUTUP' : 'DETAIL'}</span>
-                        {expandedEndpoints.has('inbox') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {expandedEndpoints.has('inbox') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                            Required Request Headers:
-                          </span>
-                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
-                            <code>x-api-key: {safeKey}</code>
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                            Query Parameters:
-                          </span>
-                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] space-y-1 text-[11px]">
-                            <p><code>email</code> <strong>(Wajib)</strong>: Alamat email target (cth: <code>user@domain.com</code>)</p>
-                            <p><code>limit</code> (Opsional): Batas jumlah pesan (default: 50)</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                          Contoh Respon Sukses (JSON):
-                        </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
-{`{
-  "success": true,
-  "email": "user@domain.com",
-  "count": 1,
-  "messages": [
-    {
-      "id": "66e6...01",
-      "sender": "noreply@service.com",
-      "senderName": "Service Auth",
-      "subject": "Kode Verifikasi Akun",
-      "preview": "Kode OTP akun Anda adalah 849201...",
-      "receivedAt": ${Date.now()}
-    }
-  ]
-}`}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 3. GET /api/v1/messages/{id} */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
-                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
-                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
-                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
-                        GET
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
-                            /api/v1/messages/[id]
-                          </code>
-                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
-                            PRIVATE (x-api-key)
-                          </span>
-                        </div>
-                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
-                          Membaca isi lengkap satu pesan email, format teks murni, dan render HTML body.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/messages/<MESSAGE_ID>`, 'ep_msg_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedEndpointId === 'ep_msg_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        <span>SALIN URL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleCopyEndpointCurl(
-                            `curl -X GET "${origin}/api/v1/messages/<MESSAGE_ID>" -H "x-api-key: ${safeKey}"`,
-                            'ep_msg_curl'
-                          )
-                        }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedCurlId === 'ep_msg_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
-                        <span>cURL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleEndpointExpand('messages')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        <span>{expandedEndpoints.has('messages') ? 'TUTUP' : 'DETAIL'}</span>
-                        {expandedEndpoints.has('messages') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {expandedEndpoints.has('messages') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                            Required Request Headers:
-                          </span>
-                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
-                            <code>x-api-key: {safeKey}</code>
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                            URL Parameter:
-                          </span>
-                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] text-[11px]">
-                            <code>id</code> <strong>(Wajib)</strong>: ID pesan unik yang didapatkan dari pemanggilan /api/v1/inbox.
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                          Contoh Respon Sukses (JSON):
-                        </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
-{`{
-  "success": true,
-  "message": {
-    "id": "66e66123abc456",
-    "recipient": "user@domain.com",
-    "sender": "service@auth.com",
-    "subject": "Verifikasi Email",
-    "text": "Kode verifikasi Anda adalah: 918234",
-    "html": "<p>Kode verifikasi Anda adalah: <b>918234</b></p>",
-    "receivedAt": ${Date.now()}
-  }
-}`}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 4. GET /api/v1/otp */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
-                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
-                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
-                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
-                        GET
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
-                            /api/v1/otp
-                          </code>
-                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 uppercase">
-                            BOT AUTO-EXTRACT
-                          </span>
-                        </div>
-                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
-                          Ekstraksi otomatis angka kode OTP (4-8 digit) dari email terbaru tanpa parsing manual.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/otp?email=user@domain.com`, 'ep_otp_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedEndpointId === 'ep_otp_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        <span>SALIN URL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleCopyEndpointCurl(
-                            `curl -X GET "${origin}/api/v1/otp?email=user@domain.com" -H "x-api-key: ${safeKey}"`,
-                            'ep_otp_curl'
-                          )
-                        }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedCurlId === 'ep_otp_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
-                        <span>cURL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleEndpointExpand('otp')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        <span>{expandedEndpoints.has('otp') ? 'TUTUP' : 'DETAIL'}</span>
-                        {expandedEndpoints.has('otp') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {expandedEndpoints.has('otp') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                            Required Request Headers:
-                          </span>
-                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
-                            <code>x-api-key: {safeKey}</code>
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                            Query Parameters:
-                          </span>
-                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] text-[11px]">
-                            <code>email</code> <strong>(Wajib)</strong>: Alamat email target (cth: <code>user@domain.com</code>)
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                          Contoh Respon Sukses (JSON):
-                        </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
-{`{
-  "success": true,
-  "found": true,
-  "otp": "492018",
-  "sender": "no-reply@target.com",
-  "subject": "Kode OTP Konfirmasi Akun",
-  "receivedAt": ${Date.now()}
-}`}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 5. GET /api/v1/links */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
-                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
-                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
-                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
-                        GET
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
-                            /api/v1/links
-                          </code>
-                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 uppercase">
-                            BOT AUTO-EXTRACT
-                          </span>
-                        </div>
-                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
-                          Ekstraksi URL link verifikasi / konfirmasi aktivasi akun dari pesan email terbaru.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/links?email=user@domain.com`, 'ep_links_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedEndpointId === 'ep_links_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        <span>SALIN URL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleCopyEndpointCurl(
-                            `curl -X GET "${origin}/api/v1/links?email=user@domain.com" -H "x-api-key: ${safeKey}"`,
-                            'ep_links_curl'
-                          )
-                        }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedCurlId === 'ep_links_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
-                        <span>cURL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleEndpointExpand('links')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        <span>{expandedEndpoints.has('links') ? 'TUTUP' : 'DETAIL'}</span>
-                        {expandedEndpoints.has('links') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {expandedEndpoints.has('links') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                            Required Request Headers:
-                          </span>
-                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
-                            <code>x-api-key: {safeKey}</code>
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                            Query Parameters:
-                          </span>
-                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] text-[11px]">
-                            <code>email</code> <strong>(Wajib)</strong>: Alamat email target (cth: <code>user@domain.com</code>)
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                          Contoh Respon Sukses (JSON):
-                        </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
-{`{
-  "success": true,
-  "found": true,
-  "links": [
-    "https://service.com/verify?token=abc123xyz"
-  ],
-  "primaryLink": "https://service.com/verify?token=abc123xyz",
-  "sender": "auth@service.com",
-  "subject": "Aktivasi Akun Baru"
-}`}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 6. GET /api/v1/domains */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
-                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
-                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
-                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
-                        GET
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
-                            /api/v1/domains
-                          </code>
-                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
-                            PRIVATE (x-api-key)
-                          </span>
-                        </div>
-                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
-                          Mengambil seluruh daftar domain aktif yang tersedia beserta status tier VIP.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/domains`, 'ep_dom_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedEndpointId === 'ep_dom_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        <span>SALIN URL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleCopyEndpointCurl(
-                            `curl -X GET "${origin}/api/v1/domains" -H "x-api-key: ${safeKey}"`,
-                            'ep_dom_curl'
-                          )
-                        }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedCurlId === 'ep_dom_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
-                        <span>cURL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleEndpointExpand('domains')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        <span>{expandedEndpoints.has('domains') ? 'TUTUP' : 'DETAIL'}</span>
-                        {expandedEndpoints.has('domains') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {expandedEndpoints.has('domains') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                          Required Request Headers:
-                        </span>
-                        <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
-                          <code>x-api-key: {safeKey}</code>
-                        </div>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                          Contoh Respon Sukses (JSON):
-                        </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
-{`{
-  "success": true,
-  "domains": [
-    { "domain": "kingoutlook.my.id", "isVip": false },
-    { "domain": "capacuputpro.my.id", "isVip": true }
-  ],
-  "total": 2
-}`}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 7. GET /api/v1/stats */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
-                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
-                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
-                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
-                        GET
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
-                            /api/v1/stats
-                          </code>
-                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
-                            PRIVATE (x-api-key)
-                          </span>
-                        </div>
-                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
-                          Statistik lifetime email masuk, pesan aktif database, dan waktu server WIB.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/stats`, 'ep_stats_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedEndpointId === 'ep_stats_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        <span>SALIN URL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleCopyEndpointCurl(
-                            `curl -X GET "${origin}/api/v1/stats" -H "x-api-key: ${safeKey}"`,
-                            'ep_stats_curl'
-                          )
-                        }
-                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedCurlId === 'ep_stats_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
-                        <span>cURL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleEndpointExpand('stats')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        <span>{expandedEndpoints.has('stats') ? 'TUTUP' : 'DETAIL'}</span>
-                        {expandedEndpoints.has('stats') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {expandedEndpoints.has('stats') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                          Required Request Headers:
-                        </span>
-                        <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
-                          <code>x-api-key: {safeKey}</code>
-                        </div>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                          Contoh Respon Sukses (JSON):
-                        </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
-{`{
-  "success": true,
-  "totalReceivedAllTime": ${cleanupStats?.totalReceivedAllTime ?? 1420},
-  "totalMessages": ${cleanupStats?.totalMessages ?? 45},
-  "totalDomains": ${domains.length || 2},
-  "serverTimeWIB": "${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB"
-}`}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 8. POST /api/webhook/email */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
-                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
-                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
-                      <span className="px-2 py-0.5 bg-[var(--color-orange)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
-                        POST
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
-                            /api/webhook/email
-                          </code>
-                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800 uppercase">
-                            WEBHOOK (x-webhook-secret)
-                          </span>
-                        </div>
-                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
-                          Inbound receiver webhook untuk menerima email masuk dari Cloudflare Email Routing Worker.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyEndpointUrl(`${origin}/api/webhook/email`, 'ep_wh_email_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedEndpointId === 'ep_wh_email_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        <span>SALIN URL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleEndpointExpand('webhook_email')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        <span>{expandedEndpoints.has('webhook_email') ? 'TUTUP' : 'DETAIL'}</span>
-                        {expandedEndpoints.has('webhook_email') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {expandedEndpoints.has('webhook_email') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                            Required Request Headers:
-                          </span>
-                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] space-y-1 text-[11px]">
-                            <p><code>Content-Type: application/json</code></p>
-                            <p><code>x-webhook-secret: &lt;WEBHOOK_SECRET&gt;</code></p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                            JSON Payload Fields:
-                          </span>
-                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] space-y-0.5 text-[11px]">
-                            <p><code>recipient</code>: Alamat email penerima</p>
-                            <p><code>sender</code>: Alamat email pengirim</p>
-                            <p><code>subject</code>: Judul email</p>
-                            <p><code>text</code>: Body teks polos</p>
-                            <p><code>html</code>: Body HTML render</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                          Contoh Respon Sukses (JSON):
-                        </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
-{`{
-  "success": true,
-  "messageId": "66e689abcdef1234567890",
-  "message": "Email received & processed"
-}`}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 9. POST /api/webhook/telegram */}
-                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)] w-full max-w-full min-w-0 overflow-hidden">
-                  <div className="p-3 sm:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 min-w-0 w-full">
-                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
-                      <span className="px-2 py-0.5 bg-[var(--color-orange)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
-                        POST
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
-                            /api/webhook/telegram
-                          </code>
-                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800 uppercase">
-                            TELEGRAM ENGINE
-                          </span>
-                        </div>
-                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
-                          Webhook engine resmi untuk menangani pemrosesan pesan dan tombol bot Telegram.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:flex items-center gap-1.5 flex-shrink-0 w-full md:w-auto justify-start md:justify-end pt-2 md:pt-0 border-t md:border-t-0 border-dashed border-zinc-200 dark:border-zinc-800">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyEndpointUrl(`${origin}/api/webhook/telegram`, 'ep_wh_tg_url')}
-                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        {copiedEndpointId === 'ep_wh_tg_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        <span>SALIN URL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleEndpointExpand('webhook_telegram')}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-1.5 xs:px-2.5 py-1.5 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] w-full md:w-auto"
-                      >
-                        <span>{expandedEndpoints.has('webhook_telegram') ? 'TUTUP' : 'DETAIL'}</span>
-                        {expandedEndpoints.has('webhook_telegram') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {expandedEndpoints.has('webhook_telegram') && (
-                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom w-full max-w-full min-w-0 overflow-hidden">
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                          Deskripsi Operasional:
-                        </span>
-                        <p className="text-[11px] text-[var(--text-muted)]">
-                          Endpoint ini didaftarkan secara otomatis melalui tombol <strong>SET WEBHOOK</strong> di panel Admin ke server Telegram API resmi. Endpoint memproses pesan teks <code>/start</code>, <code>/generate</code>, <code>/otp &lt;email&gt;</code>, serta callback data interaktif.
-                        </p>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
-                          Contoh Respon Sukses (JSON):
-                        </span>
-                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[10px] xs:text-[11px] overflow-x-auto border border-[var(--border-color)] max-w-full font-mono whitespace-pre">
-{`{
-  "ok": true
-}`}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-              </div>
-            )}
-
-
-            {/* TAB 5: INTEGRASI BOT & LIVE TESTER */}
-            {activeAdminTab === 'bot_tester' && (
-              <div className="space-y-4 sm:space-y-6 motion-fade-in w-full max-w-full min-w-0">
-                {/* TELEGRAM BOT INTEGRATION SECTION */}
-            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
+            {/* DOMAIN MANAGEMENT SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#229ED9] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Send className="w-4 h-4 sm:w-5 sm:h-5 -translate-y-0.5 translate-x-0.5" />
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div>
                     <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
-                      INTEGRASI BOT TELEGRAM (INBOX & OTP READER)
+                      KELOLA DOMAIN EMAIL AKTIF
                     </h3>
                     <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
-                      Hubungkan Bot Telegram untuk membaca email dan mengambil kode OTP secara interaktif via tombol inline.
+                      Tambah atau hapus domain email yang tersedia di web dan API.
                     </p>
                   </div>
                 </div>
 
-                {/* Status Badge */}
+                <div className="text-[10px] xs:text-xs font-mono-custom font-black bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto">
+                  {domains.length} DOMAIN TERPASANG
+                </div>
+              </div>
+
+              {/* Dynamic Notification Notice Banner */}
+              {domainNotice && (
                 <div
-                  className={`text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5 ${
-                    telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
-                      ? 'bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7]'
-                      : telegramEnabled
-                      ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'
-                      : 'bg-zinc-200 dark:bg-zinc-800 text-[var(--text-muted)]'
+                  className={`p-3 sm:p-3.5 mb-4 sm:mb-5 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] flex items-start justify-between gap-2.5 sm:gap-3 ${
+                    domainNotice.type === 'success'
+                      ? 'bg-[#ecfdf5] dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200'
+                      : domainNotice.type === 'error'
+                      ? 'bg-[#fef2f2] dark:bg-red-950 text-red-800 dark:text-red-200'
+                      : 'bg-[#eff6ff] dark:bg-sky-950 text-sky-800 dark:text-sky-200'
                   }`}
                 >
-                  <span
-                    className={`w-2 h-2 rounded-full ${
-                      telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
-                        ? 'bg-[var(--color-green)]'
-                        : telegramEnabled
-                        ? 'bg-amber-500'
-                        : 'bg-zinc-500'
-                    } motion-pulse-dot`}
-                  />
-                  <span>
-                    {telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
-                      ? `BOT AKTIF ${telegramBotUsername ? `(@${telegramBotUsername})` : ''}`
-                      : telegramEnabled
-                      ? 'BOT AKTIF (BELUM SET WEBHOOK HTTPS)'
-                      : 'BOT NONAKTIF'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Step-by-Step Info Banner */}
-              <div className="p-3 sm:p-4 bg-[#eff6ff] dark:bg-sky-950/40 border-[2px] border-[var(--border-color)] mb-4 space-y-2 shadow-[2px_2px_0px_var(--shadow-color)]">
-                <div className="flex items-center gap-2 font-mono-custom font-black text-xs text-[var(--color-blue)] uppercase">
-                  <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
-                  <span>Panduan Menghubungkan Bot Telegram:</span>
-                </div>
-                <div className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-muted)] space-y-1 pl-6">
-                  <p>1. Buka <strong>@BotFather</strong> di Telegram, kirim perintah <code>/newbot</code> dan ikuti langkah pembuatan bot.</p>
-                  <p>2. Salin <strong>HTTP API Token</strong> yang diberikan dan tempel pada kolom Token Bot di bawah.</p>
-                  <p>3. Ubah saklar status ke <strong>AKTIF (ON)</strong> lalu klik tombol <strong>SET WEBHOOK</strong> atau <strong>SIMPAN PENGATURAN BOT</strong>.</p>
-                  <p>4. Buka bot Anda di Telegram dan kirim pesan <code>/start</code> atau ketik email langsung untuk cek OTP secara instan!</p>
-                </div>
-              </div>
-
-              <form onSubmit={handleSaveTelegram} className="space-y-4">
-                {/* On/Off Toggle */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#f0f9ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
-                  <div>
-                    <span className="font-mono-custom font-bold text-xs sm:text-sm block text-[var(--text-main)]">
-                      Status Integrasi Bot Telegram
-                    </span>
-                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
-                      Aktifkan bot untuk merespons perintah <code>/start</code>, <code>/generate</code>, <code>/otp &lt;email&gt;</code>, dan <code>/inbox &lt;email&gt;</code>.
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setTelegramEnabled(!telegramEnabled)}
-                    className={`brutal-btn px-4 py-1.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)] ${
-                      telegramEnabled
-                        ? 'bg-[var(--color-green)] text-white'
-                        : 'bg-zinc-300 dark:bg-zinc-800 text-black dark:text-white'
-                    }`}
-                  >
-                    {telegramEnabled ? (
-                      <>
-                        <ToggleRight className="w-4 h-4" />
-                        <span>AKTIF (ON)</span>
-                      </>
+                  <div className="flex items-center gap-2 text-xs font-mono-custom font-black">
+                    {domainNotice.type === 'success' ? (
+                      <CheckCircle2 className="w-4 h-4 text-[var(--color-green)] flex-shrink-0" />
+                    ) : domainNotice.type === 'error' ? (
+                      <AlertCircle className="w-4 h-4 text-[var(--color-red)] flex-shrink-0" />
                     ) : (
-                      <>
-                        <ToggleLeft className="w-4 h-4" />
-                        <span>NONAKTIF (OFF)</span>
-                      </>
+                      <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
                     )}
-                  </button>
-                </div>
-
-                {/* Bot Token Input */}
-                <div>
-                  <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-blue)] dark:text-[var(--color-cyan)]">
-                    Token Bot Telegram (Dari @BotFather):
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type="text"
-                        value={telegramBotTokenInput}
-                        onChange={(e) => setTelegramBotTokenInput(e.target.value)}
-                        placeholder="Contoh: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
-                        className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
-                        autoComplete="off"
-                        spellCheck="false"
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleTestBot}
-                      disabled={isTestingBot || !telegramBotTokenInput.trim()}
-                      className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
-                    >
-                      <Zap className="w-3.5 h-3.5" />
-                      <span>{isTestingBot ? 'MEMERIKSA...' : 'TES KONEKSI BOT'}</span>
-                    </button>
+                    <span className="break-words">{domainNotice.message}</span>
                   </div>
-                </div>
-
-                {/* Webhook Configuration & URL Display */}
-                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)] w-full max-w-full min-w-0 overflow-hidden">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <span className="text-[10px] font-mono-custom font-black uppercase text-[var(--text-muted)] block mb-0.5">
-                        Webhook Endpoint Otomatis:
-                      </span>
-                      <code className="text-xs font-mono-custom font-bold text-[var(--color-blue)] break-all block">
-                        {origin}/api/webhook/telegram
-                      </code>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
-                      <button
-                        type="button"
-                        onClick={handleSetWebhook}
-                        disabled={isSettingWebhook || !telegramBotTokenInput.trim()}
-                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-3 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
-                      >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isSettingWebhook ? 'animate-spin-fast' : ''}`} />
-                        <span>{isSettingWebhook ? 'MENDAFTAR...' : 'SET WEBHOOK'}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => fetchWebhookInfo(telegramBotTokenInput.trim())}
-                        disabled={isCheckingWebhookInfo || !telegramBotTokenInput.trim()}
-                        className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
-                        title="Cek Status Webhook Langsung dari Telegram API"
-                      >
-                        <RefreshCw className={`w-3 h-3 ${isCheckingWebhookInfo ? 'animate-spin-fast' : ''}`} />
-                        <span>CEK LIVE</span>
-                      </button>
-
-                      {(telegramWebhookUrl || telegramWebhookInfo?.url) && (
-                        <button
-                          type="button"
-                          onClick={handleDeleteWebhook}
-                          disabled={isDeletingWebhook}
-                          className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)]"
-                          title="Hapus Webhook"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>HAPUS</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Live Webhook Diagnostics Card */}
-                {telegramWebhookInfo && (
-                  <div className="p-3 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 space-y-1.5 text-xs font-mono-custom shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in">
-                    <div className="flex items-center justify-between gap-2 border-b border-dashed border-emerald-300 dark:border-emerald-800 pb-1">
-                      <span className="font-black text-emerald-800 dark:text-emerald-300 uppercase flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>STATUS WEBHOOK DI TELEGRAM SERVER</span>
-                      </span>
-                      {telegramWebhookInfo.url ? (
-                        <span className="bg-emerald-200 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 px-1.5 py-0.2 text-[10px] font-bold border border-emerald-400">
-                          TERDAFTAR
-                        </span>
-                      ) : (
-                        <span className="bg-amber-200 dark:bg-amber-950 text-amber-900 dark:text-amber-200 px-1.5 py-0.2 text-[10px] font-bold border border-amber-400">
-                          BELUM TERDAFTAR
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-[11px] text-[var(--text-main)] space-y-0.5">
-                      <p><strong>URL Terdaftar:</strong> {telegramWebhookInfo.url || '(Belum diset ke Telegram)'}</p>
-                      <p><strong>Pending Updates:</strong> {telegramWebhookInfo.pending_update_count ?? 0} pesan</p>
-                      {telegramWebhookInfo.last_error_message && (
-                        <div className="p-2 bg-red-100 dark:bg-red-950/60 border border-red-400 text-red-800 dark:text-red-300 mt-1">
-                          <strong>Error Terakhir dari Telegram:</strong> {telegramWebhookInfo.last_error_message}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Save button */}
-                <div className="flex justify-end pt-1">
                   <button
-                    type="submit"
-                    disabled={isSavingTelegram}
-                    className="brutal-btn bg-[#229ED9] text-white hover:bg-sky-600 px-4 xs:px-6 py-2 sm:py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
+                    onClick={() => setDomainNotice(null)}
+                    className="text-xs hover:opacity-70 font-bold px-1 flex-shrink-0"
                   >
-                    <Save className="w-4 h-4" />
-                    <span>{isSavingTelegram ? 'MENYIMPAN...' : 'SIMPAN PENGATURAN BOT'}</span>
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              </form>
-            </div>
-                {/* API KEY SELECTOR FOR INTEGRATION & LIVE TESTER */}
-            <div className="brutal-card p-3 xs:p-4 bg-[var(--card-bg)] flex flex-col md:flex-row md:items-center justify-between gap-3 border-[2px] border-[var(--border-color)] w-full max-w-full min-w-0 overflow-hidden">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                  <Key className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)] block">
-                    PILIH API KEY UNTUK INTEGRASI KODE & LIVE TESTER
-                  </span>
-                  <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
-                    Pilih API Key aktif yang akan disematkan pada contoh kode (Python, Node, cURL, PHP) dan pengujian live di bawah.
-                  </span>
-                </div>
-              </div>
+              )}
 
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <label className="text-[11px] font-mono-custom font-bold uppercase text-[var(--text-main)] hidden sm:inline">
-                  Key Aktif:
-                </label>
-                <select
-                  value={safeKey}
-                  onChange={(e) => setSelectedApiKey(e.target.value)}
-                  className="brutal-input text-xs font-mono-custom font-bold py-2 px-3 bg-white dark:bg-zinc-900 cursor-pointer w-full md:w-auto min-w-[260px]"
-                >
-                  {apiKeys.map((k) => (
-                    <option key={k.id} value={k.key}>
-                      {k.name} ({k.isSingleBot ? (k.boundIdentifier ? '1-BOT LOCKED' : '1-BOT LOCK') : 'MULTI-BOT'}) {!k.isActive ? '[NONAKTIF]' : ''}
-                    </option>
-                  ))}
-                  {apiKeys.length === 0 && <option value={safeKey}>Default Master Key</option>}
-                </select>
-              </div>
-            </div>
-                {/* Two Column Layout: Code Generator & Live Interactive Tester */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full max-w-full min-w-0">
-              {/* Left Column: Code Generator for Bots */}
-              <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] flex flex-col w-full max-w-full min-w-0 overflow-hidden">
-                <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 mb-3 sm:mb-4 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
-                  <div className="flex items-center gap-2">
-                    <Code2 className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-blue)] flex-shrink-0" />
-                    <h3 className="font-heading font-black text-sm xs:text-base uppercase">
-                      CONTOH KODE BOT
-                    </h3>
-                  </div>
-
-                  {/* Language Selector */}
-                  <div className="grid grid-cols-4 sm:flex gap-1 w-full sm:w-auto">
-                    {(['python', 'node', 'curl', 'php'] as const).map((lang) => (
-                      <button
-                        key={lang}
-                        onClick={() => {
-                          playSound('click');
-                          setActiveCodeTab(lang);
-                        }}
-                        className={`px-2 xs:px-2.5 py-1 text-[9px] xs:text-[10px] font-mono-custom font-black border-2 border-[var(--border-color)] uppercase transition-all ${
-                          activeCodeTab === lang
-                            ? 'bg-[var(--color-yellow)] text-black shadow-[1.5px_1.5px_0px_var(--shadow-color)]'
-                            : 'bg-white dark:bg-zinc-800 text-[var(--text-muted)] hover:bg-slate-100'
-                        }`}
-                      >
-                        {lang}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="relative flex-1">
-                  <pre className="w-full max-w-full h-[280px] xs:h-[320px] sm:h-[360px] p-2.5 xs:p-3 sm:p-4 bg-zinc-950 text-emerald-400 font-mono text-[10px] xs:text-[11px] sm:text-xs overflow-x-auto overflow-y-auto border-[2.5px] sm:border-[3px] border-[var(--border-color)] shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] whitespace-pre">
-                    {codeSnippets[activeCodeTab]}
-                  </pre>
-                  <button
-                    onClick={() => {
-                      playSound('success');
-                      navigator.clipboard.writeText(codeSnippets[activeCodeTab]);
-                      showToast(`Kode ${activeCodeTab.toUpperCase()} berhasil disalin!`);
-                    }}
-                    className="absolute top-2.5 right-2.5 brutal-btn bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 text-[9px] xs:text-[10px] flex items-center gap-1 font-bold shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
-                  >
-                    <Copy className="w-3 h-3" />
-                    <span>SALIN KODE</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Column: Interactive Live API Tester */}
-              <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] flex flex-col w-full max-w-full min-w-0 overflow-hidden">
-                <div className="flex items-center gap-2 mb-3 sm:mb-4 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
-                  <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-green)] flex-shrink-0" />
-                  <h3 className="font-heading font-black text-sm xs:text-base uppercase">
-                    INTERACTIVE API TESTER
-                  </h3>
-                </div>
-
-                <div className="space-y-2.5 sm:space-y-3 mb-3 sm:mb-4">
-                  <div>
-                    <label className="block text-[10px] xs:text-[11px] font-bold uppercase font-mono-custom mb-1 text-[var(--text-muted)]">
-                      Target Email untuk Diuji:
-                    </label>
+              {/* Add Domain Form */}
+              <form onSubmit={handleAddDomainSubmit} className="space-y-2 mb-5 sm:mb-6">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-2.5">
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none font-mono text-xs sm:text-sm font-bold text-[var(--text-muted)]">
+                      @
+                    </div>
                     <input
                       type="text"
-                      value={testEmail}
-                      onChange={(e) => setTestEmail(e.target.value)}
-                      placeholder="masukkan email atau klik Generate..."
-                      className="brutal-input w-full px-3 py-2 text-xs font-mono-custom font-bold"
+                      value={newDomainInput}
+                      onChange={(e) => setNewDomainInput(e.target.value)}
+                      placeholder="mail.domainbaru.com"
+                      className="brutal-input w-full pl-8 pr-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-bold"
                     />
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="grid grid-cols-2 xs:grid-cols-4 gap-1.5 sm:gap-2 w-full min-w-0">
-                    <button
-                      onClick={() => runTest('domains')}
-                      disabled={isTesting}
-                      className="brutal-btn bg-[var(--color-blue)] text-white py-1.5 sm:py-2 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
-                    >
-                      <Play className="w-3 h-3" />
-                      <span>DOMAINS</span>
-                    </button>
+                  <button
+                    type="submit"
+                    disabled={isAddingDomain || !newDomainInput.trim()}
+                    className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-4 xs:px-5 py-2 sm:py-2.5 text-xs flex items-center justify-center gap-1.5 disabled:opacity-50 font-black cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{isAddingDomain ? 'MENAMBAHKAN...' : 'TAMBAH DOMAIN'}</span>
+                  </button>
+                </div>
 
-                    <button
-                      onClick={() => runTest('generate')}
-                      disabled={isTesting}
-                      className="brutal-btn bg-[var(--color-yellow)] text-black py-1.5 sm:py-2 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
-                    >
-                      <Play className="w-3 h-3" />
-                      <span>GENERATE</span>
-                    </button>
+                <div className="flex items-center gap-2 pt-1">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-mono-custom font-bold text-[var(--text-main)] select-none">
+                    <input
+                      type="checkbox"
+                      checked={isNewDomainVip}
+                      onChange={(e) => setIsNewDomainVip(e.target.checked)}
+                      className="w-4 h-4 accent-amber-500 rounded-none border-2 border-[var(--border-color)]"
+                    />
+                    <span className="flex items-center gap-1.5">
+                      Jadikan Domain <strong className="text-amber-600 dark:text-amber-400 flex items-center gap-1"><Crown className="w-3.5 h-3.5 fill-amber-400 inline" /> VIP / Premium</strong>
+                    </span>
+                  </label>
+                </div>
+              </form>
 
-                    <button
-                      onClick={() => runTest('otp', `email=${encodeURIComponent(testEmail)}`)}
-                      disabled={isTesting || !testEmail}
-                      className="brutal-btn bg-[var(--color-green)] text-white py-1.5 sm:py-2 text-[10px] font-bold flex items-center justify-center gap-1 disabled:opacity-50 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
-                      title="Ekstrak OTP dari email terbaru"
-                    >
-                      <Play className="w-3 h-3" />
-                      <span>AMBIL OTP</span>
-                    </button>
+              {/* Active Domains List */}
+              {domains.length === 0 ? (
+                <div className="p-4 border-2 border-dashed border-[var(--border-color)] text-center text-xs font-mono-custom text-[var(--text-muted)] bg-[var(--bg-color)]">
+                  Belum ada domain kustom yang ditambahkan. Menggunakan domain bawaan sistem.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
+                  {domains.map((domItem) => {
+                    const dom = typeof domItem === 'string' ? domItem : domItem.domain;
+                    const isVip = typeof domItem === 'object' ? Boolean(domItem.isVip) : false;
+                    return (
+                      <div
+                        key={dom}
+                        className={`p-2.5 sm:p-3 bg-[#f8fbff] dark:bg-zinc-900 border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] flex items-center justify-between gap-2 ${
+                          isVip ? 'border-amber-400 bg-amber-50/40 dark:bg-amber-950/20' : ''
+                        }`}
+                      >
+                        <div className="min-w-0 flex items-center gap-1.5 xs:gap-2 flex-1">
+                          {isVip ? (
+                            <div className="w-5 h-5 bg-[var(--color-yellow)] border border-black flex items-center justify-center flex-shrink-0" title="Domain VIP">
+                              <Crown className="w-3 h-3 text-black fill-black" />
+                            </div>
+                          ) : (
+                            <span className="w-2 h-2 rounded-full bg-[var(--color-green)] motion-pulse-dot flex-shrink-0" />
+                          )}
+                          <span className="font-mono-custom font-bold text-xs sm:text-sm break-all">
+                            @{dom}
+                          </span>
+                        </div>
 
+                        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                          {/* 1-Click VIP Toggle Button with Confirmation Modal */}
+                          {isVip ? (
+                            <button
+                              onClick={() => setDomainToToggleVip({ domain: dom, isVip: false })}
+                              className="brutal-btn bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 text-[10px] xs:text-[11px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-yellow-400 cursor-pointer flex-shrink-0"
+                              title="Klik untuk ubah status ke Free"
+                            >
+                              <Crown className="w-3 h-3 fill-black flex-shrink-0" />
+                              <span>VIP</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setDomainToToggleVip({ domain: dom, isVip: true })}
+                              className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 xs:px-2.5 py-1 text-[10px] xs:text-[11px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-amber-100 dark:hover:bg-zinc-700 cursor-pointer flex-shrink-0"
+                              title="Klik untuk jadikan VIP"
+                            >
+                              <span>FREE</span>
+                            </button>
+                          )}
+
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => handleDeleteClick(dom)}
+                            className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 p-1.5 text-xs flex-shrink-0 cursor-pointer shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                            title={`Hapus domain @${dom}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* TOGGLE VIP CONFIRMATION MODAL */}
+            {domainToToggleVip && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-amber-500">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                      <Crown className="w-5 h-5 fill-black text-black" />
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
+                        {domainToToggleVip.isVip ? 'JADIKAN DOMAIN VIP?' : 'HAPUS STATUS VIP?'}
+                      </h4>
+                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
+                        Konfirmasi perubahan status domain
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
+                    Apakah Anda yakin ingin mengubah status domain{' '}
+                    <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">
+                      @{domainToToggleVip.domain}
+                    </span>{' '}
+                    menjadi{' '}
+                    <strong>{domainToToggleVip.isVip ? 'VIP (Mahkota Emas)' : 'FREE (Biasa)'}</strong>?
+                  </p>
+
+                  <div className="flex items-center justify-end gap-2">
                     <button
-                      onClick={() => runTest('links', `email=${encodeURIComponent(testEmail)}`)}
-                      disabled={isTesting || !testEmail}
-                      className="brutal-btn bg-[var(--color-orange)] text-white py-1.5 sm:py-2 text-[10px] font-bold flex items-center justify-center gap-1 disabled:opacity-50 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
-                      title="Ekstrak Link Verifikasi"
+                      onClick={() => setDomainToToggleVip(null)}
+                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
                     >
-                      <Play className="w-3 h-3" />
-                      <span>AMBIL LINK</span>
+                      BATAL
+                    </button>
+                    <button
+                      onClick={confirmToggleVipDomain}
+                      disabled={isTogglingVip}
+                      className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>{isTogglingVip ? 'MEMPROSES...' : 'YA, UBAH STATUS'}</span>
                     </button>
                   </div>
                 </div>
-
-                {/* Output Display */}
-                <div className="flex-1 flex flex-col min-h-[180px] sm:min-h-[220px]">
-                  <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase mb-1">
-                    Live Response Output:
-                  </span>
-                  <pre className="w-full max-w-full flex-1 p-2.5 xs:p-3 bg-zinc-950 text-emerald-400 font-mono text-[10px] xs:text-[11px] overflow-x-auto border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] whitespace-pre-wrap break-all select-text">
-                    {testResult
-                      ? JSON.stringify(testResult, null, 2)
-                      : '// Klik salah satu tombol di atas untuk melihat respon langsung dari server.'}
-                  </pre>
-                </div>
-              </div>
-            </div>
               </div>
             )}
 
+            {/* ADD DOMAIN CONFIRMATION MODAL */}
+            {domainToAdd && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-green)]">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-green)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                      <Plus className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3]" />
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
+                        TAMBAH DOMAIN BARU?
+                      </h4>
+                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
+                        Konfirmasi penambahan domain aktif
+                      </p>
+                    </div>
+                  </div>
 
-            {/* TAB 6: PENGATURAN & RETENSI DATABASE */}
-            {activeAdminTab === 'settings' && (
-              <div className="space-y-4 sm:space-y-6 motion-fade-in w-full max-w-full min-w-0">
-                {/* ADMIN LOGIN CREDENTIALS MANAGEMENT SECTION */}
-            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
+                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
+                    Apakah Anda yakin ingin menambahkan domain <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">@{domainToAdd}</span> ke daftar email aktif HeyFlatimo?
+                  </p>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setDomainToAdd(null)}
+                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
+                    >
+                      BATAL
+                    </button>
+                    <button
+                      onClick={confirmAddDomain}
+                      disabled={isAddingDomain}
+                      className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>{isAddingDomain ? 'MENAMBAHKAN...' : 'YA, TAMBAHKAN'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* DELETE DOMAIN CONFIRMATION MODAL */}
+            {domainToDelete && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+                  <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
+                        HAPUS DOMAIN?
+                      </h4>
+                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
+                        Konfirmasi penghapusan domain
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs font-mono-custom text-[var(--text-main)] mb-5 sm:mb-6 leading-relaxed">
+                    Apakah Anda yakin ingin menghapus domain <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.5 border font-bold">@{domainToDelete}</span> dari daftar email?
+                  </p>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setDomainToDelete(null)}
+                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold"
+                    >
+                      BATAL
+                    </button>
+                    <button
+                      onClick={confirmDeleteDomain}
+                      className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>YA, HAPUS DOMAIN</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ADMIN LOGIN CREDENTIALS MANAGEMENT SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-purple)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -3806,8 +2281,9 @@ if (!empty($otpData['found'])) {
                 </div>
               </form>
             </div>
-                {/* ACCESS KEY GATE MANAGEMENT SECTION */}
-            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
+
+            {/* ACCESS KEY GATE MANAGEMENT SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -3920,8 +2396,9 @@ if (!empty($otpData['found'])) {
                 </div>
               </form>
             </div>
-                {/* BROADCAST / POPUP ANNOUNCEMENT SECTION */}
-            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
+
+            {/* BROADCAST / POPUP ANNOUNCEMENT SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -4109,8 +2586,228 @@ if (!empty($otpData['found'])) {
                 </div>
               </div>
             )}
-                {/* DATABASE & AUTO-DELETE 3 HARI (WIB) CLEANER SECTION */}
-            <div className="brutal-card p-3.5 xs:p-5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full min-w-0 overflow-hidden">
+
+            {/* TELEGRAM BOT INTEGRATION SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#229ED9] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <Send className="w-4 h-4 sm:w-5 sm:h-5 -translate-y-0.5 translate-x-0.5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                      INTEGRASI BOT TELEGRAM (INBOX & OTP READER)
+                    </h3>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                      Hubungkan Bot Telegram untuk membaca email dan mengambil kode OTP secara interaktif via tombol inline.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Status Badge */}
+                <div
+                  className={`text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5 ${
+                    telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
+                      ? 'bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7]'
+                      : telegramEnabled
+                      ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'
+                      : 'bg-zinc-200 dark:bg-zinc-800 text-[var(--text-muted)]'
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
+                        ? 'bg-[var(--color-green)]'
+                        : telegramEnabled
+                        ? 'bg-amber-500'
+                        : 'bg-zinc-500'
+                    } motion-pulse-dot`}
+                  />
+                  <span>
+                    {telegramEnabled && (telegramWebhookUrl || telegramWebhookInfo?.url)
+                      ? `BOT AKTIF ${telegramBotUsername ? `(@${telegramBotUsername})` : ''}`
+                      : telegramEnabled
+                      ? 'BOT AKTIF (BELUM SET WEBHOOK HTTPS)'
+                      : 'BOT NONAKTIF'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Step-by-Step Info Banner */}
+              <div className="p-3 sm:p-4 bg-[#eff6ff] dark:bg-sky-950/40 border-[2px] border-[var(--border-color)] mb-4 space-y-2 shadow-[2px_2px_0px_var(--shadow-color)]">
+                <div className="flex items-center gap-2 font-mono-custom font-black text-xs text-[var(--color-blue)] uppercase">
+                  <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
+                  <span>Panduan Menghubungkan Bot Telegram:</span>
+                </div>
+                <div className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-muted)] space-y-1 pl-6">
+                  <p>1. Buka <strong>@BotFather</strong> di Telegram, kirim perintah <code>/newbot</code> dan ikuti langkah pembuatan bot.</p>
+                  <p>2. Salin <strong>HTTP API Token</strong> yang diberikan dan tempel pada kolom Token Bot di bawah.</p>
+                  <p>3. Ubah saklar status ke <strong>AKTIF (ON)</strong> lalu klik tombol <strong>SET WEBHOOK</strong> atau <strong>SIMPAN PENGATURAN BOT</strong>.</p>
+                  <p>4. Buka bot Anda di Telegram dan kirim pesan <code>/start</code> atau ketik email langsung untuk cek OTP secara instan!</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveTelegram} className="space-y-4">
+                {/* On/Off Toggle */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#f0f9ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)]">
+                  <div>
+                    <span className="font-mono-custom font-bold text-xs sm:text-sm block text-[var(--text-main)]">
+                      Status Integrasi Bot Telegram
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
+                      Aktifkan bot untuk merespons perintah <code>/start</code>, <code>/generate</code>, <code>/otp &lt;email&gt;</code>, dan <code>/inbox &lt;email&gt;</code>.
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setTelegramEnabled(!telegramEnabled)}
+                    className={`brutal-btn px-4 py-1.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)] ${
+                      telegramEnabled
+                        ? 'bg-[var(--color-green)] text-white'
+                        : 'bg-zinc-300 dark:bg-zinc-800 text-black dark:text-white'
+                    }`}
+                  >
+                    {telegramEnabled ? (
+                      <>
+                        <ToggleRight className="w-4 h-4" />
+                        <span>AKTIF (ON)</span>
+                      </>
+                    ) : (
+                      <>
+                        <ToggleLeft className="w-4 h-4" />
+                        <span>NONAKTIF (OFF)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Bot Token Input */}
+                <div>
+                  <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--color-blue)] dark:text-[var(--color-cyan)]">
+                    Token Bot Telegram (Dari @BotFather):
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={telegramBotTokenInput}
+                        onChange={(e) => setTelegramBotTokenInput(e.target.value)}
+                        placeholder="Contoh: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
+                        className="brutal-input w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-mono-custom font-black"
+                        autoComplete="off"
+                        spellCheck="false"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleTestBot}
+                      disabled={isTestingBot || !telegramBotTokenInput.trim()}
+                      className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
+                    >
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>{isTestingBot ? 'MEMERIKSA...' : 'TES KONEKSI BOT'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Webhook Configuration & URL Display */}
+                <div className="p-3 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[10px] font-mono-custom font-black uppercase text-[var(--text-muted)] block mb-0.5">
+                        Webhook Endpoint Otomatis:
+                      </span>
+                      <code className="text-xs font-mono-custom font-bold text-[var(--color-blue)] break-all block">
+                        {origin}/api/webhook/telegram
+                      </code>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={handleSetWebhook}
+                        disabled={isSettingWebhook || !telegramBotTokenInput.trim()}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-3 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isSettingWebhook ? 'animate-spin-fast' : ''}`} />
+                        <span>{isSettingWebhook ? 'MENDAFTAR...' : 'SET WEBHOOK'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => fetchWebhookInfo(telegramBotTokenInput.trim())}
+                        disabled={isCheckingWebhookInfo || !telegramBotTokenInput.trim()}
+                        className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
+                        title="Cek Status Webhook Langsung dari Telegram API"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${isCheckingWebhookInfo ? 'animate-spin-fast' : ''}`} />
+                        <span>CEK LIVE</span>
+                      </button>
+
+                      {(telegramWebhookUrl || telegramWebhookInfo?.url) && (
+                        <button
+                          type="button"
+                          onClick={handleDeleteWebhook}
+                          disabled={isDeletingWebhook}
+                          className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)]"
+                          title="Hapus Webhook"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>HAPUS</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Live Webhook Diagnostics Card */}
+                {telegramWebhookInfo && (
+                  <div className="p-3 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 space-y-1.5 text-xs font-mono-custom shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in">
+                    <div className="flex items-center justify-between gap-2 border-b border-dashed border-emerald-300 dark:border-emerald-800 pb-1">
+                      <span className="font-black text-emerald-800 dark:text-emerald-300 uppercase flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>STATUS WEBHOOK DI TELEGRAM SERVER</span>
+                      </span>
+                      {telegramWebhookInfo.url ? (
+                        <span className="bg-emerald-200 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 px-1.5 py-0.2 text-[10px] font-bold border border-emerald-400">
+                          TERDAFTAR
+                        </span>
+                      ) : (
+                        <span className="bg-amber-200 dark:bg-amber-950 text-amber-900 dark:text-amber-200 px-1.5 py-0.2 text-[10px] font-bold border border-amber-400">
+                          BELUM TERDAFTAR
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-[var(--text-main)] space-y-0.5">
+                      <p><strong>URL Terdaftar:</strong> {telegramWebhookInfo.url || '(Belum diset ke Telegram)'}</p>
+                      <p><strong>Pending Updates:</strong> {telegramWebhookInfo.pending_update_count ?? 0} pesan</p>
+                      {telegramWebhookInfo.last_error_message && (
+                        <div className="p-2 bg-red-100 dark:bg-red-950/60 border border-red-400 text-red-800 dark:text-red-300 mt-1">
+                          <strong>Error Terakhir dari Telegram:</strong> {telegramWebhookInfo.last_error_message}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Save button */}
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={isSavingTelegram}
+                    className="brutal-btn bg-[#229ED9] text-white hover:bg-sky-600 px-4 xs:px-6 py-2 sm:py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isSavingTelegram ? 'MENYIMPAN...' : 'SIMPAN PENGATURAN BOT'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* DATABASE & AUTO-DELETE 3 HARI (WIB) CLEANER SECTION */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
@@ -4256,7 +2953,7 @@ if (!empty($otpData['found'])) {
             {/* CONFIRM CLEAN ALL MODAL */}
             {showCleanAllModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 xs:p-4">
-                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full max-w-full p-4 xs:p-5 sm:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in my-auto min-w-0 overflow-hidden">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
                   <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-[var(--color-red)]">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-red)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
                       <AlertTriangle className="w-5 h-5" />
@@ -4300,10 +2997,1091 @@ if (!empty($otpData['found'])) {
                 </div>
               </div>
             )}
+
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className="brutal-card p-3.5 sm:p-4 bg-[#eff6ff] dark:bg-zinc-900 flex items-center gap-3">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-[var(--color-blue)] border-[2.5px] border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                  <Server className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
+                    STATUS REST API
+                  </span>
+                  <span className="font-heading font-black text-base sm:text-lg text-[var(--color-blue)] truncate block">
+                    ONLINE (v1 READY)
+                  </span>
+                </div>
               </div>
-            )}
 
+              <div className="brutal-card p-3.5 sm:p-4 bg-[#ecfdf5] dark:bg-zinc-900 flex items-center gap-3">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-[var(--color-green)] border-[2.5px] border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                  <Database className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-emerald-700 dark:text-emerald-400 uppercase block truncate">
+                    TOTAL EMAIL MASUK (ALL-TIME)
+                  </span>
+                  <span className="font-heading font-black text-base sm:text-lg text-[var(--color-green)] truncate block">
+                    {cleanupStats?.totalReceivedAllTime ?? stats?.totalReceivedAllTime ?? cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} Pesan
+                  </span>
+                  <span className="text-[9px] font-mono-custom text-[var(--text-muted)] block truncate">
+                    {cleanupStats?.totalMessages ?? stats?.totalMessages ?? 0} aktif di DB ({cleanupStats?.totalDeletedAllTime ?? 0} dibersihkan)
+                  </span>
+                </div>
+              </div>
 
+              <div className="brutal-card p-3.5 sm:p-4 bg-[#fefce8] dark:bg-zinc-900 flex items-center gap-3">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-[var(--color-yellow)] border-[2.5px] border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                  <Cpu className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
+                    BOT AUTO-EXTRACT
+                  </span>
+                  <span className="font-heading font-black text-base sm:text-lg text-black dark:text-white truncate block">
+                    OTP + LINKS AKTIF
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* API KEY SELECTOR FOR INTEGRATION & LIVE TESTER */}
+            <div className="brutal-card p-3.5 sm:p-4 bg-[var(--card-bg)] flex flex-col md:flex-row md:items-center justify-between gap-3 border-[2px] border-[var(--border-color)]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                  <Key className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)] block">
+                    PILIH API KEY UNTUK INTEGRASI KODE & LIVE TESTER
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] block">
+                    Pilih API Key aktif yang akan disematkan pada contoh kode (Python, Node, cURL, PHP) dan pengujian live di bawah.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <label className="text-[11px] font-mono-custom font-bold uppercase text-[var(--text-main)] hidden sm:inline">
+                  Key Aktif:
+                </label>
+                <select
+                  value={safeKey}
+                  onChange={(e) => setSelectedApiKey(e.target.value)}
+                  className="brutal-input text-xs font-mono-custom font-bold py-2 px-3 bg-white dark:bg-zinc-900 cursor-pointer w-full md:w-auto min-w-[260px]"
+                >
+                  {apiKeys.map((k) => (
+                    <option key={k.id} value={k.key}>
+                      {k.name} ({k.isSingleBot ? (k.boundIdentifier ? '1-BOT LOCKED' : '1-BOT LOCK') : 'MULTI-BOT'}) {!k.isActive ? '[NONAKTIF]' : ''}
+                    </option>
+                  ))}
+                  {apiKeys.length === 0 && <option value={safeKey}>Default Master Key</option>}
+                </select>
+              </div>
+            </div>
+
+            {/* PRIVATE REST API & WEBHOOK SPECIFICATION SECTION (KHUSUS OWNER) */}
+            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 sm:pb-4 border-b-2 border-dashed border-[var(--border-color)]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                    <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                      DOKUMENTASI ENDPOINT & WEBHOOK (KHUSUS OWNER)
+                    </h3>
+                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                      Spesifikasi teknis integrasi Bot & REST API private dengan otentikasi API Key terenkripsi.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-[10px] xs:text-xs font-mono-custom font-black px-3 py-1.5 bg-[#eff6ff] dark:bg-sky-950/60 text-[var(--color-blue)] dark:text-sky-300 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start md:self-auto flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>STATUS: 100% PRIVATE & TERPROTEKSI</span>
+                </div>
+              </div>
+
+              {/* Private Security Banner */}
+              <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-[2px] border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-mono-custom font-black text-[var(--text-main)] uppercase">
+                  <Info className="w-4 h-4 text-[var(--color-blue)] flex-shrink-0" />
+                  <span>KEBIJAKAN AKSES & KEAMANAN SISTEM:</span>
+                </div>
+                <p className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-muted)] leading-relaxed">
+                  Semua endpoint <code>/api/v1/*</code> berstatus <strong>Private (Bukan Open Public)</strong> dan wajib menyertakan header <code>x-api-key</code> yang valid. Endpoint webhook <code>/api/webhook/email</code> dan <code>/api/webhook/telegram</code> diverifikasi secara ketat menggunakan secret signature token internal. Akses tanpa kredensial yang sah akan langsung ditolak dengan status HTTP <code>401 Unauthorized</code> atau <code>403 Forbidden</code>.
+                </p>
+              </div>
+
+              {/* Endpoint Cards List */}
+              <div className="space-y-3 pt-1">
+                {/* 1. GET /api/v1/generate */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/generate
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
+                            PRIVATE (x-api-key)
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Generate mailbox email sementara baru (random otomatis atau custom prefix & domain).
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/generate`, 'ep_gen_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        title="Salin Full URL Endpoint"
+                      >
+                        {copiedEndpointId === 'ep_gen_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/generate" -H "x-api-key: ${safeKey}"`,
+                            'ep_gen_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                        title="Salin cURL Siap Pakai"
+                      >
+                        {copiedCurlId === 'ep_gen_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('generate')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('generate') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('generate') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('generate') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Required Request Headers:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                            <code>x-api-key: {safeKey}</code>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Optional Query Parameters:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] space-y-1 text-[11px]">
+                            <p><code>prefix</code>: Nama mailbox khusus (cth: <code>user1</code>)</p>
+                            <p><code>domain</code>: Domain spesifik (cth: <code>kingoutlook.my.id</code>)</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "email": "user1@kingoutlook.my.id",
+  "prefix": "user1",
+  "domain": "kingoutlook.my.id",
+  "createdAt": ${Date.now()},
+  "retentionHours": 72
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. GET /api/v1/inbox */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/inbox
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
+                            PRIVATE (x-api-key)
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Mengambil daftar seluruh pesan email yang masuk untuk mailbox target.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/inbox?email=user@domain.com`, 'ep_inbox_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_inbox_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/inbox?email=user@domain.com" -H "x-api-key: ${safeKey}"`,
+                            'ep_inbox_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedCurlId === 'ep_inbox_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('inbox')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('inbox') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('inbox') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('inbox') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Required Request Headers:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                            <code>x-api-key: {safeKey}</code>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Query Parameters:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] space-y-1 text-[11px]">
+                            <p><code>email</code> <strong>(Wajib)</strong>: Alamat email target (cth: <code>user@domain.com</code>)</p>
+                            <p><code>limit</code> (Opsional): Batas jumlah pesan (default: 50)</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "email": "user@domain.com",
+  "count": 1,
+  "messages": [
+    {
+      "id": "66e6...01",
+      "sender": "noreply@service.com",
+      "senderName": "Service Auth",
+      "subject": "Kode Verifikasi Akun",
+      "preview": "Kode OTP akun Anda adalah 849201...",
+      "receivedAt": ${Date.now()}
+    }
+  ]
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. GET /api/v1/messages/{id} */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/messages/[id]
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
+                            PRIVATE (x-api-key)
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Membaca isi lengkap satu pesan email, format teks murni, dan render HTML body.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/messages/<MESSAGE_ID>`, 'ep_msg_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_msg_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/messages/<MESSAGE_ID>" -H "x-api-key: ${safeKey}"`,
+                            'ep_msg_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedCurlId === 'ep_msg_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('messages')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('messages') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('messages') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('messages') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Required Request Headers:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                            <code>x-api-key: {safeKey}</code>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            URL Parameter:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] text-[11px]">
+                            <code>id</code> <strong>(Wajib)</strong>: ID pesan unik yang didapatkan dari pemanggilan /api/v1/inbox.
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "message": {
+    "id": "66e66123abc456",
+    "recipient": "user@domain.com",
+    "sender": "service@auth.com",
+    "subject": "Verifikasi Email",
+    "text": "Kode verifikasi Anda adalah: 918234",
+    "html": "<p>Kode verifikasi Anda adalah: <b>918234</b></p>",
+    "receivedAt": ${Date.now()}
+  }
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. GET /api/v1/otp */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/otp
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 uppercase">
+                            BOT AUTO-EXTRACT
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Ekstraksi otomatis angka kode OTP (4-8 digit) dari email terbaru tanpa parsing manual.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/otp?email=user@domain.com`, 'ep_otp_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_otp_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/otp?email=user@domain.com" -H "x-api-key: ${safeKey}"`,
+                            'ep_otp_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedCurlId === 'ep_otp_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('otp')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('otp') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('otp') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('otp') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Required Request Headers:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                            <code>x-api-key: {safeKey}</code>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Query Parameters:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] text-[11px]">
+                            <code>email</code> <strong>(Wajib)</strong>: Alamat email target (cth: <code>user@domain.com</code>)
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "found": true,
+  "otp": "492018",
+  "sender": "no-reply@target.com",
+  "subject": "Kode OTP Konfirmasi Akun",
+  "receivedAt": ${Date.now()}
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 5. GET /api/v1/links */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/links
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 uppercase">
+                            BOT AUTO-EXTRACT
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Ekstraksi URL link verifikasi / konfirmasi aktivasi akun dari pesan email terbaru.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/links?email=user@domain.com`, 'ep_links_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_links_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/links?email=user@domain.com" -H "x-api-key: ${safeKey}"`,
+                            'ep_links_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedCurlId === 'ep_links_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('links')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('links') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('links') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('links') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Required Request Headers:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                            <code>x-api-key: {safeKey}</code>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Query Parameters:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] text-[11px]">
+                            <code>email</code> <strong>(Wajib)</strong>: Alamat email target (cth: <code>user@domain.com</code>)
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "found": true,
+  "links": [
+    "https://service.com/verify?token=abc123xyz"
+  ],
+  "primaryLink": "https://service.com/verify?token=abc123xyz",
+  "sender": "auth@service.com",
+  "subject": "Aktivasi Akun Baru"
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 6. GET /api/v1/domains */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/domains
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
+                            PRIVATE (x-api-key)
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Mengambil seluruh daftar domain aktif yang tersedia beserta status tier VIP.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/domains`, 'ep_dom_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_dom_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/domains" -H "x-api-key: ${safeKey}"`,
+                            'ep_dom_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedCurlId === 'ep_dom_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('domains')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('domains') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('domains') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('domains') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Required Request Headers:
+                        </span>
+                        <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                          <code>x-api-key: {safeKey}</code>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "domains": [
+    { "domain": "kingoutlook.my.id", "isVip": false },
+    { "domain": "capacuputpro.my.id", "isVip": true }
+  ],
+  "total": 2
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 7. GET /api/v1/stats */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-green)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        GET
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/v1/stats
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800 uppercase">
+                            PRIVATE (x-api-key)
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Statistik lifetime email masuk, pesan aktif database, dan waktu server WIB.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/v1/stats`, 'ep_stats_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_stats_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopyEndpointCurl(
+                            `curl -X GET "${origin}/api/v1/stats" -H "x-api-key: ${safeKey}"`,
+                            'ep_stats_curl'
+                          )
+                        }
+                        className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-400 text-black px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedCurlId === 'ep_stats_curl' ? <Check className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
+                        <span>cURL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('stats')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('stats') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('stats') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('stats') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Required Request Headers:
+                        </span>
+                        <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)]">
+                          <code>x-api-key: {safeKey}</code>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "totalReceivedAllTime": ${cleanupStats?.totalReceivedAllTime ?? 1420},
+  "totalMessages": ${cleanupStats?.totalMessages ?? 45},
+  "totalDomains": ${domains.length || 2},
+  "serverTimeWIB": "${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB"
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 8. POST /api/webhook/email */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-orange)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        POST
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/webhook/email
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800 uppercase">
+                            WEBHOOK (x-webhook-secret)
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Inbound receiver webhook untuk menerima email masuk dari Cloudflare Email Routing Worker.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/webhook/email`, 'ep_wh_email_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_wh_email_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('webhook_email')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('webhook_email') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('webhook_email') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('webhook_email') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            Required Request Headers:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] space-y-1 text-[11px]">
+                            <p><code>Content-Type: application/json</code></p>
+                            <p><code>x-webhook-secret: &lt;WEBHOOK_SECRET&gt;</code></p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                            JSON Payload Fields:
+                          </span>
+                          <div className="p-2 bg-white dark:bg-zinc-900 border border-[var(--border-color)] space-y-0.5 text-[11px]">
+                            <p><code>recipient</code>: Alamat email penerima</p>
+                            <p><code>sender</code>: Alamat email pengirim</p>
+                            <p><code>subject</code>: Judul email</p>
+                            <p><code>text</code>: Body teks polos</p>
+                            <p><code>html</code>: Body HTML render</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "success": true,
+  "messageId": "66e689abcdef1234567890",
+  "message": "Email received & processed"
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 9. POST /api/webhook/telegram */}
+                <div className="border-[2px] border-[var(--border-color)] bg-white dark:bg-zinc-900 shadow-[2.5px_2.5px_0px_var(--shadow-color)]">
+                  <div className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-[var(--color-orange)] text-white text-[10px] sm:text-xs font-mono-custom font-black border border-[var(--border-color)] flex-shrink-0">
+                        POST
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)] break-all">
+                            /api/webhook/telegram
+                          </code>
+                          <span className="text-[9px] font-mono-custom font-bold px-1.5 py-0.2 bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800 uppercase">
+                            TELEGRAM ENGINE
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] mt-0.5">
+                          Webhook engine resmi untuk menangani pemrosesan pesan dan tombol bot Telegram.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEndpointUrl(`${origin}/api/webhook/telegram`, 'ep_wh_tg_url')}
+                        className="brutal-btn bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-black dark:text-white px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        {copiedEndpointId === 'ep_wh_tg_url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>SALIN URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleEndpointExpand('webhook_telegram')}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-2 py-1 text-[10px] font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      >
+                        <span>{expandedEndpoints.has('webhook_telegram') ? 'TUTUP' : 'DETAIL'}</span>
+                        {expandedEndpoints.has('webhook_telegram') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedEndpoints.has('webhook_telegram') && (
+                    <div className="p-3 sm:p-4 bg-[#f8fafc] dark:bg-zinc-950 border-t-2 border-dashed border-[var(--border-color)] space-y-3 text-xs font-mono-custom">
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Deskripsi Operasional:
+                        </span>
+                        <p className="text-[11px] text-[var(--text-muted)]">
+                          Endpoint ini didaftarkan secara otomatis melalui tombol <strong>SET WEBHOOK</strong> di panel Admin ke server Telegram API resmi. Endpoint memproses pesan teks <code>/start</code>, <code>/generate</code>, <code>/otp &lt;email&gt;</code>, serta callback data interaktif.
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-[var(--text-muted)] block mb-1">
+                          Contoh Respon Sukses (JSON):
+                        </span>
+                        <pre className="p-2.5 bg-zinc-950 text-emerald-400 text-[11px] overflow-auto border border-[var(--border-color)]">
+{`{
+  "ok": true
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Two Column Layout: Code Generator & Live Interactive Tester */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-7">
+              {/* Left Column: Code Generator for Bots */}
+              <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] flex flex-col">
+                <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 mb-3 sm:mb-4 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                  <div className="flex items-center gap-2">
+                    <Code2 className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-blue)] flex-shrink-0" />
+                    <h3 className="font-heading font-black text-sm xs:text-base uppercase">
+                      CONTOH KODE BOT
+                    </h3>
+                  </div>
+
+                  {/* Language Selector */}
+                  <div className="flex gap-1 flex-wrap">
+                    {(['python', 'node', 'curl', 'php'] as const).map((lang) => (
+                      <button
+                        key={lang}
+                        onClick={() => {
+                          playSound('click');
+                          setActiveCodeTab(lang);
+                        }}
+                        className={`px-2 xs:px-2.5 py-1 text-[9px] xs:text-[10px] font-mono-custom font-black border-2 border-[var(--border-color)] uppercase transition-all ${
+                          activeCodeTab === lang
+                            ? 'bg-[var(--color-yellow)] text-black shadow-[1.5px_1.5px_0px_var(--shadow-color)]'
+                            : 'bg-white dark:bg-zinc-800 text-[var(--text-muted)] hover:bg-slate-100'
+                        }`}
+                      >
+                        {lang}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="relative flex-1">
+                  <pre className="w-full h-[300px] xs:h-[340px] sm:h-[360px] p-3 sm:p-4 bg-zinc-950 text-emerald-400 font-mono text-[10px] xs:text-[11px] sm:text-xs overflow-auto border-[2.5px] sm:border-[3px] border-[var(--border-color)] shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] whitespace-pre">
+                    {codeSnippets[activeCodeTab]}
+                  </pre>
+                  <button
+                    onClick={() => {
+                      playSound('success');
+                      navigator.clipboard.writeText(codeSnippets[activeCodeTab]);
+                      showToast(`Kode ${activeCodeTab.toUpperCase()} berhasil disalin!`);
+                    }}
+                    className="absolute top-2.5 right-2.5 brutal-btn bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 text-[9px] xs:text-[10px] flex items-center gap-1 font-bold shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>SALIN KODE</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Column: Interactive Live API Tester */}
+              <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] flex flex-col">
+                <div className="flex items-center gap-2 mb-3 sm:mb-4 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                  <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-green)] flex-shrink-0" />
+                  <h3 className="font-heading font-black text-sm xs:text-base uppercase">
+                    INTERACTIVE API TESTER
+                  </h3>
+                </div>
+
+                <div className="space-y-2.5 sm:space-y-3 mb-3 sm:mb-4">
+                  <div>
+                    <label className="block text-[10px] xs:text-[11px] font-bold uppercase font-mono-custom mb-1 text-[var(--text-muted)]">
+                      Target Email untuk Diuji:
+                    </label>
+                    <input
+                      type="text"
+                      value={testEmail}
+                      onChange={(e) => setTestEmail(e.target.value)}
+                      placeholder="masukkan email atau klik Generate..."
+                      className="brutal-input w-full px-3 py-2 text-xs font-mono-custom font-bold"
+                    />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
+                    <button
+                      onClick={() => runTest('domains')}
+                      disabled={isTesting}
+                      className="brutal-btn bg-[var(--color-blue)] text-white py-1.5 sm:py-2 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                    >
+                      <Play className="w-3 h-3" />
+                      <span>DOMAINS</span>
+                    </button>
+
+                    <button
+                      onClick={() => runTest('generate')}
+                      disabled={isTesting}
+                      className="brutal-btn bg-[var(--color-yellow)] text-black py-1.5 sm:py-2 text-[10px] font-bold flex items-center justify-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                    >
+                      <Play className="w-3 h-3" />
+                      <span>GENERATE</span>
+                    </button>
+
+                    <button
+                      onClick={() => runTest('otp', `email=${encodeURIComponent(testEmail)}`)}
+                      disabled={isTesting || !testEmail}
+                      className="brutal-btn bg-[var(--color-green)] text-white py-1.5 sm:py-2 text-[10px] font-bold flex items-center justify-center gap-1 disabled:opacity-50 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      title="Ekstrak OTP dari email terbaru"
+                    >
+                      <Play className="w-3 h-3" />
+                      <span>AMBIL OTP</span>
+                    </button>
+
+                    <button
+                      onClick={() => runTest('links', `email=${encodeURIComponent(testEmail)}`)}
+                      disabled={isTesting || !testEmail}
+                      className="brutal-btn bg-[var(--color-orange)] text-white py-1.5 sm:py-2 text-[10px] font-bold flex items-center justify-center gap-1 disabled:opacity-50 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                      title="Ekstrak Link Verifikasi"
+                    >
+                      <Play className="w-3 h-3" />
+                      <span>AMBIL LINK</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Output Display */}
+                <div className="flex-1 flex flex-col min-h-[180px] sm:min-h-[220px]">
+                  <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase mb-1">
+                    Live Response Output:
+                  </span>
+                  <pre className="flex-1 p-3 bg-zinc-950 text-emerald-400 font-mono text-[10px] xs:text-[11px] overflow-auto border-[2px] sm:border-[2.5px] border-[var(--border-color)] shadow-[2.5px_2.5px_0px_var(--shadow-color)] whitespace-pre-wrap select-text">
+                    {testResult
+                      ? JSON.stringify(testResult, null, 2)
+                      : '// Klik salah satu tombol di atas untuk melihat respon langsung dari server.'}
+                  </pre>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </main>
