@@ -59,6 +59,21 @@ export async function PATCH(
       apiKeyDoc.name = body.name.trim();
     }
 
+    // 5. Action: Update Key String (Custom API Key)
+    if (typeof body.key === 'string' && body.key.trim()) {
+      const newKeyValue = body.key.trim();
+      if (newKeyValue !== apiKeyDoc.key) {
+        const duplicate = await ApiKey.findOne({ key: newKeyValue, _id: { $ne: id } });
+        if (duplicate) {
+          return NextResponse.json(
+            { error: `API Key "${newKeyValue}" sudah digunakan oleh bot "${duplicate.name}". Gunakan nilai yang berbeda.` },
+            { status: 400 }
+          );
+        }
+        apiKeyDoc.key = newKeyValue;
+      }
+    }
+
     await apiKeyDoc.save();
 
     return NextResponse.json({

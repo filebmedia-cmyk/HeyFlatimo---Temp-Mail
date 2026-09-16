@@ -43,6 +43,7 @@ import {
   Clock,
   Timer,
   Power,
+  Edit3,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 
@@ -84,6 +85,13 @@ export default function AdminPage() {
   const [keyToDelete, setKeyToDelete] = useState<ApiKeyItem | null>(null);
   const [isDeletingKey, setIsDeletingKey] = useState(false);
   const [keyNotice, setKeyNotice] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  // Edit API Key Modal State
+  const [keyToEdit, setKeyToEdit] = useState<ApiKeyItem | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editValue, setEditValue] = useState('');
+  const [editSingleBot, setEditSingleBot] = useState(false);
+  const [isSavingEditKey, setIsSavingEditKey] = useState(false);
 
   // Domain Management State
   const [domains, setDomains] = useState<{ domain: string; isVip: boolean; createdAt?: string }[]>([]);
@@ -403,6 +411,59 @@ export default function AdminPage() {
       }
       return next;
     });
+  };
+
+  const handleOpenEditKeyModal = (item: ApiKeyItem) => {
+    setKeyToEdit(item);
+    setEditTitle(item.name);
+    setEditValue(item.key);
+    setEditSingleBot(item.isSingleBot);
+  };
+
+  const handleGenerateRandomEditValue = () => {
+    const randomHex = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    setEditValue(`hfl_live_${randomHex}`);
+  };
+
+  const handleSaveEditKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!keyToEdit) return;
+    if (!editTitle.trim()) {
+      showToast('Judul / Nama Bot wajib diisi.', 'error');
+      return;
+    }
+    if (!editValue.trim()) {
+      showToast('Nilai API Key wajib diisi.', 'error');
+      return;
+    }
+
+    setIsSavingEditKey(true);
+    try {
+      const res = await fetch(`/api/admin/apikeys/${keyToEdit.id}`, {
+        method: 'PATCH',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({
+          name: editTitle.trim(),
+          key: editValue.trim(),
+          isSingleBot: editSingleBot,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('API Key berhasil diperbarui!', 'success');
+        setKeyNotice({ type: 'success', message: `API Key "${data.key.name}" berhasil diperbarui.` });
+        setKeyToEdit(null);
+        fetchApiKeys();
+      } else {
+        showToast(data.error || 'Gagal memperbarui API Key', 'error');
+      }
+    } catch (err) {
+      showToast('Gagal memperbarui API Key', 'error');
+    } finally {
+      setIsSavingEditKey(false);
+    }
   };
 
   const fetchDomains = async () => {
@@ -1485,6 +1546,16 @@ if (!empty($otpData['found'])) {
 
                               <button
                                 type="button"
+                                onClick={() => handleOpenEditKeyModal(keyItem)}
+                                className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-amber-400 px-2.5 py-1 text-[10px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] cursor-pointer"
+                                title="Edit judul, nilai API Key kustom, atau pengaturan kunci"
+                              >
+                                <Edit3 className="w-3 h-3" />
+                                <span>EDIT</span>
+                              </button>
+
+                              <button
+                                type="button"
                                 onClick={() => handleToggleKeyActive(keyItem.id, keyItem.isActive)}
                                 className={`brutal-btn px-2.5 py-1 text-[10px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] cursor-pointer ${
                                   keyItem.isActive
@@ -1514,6 +1585,104 @@ if (!empty($otpData['found'])) {
                 )}
               </div>
             </div>
+
+            {/* EDIT API KEY MODAL */}
+            {keyToEdit && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 xs:p-4">
+                <div className="brutal-card bg-[var(--card-bg)] max-w-lg w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
+                  <div className="flex items-center gap-2.5 sm:gap-3 mb-4 text-[var(--color-blue)]">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                      <Edit3 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
+                        EDIT API KEY & KUSTOMISASI
+                      </h4>
+                      <p className="text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
+                        Ubah judul, nilai API Key kustom, atau mode penguncian bot
+                      </p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSaveEditKey} className="space-y-3.5">
+                    <div>
+                      <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                        Judul / Nama Bot:
+                      </label>
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        placeholder="Contoh: Master API Key / Bot WhatsApp"
+                        className="brutal-input w-full px-3 py-2 text-xs sm:text-sm font-mono-custom font-bold"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                        Nilai API Key Kustom:
+                      </label>
+                      <div className="flex gap-1.5">
+                        <input
+                          type="text"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          placeholder="Masukkan nilai key kustom Anda"
+                          className="brutal-input flex-1 px-3 py-2 text-xs sm:text-sm font-mono-custom font-bold select-all"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={handleGenerateRandomEditValue}
+                          className="brutal-btn bg-[var(--color-yellow)] text-black px-2.5 sm:px-3 py-2 text-[11px] font-black flex items-center gap-1 flex-shrink-0 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
+                          title="Generate nilai key acak baru"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>RANDOM</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Single Bot Lock Toggle */}
+                    <label className="flex items-start gap-2.5 p-3 bg-amber-50 dark:bg-zinc-900 border-[2px] border-amber-300 dark:border-amber-700 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]">
+                      <input
+                        type="checkbox"
+                        checked={editSingleBot}
+                        onChange={(e) => setEditSingleBot(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 accent-amber-500 cursor-pointer flex-shrink-0"
+                      />
+                      <div>
+                        <span className="font-mono-custom font-black text-xs text-amber-900 dark:text-amber-200 block">
+                          KUNCI 1 BOT / 1 SC (SINGLE INSTANCE LOCK)
+                        </span>
+                        <span className="font-mono-custom text-[10px] sm:text-[11px] text-[var(--text-muted)] block mt-0.5 leading-relaxed">
+                          Jika dicentang, key ini hanya bisa digunakan oleh 1 IP / bot saja.
+                        </span>
+                      </div>
+                    </label>
+
+                    <div className="flex items-center justify-end gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setKeyToEdit(null)}
+                        className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 sm:px-4 py-2 text-xs font-bold cursor-pointer"
+                      >
+                        BATAL
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSavingEditKey || !editTitle.trim() || !editValue.trim()}
+                        className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-4 sm:px-5 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
+                      >
+                        <Save className="w-4 h-4" />
+                        <span>{isSavingEditKey ? 'MENYIMPAN...' : 'SIMPAN PERUBAHAN'}</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
 
             {/* DELETE API KEY CONFIRMATION MODAL */}
             {keyToDelete && (
