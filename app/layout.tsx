@@ -40,14 +40,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning className="max-w-full overflow-x-hidden">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="antialiased selection:bg-indigo-500 selection:text-white relative min-h-screen">
+      <body className="antialiased selection:bg-indigo-500 selection:text-white relative min-h-screen max-w-full overflow-x-hidden">
         <PsBackground />
-        <div className="relative z-10 min-h-screen flex flex-col">{children}</div>
+        <div className="relative z-10 min-h-screen flex flex-col w-full max-w-full overflow-x-hidden">{children}</div>
       </body>
     </html>
   );

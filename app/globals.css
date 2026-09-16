@@ -64,6 +64,13 @@
   --badge-text: #00ff66;
 }
 
+html {
+  max-width: 100vw;
+  width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-family: 'Plus Jakarta Sans', 'Work Sans', sans-serif;
   background-color: var(--bg-color);
@@ -74,10 +81,18 @@ body {
   background-size: 28px 28px;
   min-height: 100vh;
   min-height: 100dvh;
+  max-width: 100vw;
+  width: 100%;
+  position: relative;
   transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
   text-rendering: optimizeLegibility;
+}
+
+pre {
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .font-mono-custom {
