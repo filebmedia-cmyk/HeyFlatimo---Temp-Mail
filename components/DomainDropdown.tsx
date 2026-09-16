@@ -109,20 +109,20 @@ export default function DomainDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="brutal-btn bg-white dark:bg-[#151922] text-[var(--text-main)] px-2.5 xs:px-3.5 py-2 sm:py-2.5 text-[11px] xs:text-xs font-mono-custom font-bold flex items-center justify-between gap-1.5 xs:gap-2 w-full shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] hover:bg-[#f0f9ff] dark:hover:bg-[#1e2535] transition-colors"
+        className="group brutal-btn bg-white dark:bg-[#151922] text-[var(--text-main)] px-2.5 xs:px-3.5 py-2 sm:py-2.5 text-[11px] xs:text-xs font-mono-custom font-bold flex items-center justify-between gap-1.5 xs:gap-2 w-full shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] hover:bg-[#f0f9ff] dark:hover:bg-[#1e2535] transition-colors"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-1.5 min-w-0 flex-shrink">
           {currentSelectedOption?.isVip ? (
-            <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 fill-amber-400 flex-shrink-0" />
+            <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 fill-amber-400 flex-shrink-0 anim-crown" />
           ) : (
-            <Server className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--color-blue)] dark:text-[var(--color-cyan)] flex-shrink-0" />
+            <Server className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--color-blue)] dark:text-[var(--color-cyan)] flex-shrink-0 anim-cpu" />
           )}
           <span className="whitespace-nowrap font-bold">{selectedDomain || (normalizedDomains[0]?.domain ?? 'pilih domain')}</span>
           {currentSelectedOption?.isVip && (
             <span className="bg-[var(--color-yellow)] text-black text-[8px] font-mono-custom font-black px-1 py-0.2 border border-[var(--border-color)] uppercase flex items-center gap-0.5 flex-shrink-0">
-              <Crown className="w-2.5 h-2.5 fill-black" />
+              <Crown className="w-2.5 h-2.5 fill-black anim-crown" />
               <span>VIP</span>
             </span>
           )}
@@ -185,7 +185,7 @@ export default function DomainDropdown({
                     role="option"
                     aria-selected={isSelected}
                     onClick={() => handleSelect(item.domain)}
-                    className={`px-2.5 py-2 text-xs font-mono-custom font-bold flex items-center justify-between gap-2 rounded-none border-[1.5px] cursor-pointer transition-all duration-150 ${
+                    className={`group px-2.5 py-2 text-xs font-mono-custom font-bold flex items-center justify-between gap-2 rounded-none border-[1.5px] cursor-pointer transition-all duration-150 ${
                       isSelected
                         ? 'bg-[var(--color-yellow)] text-black border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] -translate-y-0.5'
                         : 'bg-transparent text-[var(--text-main)] border-transparent hover:border-[var(--border-color)] hover:bg-[#f1f5f9] dark:hover:bg-[#1e2535] hover:translate-x-1'
@@ -193,14 +193,14 @@ export default function DomainDropdown({
                   >
                     <div className="flex items-center gap-1.5 min-w-0">
                       {item.isVip ? (
-                        <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-400 flex-shrink-0" />
+                        <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-400 flex-shrink-0 anim-crown" />
                       ) : (
-                        <Server className="w-3.5 h-3.5 text-[var(--color-blue)] dark:text-[var(--color-cyan)] flex-shrink-0" />
+                        <Server className="w-3.5 h-3.5 text-[var(--color-blue)] dark:text-[var(--color-cyan)] flex-shrink-0 anim-cpu" />
                       )}
                       <span className="whitespace-nowrap font-bold text-xs">{item.domain}</span>
                       {item.isVip && (
                         <span className="bg-[var(--color-yellow)] text-black text-[8px] font-mono-custom font-black px-1 py-0.2 border border-[var(--border-color)] uppercase flex-shrink-0 flex items-center gap-0.5">
-                          <Crown className="w-2.5 h-2.5 fill-black" />
+                          <Crown className="w-2.5 h-2.5 fill-black anim-crown" />
                           <span>VIP</span>
                         </span>
                       )}

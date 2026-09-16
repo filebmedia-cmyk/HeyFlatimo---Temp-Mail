@@ -1165,7 +1165,7 @@ if (!empty($otpData['found'])) {
             className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 group cursor-pointer flex-shrink-0"
           >
             <div className="w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 bg-[var(--color-blue)] border-[2px] sm:border-[3px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] group-hover:rotate-6 transition-transform flex-shrink-0">
-              <Zap className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-6 sm:h-6 text-[var(--color-yellow)] fill-[var(--color-yellow)]" />
+              <Zap className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-6 sm:h-6 text-[var(--color-yellow)] fill-[var(--color-yellow)] anim-zap" />
             </div>
             <div className="flex items-center gap-1">
               <span className="font-heading font-black text-sm xs:text-base sm:text-xl tracking-tight text-[var(--text-main)] uppercase whitespace-nowrap">
@@ -1212,7 +1212,7 @@ if (!empty($otpData['found'])) {
             <div className="brutal-card p-4 xs:p-6 sm:p-8 bg-[var(--card-bg)] relative shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[7px_7px_0px_var(--shadow-color)]">
               <div className="text-center mb-5 sm:mb-6">
                 <div className="w-12 h-12 xs:w-14 xs:h-14 bg-[var(--color-blue)] border-[2.5px] sm:border-[3px] border-[var(--border-color)] flex items-center justify-center mx-auto mb-2.5 sm:mb-3 shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] motion-float">
-                  <Shield className="w-6 h-6 xs:w-7 xs:h-7 text-[var(--color-yellow)]" />
+                  <Shield className="w-6 h-6 xs:w-7 xs:h-7 text-[var(--color-yellow)] anim-shield" />
                 </div>
                 <h1 className="font-heading font-black text-xl xs:text-2xl uppercase tracking-tight text-[var(--text-main)]">
                   ADMIN LOGIN
@@ -1268,7 +1268,7 @@ if (!empty($otpData['found'])) {
                   disabled={loading}
                   className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 w-full py-3 sm:py-3.5 text-xs sm:text-sm font-black flex items-center justify-center gap-2 mt-2 cursor-pointer shadow-[3px_3px_0px_var(--shadow-color)]"
                 >
-                  <Key className="w-4 h-4" />
+                  <Key className="w-4 h-4 anim-key" />
                   <span>{loading ? 'MEMVERIFIKASI...' : 'MASUK KE ADMIN'}</span>
                 </button>
               </form>
@@ -1282,7 +1282,7 @@ if (!empty($otpData['found'])) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Key className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <Key className="w-4 h-4 sm:w-5 sm:h-5 anim-key" />
                   </div>
                   <div>
                     <h2 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
@@ -1369,7 +1369,7 @@ if (!empty($otpData['found'])) {
                         className="brutal-btn bg-[var(--color-yellow)] text-black px-2.5 sm:px-3 py-2 text-[11px] font-black flex items-center gap-1 flex-shrink-0 cursor-pointer shadow-[2px_2px_0px_var(--shadow-color)]"
                         title="Buat nilai API key acak"
                       >
-                        <Sparkles className="w-3.5 h-3.5" />
+                        <Sparkles className="w-3.5 h-3.5 anim-sparkle" />
                         <span>RANDOM</span>
                       </button>
                     </div>
@@ -1418,7 +1418,7 @@ if (!empty($otpData['found'])) {
                     disabled={isLoadingKeys}
                     className="text-[11px] font-mono-custom font-bold text-[var(--color-blue)] hover:underline flex items-center gap-1 cursor-pointer"
                   >
-                    <RefreshCw className={`w-3 h-3 ${isLoadingKeys ? 'animate-spin-fast' : ''}`} />
+                    <RefreshCw className={`w-3 h-3 anim-refresh ${isLoadingKeys ? 'animate-spin-fast' : ''}`} />
                     <span>REFRESH</span>
                   </button>
                 </div>
@@ -1463,12 +1463,12 @@ if (!empty($otpData['found'])) {
                               {keyItem.isSingleBot ? (
                                 keyItem.boundIdentifier ? (
                                   <span className="bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-200 text-[9px] sm:text-[10px] font-mono-custom font-black px-2 py-0.5 border border-red-400 flex items-center gap-1">
-                                    <Lock className="w-3 h-3" />
+                                    <Lock className="w-3 h-3 anim-lock" />
                                     <span>TERKUNCI: {keyItem.boundIdentifier}</span>
                                   </span>
                                 ) : (
                                   <span className="bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 text-[9px] sm:text-[10px] font-mono-custom font-black px-2 py-0.5 border border-amber-400 flex items-center gap-1">
-                                    <Lock className="w-3 h-3" />
+                                    <Lock className="w-3 h-3 anim-lock" />
                                     <span>KUNCI 1-BOT: SIAP BINDING</span>
                                   </span>
                                 )
@@ -1733,7 +1733,7 @@ if (!empty($otpData['found'])) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-blue)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <Globe className="w-4 h-4 sm:w-5 sm:h-5 anim-globe" />
                   </div>
                   <div>
                     <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
@@ -1815,7 +1815,7 @@ if (!empty($otpData['found'])) {
                       className="w-4 h-4 accent-amber-500 rounded-none border-2 border-[var(--border-color)]"
                     />
                     <span className="flex items-center gap-1.5">
-                      Jadikan Domain <strong className="text-amber-600 dark:text-amber-400 flex items-center gap-1"><Crown className="w-3.5 h-3.5 fill-amber-400 inline" /> VIP / Premium</strong>
+                      Jadikan Domain <strong className="text-amber-600 dark:text-amber-400 flex items-center gap-1"><Crown className="w-3.5 h-3.5 fill-amber-400 inline anim-crown" /> VIP / Premium</strong>
                     </span>
                   </label>
                 </div>
@@ -1841,7 +1841,7 @@ if (!empty($otpData['found'])) {
                         <div className="min-w-0 flex items-center gap-1.5 xs:gap-2 flex-1">
                           {isVip ? (
                             <div className="w-5 h-5 bg-[var(--color-yellow)] border border-black flex items-center justify-center flex-shrink-0" title="Domain VIP">
-                              <Crown className="w-3 h-3 text-black fill-black" />
+                              <Crown className="w-3 h-3 text-black fill-black anim-crown" />
                             </div>
                           ) : (
                             <span className="w-2 h-2 rounded-full bg-[var(--color-green)] motion-pulse-dot flex-shrink-0" />
@@ -1859,7 +1859,7 @@ if (!empty($otpData['found'])) {
                               className="brutal-btn bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 py-1 text-[10px] xs:text-[11px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-yellow-400 cursor-pointer flex-shrink-0"
                               title="Klik untuk ubah status ke Free"
                             >
-                              <Crown className="w-3 h-3 fill-black flex-shrink-0" />
+                              <Crown className="w-3 h-3 fill-black flex-shrink-0 anim-crown" />
                               <span>VIP</span>
                             </button>
                           ) : (
@@ -1894,7 +1894,7 @@ if (!empty($otpData['found'])) {
                 <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] sm:border-[3.5px] border-[var(--border-color)] shadow-[5px_5px_0px_var(--shadow-color)] sm:shadow-[6px_6px_0px_var(--shadow-color)] motion-modal-in">
                   <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4 text-amber-500">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                      <Crown className="w-5 h-5 fill-black text-black" />
+                      <Crown className="w-5 h-5 fill-black text-black anim-crown" />
                     </div>
                     <div>
                       <h4 className="font-heading font-black text-base sm:text-lg uppercase tracking-tight text-[var(--text-main)]">
@@ -2023,7 +2023,7 @@ if (!empty($otpData['found'])) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-purple)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 anim-shield" />
                   </div>
                   <div>
                     <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
@@ -2036,7 +2036,7 @@ if (!empty($otpData['found'])) {
                 </div>
 
                 <div className="text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5" />
+                  <Shield className="w-3.5 h-3.5 anim-shield" />
                   <span>AKUN UTAMA ADMIN</span>
                 </div>
               </div>
@@ -2101,7 +2101,7 @@ if (!empty($otpData['found'])) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <Lock className="w-4 h-4 sm:w-5 sm:h-5 anim-lock" />
                   </div>
                   <div>
                     <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
@@ -2216,7 +2216,7 @@ if (!empty($otpData['found'])) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Megaphone className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <Megaphone className="w-4 h-4 sm:w-5 sm:h-5 anim-megaphone" />
                   </div>
                   <div>
                     <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
@@ -2406,7 +2406,7 @@ if (!empty($otpData['found'])) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#229ED9] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Send className="w-4 h-4 sm:w-5 sm:h-5 -translate-y-0.5 translate-x-0.5" />
+                    <Send className="w-4 h-4 sm:w-5 sm:h-5 -translate-y-0.5 translate-x-0.5 anim-zap" />
                   </div>
                   <div>
                     <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
@@ -2520,7 +2520,7 @@ if (!empty($otpData['found'])) {
                       disabled={isTestingBot || !telegramBotTokenInput.trim()}
                       className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
                     >
-                      <Zap className="w-3.5 h-3.5" />
+                      <Zap className="w-3.5 h-3.5 anim-zap" />
                       <span>{isTestingBot ? 'MEMERIKSA...' : 'TES KONEKSI BOT'}</span>
                     </button>
                   </div>
@@ -2556,7 +2556,7 @@ if (!empty($otpData['found'])) {
                         className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-2.5 py-1.5 text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_var(--shadow-color)] disabled:opacity-50"
                         title="Cek Status Webhook Langsung dari Telegram API"
                       >
-                        <RefreshCw className={`w-3 h-3 ${isCheckingWebhookInfo ? 'animate-spin-fast' : ''}`} />
+                        <RefreshCw className={`w-3 h-3 anim-refresh ${isCheckingWebhookInfo ? 'animate-spin-fast' : ''}`} />
                         <span>CEK LIVE</span>
                       </button>
 
@@ -2625,7 +2625,7 @@ if (!empty($otpData['found'])) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-orange)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Database className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <Database className="w-4 h-4 sm:w-5 sm:h-5 anim-cpu" />
                   </div>
                   <div>
                     <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
@@ -2697,7 +2697,7 @@ if (!empty($otpData['found'])) {
               {/* Information & WIB Schedule Card */}
               <div className="p-3.5 bg-[#f0fdf4] dark:bg-zinc-900 border-[2px] border-emerald-500 shadow-[2px_2px_0px_var(--shadow-color)] space-y-2 mb-4">
                 <div className="flex items-center gap-1.5 text-xs font-mono-custom font-black text-emerald-800 dark:text-emerald-300 uppercase">
-                  <Clock className="w-4 h-4 text-emerald-600" />
+                  <Clock className="w-4 h-4 text-emerald-600 anim-clock" />
                   <span>KEBIJAKAN RETENSI OTOMATIS 3 HARI (ZONA WAKTU WIB / UTC+7)</span>
                 </div>
                 <div className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-main)] space-y-1">
@@ -2736,7 +2736,7 @@ if (!empty($otpData['found'])) {
                     disabled={isCleaningExpired}
                     className="brutal-btn bg-[var(--color-orange)] text-white hover:bg-orange-600 px-3.5 py-2 text-xs font-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0 cursor-pointer"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3.5 h-3.5 anim-trash" />
                     <span>{isCleaningExpired ? 'MEMBERSIHKAN...' : 'BERSIHKAN EMAIL > 3 HARI'}</span>
                   </button>
                 </div>
@@ -2804,7 +2804,7 @@ if (!empty($otpData['found'])) {
                       disabled={isCleaningAll}
                       className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-700 px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-1.5 shadow-[2.5px_2.5px_0px_var(--shadow-color)] cursor-pointer"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4 anim-trash" />
                       <span>{isCleaningAll ? 'MEMBERSIHKAN...' : 'YA, HAPUS SEMUA PESAN'}</span>
                     </button>
                   </div>
@@ -2816,7 +2816,7 @@ if (!empty($otpData['found'])) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div className="brutal-card p-3.5 sm:p-4 bg-[#eff6ff] dark:bg-zinc-900 flex items-center gap-3">
                 <div className="w-10 h-10 sm:w-11 sm:h-11 bg-[var(--color-blue)] border-[2.5px] border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                  <Server className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Server className="w-4 h-4 sm:w-5 sm:h-5 anim-cpu" />
                 </div>
                 <div className="min-w-0">
                   <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
@@ -2830,7 +2830,7 @@ if (!empty($otpData['found'])) {
 
               <div className="brutal-card p-3.5 sm:p-4 bg-[#ecfdf5] dark:bg-zinc-900 flex items-center gap-3">
                 <div className="w-10 h-10 sm:w-11 sm:h-11 bg-[var(--color-green)] border-[2.5px] border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                  <Database className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Database className="w-4 h-4 sm:w-5 sm:h-5 anim-cpu" />
                 </div>
                 <div className="min-w-0">
                   <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-emerald-700 dark:text-emerald-400 uppercase block truncate">
@@ -2847,7 +2847,7 @@ if (!empty($otpData['found'])) {
 
               <div className="brutal-card p-3.5 sm:p-4 bg-[#fefce8] dark:bg-zinc-900 flex items-center gap-3">
                 <div className="w-10 h-10 sm:w-11 sm:h-11 bg-[var(--color-yellow)] border-[2.5px] border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                  <Cpu className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Cpu className="w-4 h-4 sm:w-5 sm:h-5 anim-zap" />
                 </div>
                 <div className="min-w-0">
                   <span className="text-[9px] xs:text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase block truncate">
@@ -2864,7 +2864,7 @@ if (!empty($otpData['found'])) {
             <div className="brutal-card p-3.5 sm:p-4 bg-[var(--card-bg)] flex flex-col md:flex-row md:items-center justify-between gap-3 border-[2px] border-[var(--border-color)]">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 bg-[var(--color-yellow)] border-2 border-[var(--border-color)] flex items-center justify-center text-black shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                  <Key className="w-4 h-4" />
+                  <Key className="w-4 h-4 anim-key" />
                 </div>
                 <div>
                   <span className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)] block">
@@ -2901,7 +2901,7 @@ if (!empty($otpData['found'])) {
               <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] flex flex-col">
                 <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 mb-3 sm:mb-4 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
                   <div className="flex items-center gap-2">
-                    <Code2 className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-blue)] flex-shrink-0" />
+                    <Code2 className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-blue)] flex-shrink-0 anim-terminal" />
                     <h3 className="font-heading font-black text-sm xs:text-base uppercase">
                       CONTOH KODE BOT
                     </h3>
@@ -2945,7 +2945,7 @@ if (!empty($otpData['found'])) {
               {/* Right Column: Interactive Live API Tester */}
               <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)] flex flex-col">
                 <div className="flex items-center gap-2 mb-3 sm:mb-4 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
-                  <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-green)] flex-shrink-0" />
+                  <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-green)] flex-shrink-0 anim-terminal" />
                   <h3 className="font-heading font-black text-sm xs:text-base uppercase">
                     INTERACTIVE API TESTER
                   </h3>

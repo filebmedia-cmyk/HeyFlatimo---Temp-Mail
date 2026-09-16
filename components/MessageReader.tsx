@@ -118,7 +118,7 @@ export default function MessageReader({
           )}
 
           <div className="hidden md:flex items-center gap-1.5 text-xs font-mono-custom font-black text-[var(--color-blue)] uppercase">
-            <Mail className="w-4 h-4" />
+            <Mail className="w-4 h-4 anim-mail" />
             <span>BACA PESAN</span>
           </div>
 
@@ -132,7 +132,7 @@ export default function MessageReader({
               {viewRaw ? (
                 <Eye className="w-3.5 h-3.5 group-hover:scale-110 transition-transform flex-shrink-0" />
               ) : (
-                <Code className="w-3.5 h-3.5 group-hover:scale-110 transition-transform flex-shrink-0" />
+                <Code className="w-3.5 h-3.5 group-hover:scale-110 transition-transform flex-shrink-0 anim-terminal" />
               )}
               <span>{viewRaw ? 'PREVIEW' : 'RAW'}</span>
             </button>
@@ -157,7 +157,7 @@ export default function MessageReader({
               className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-600 px-2.5 xs:px-3 py-1.5 text-[11px] xs:text-xs flex items-center gap-1 group shadow-[2px_2px_0px_var(--shadow-color)]"
               title="Hapus pesan ini"
             >
-              <Trash2 className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform flex-shrink-0" />
+              <Trash2 className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform flex-shrink-0 anim-trash" />
               <span className="hidden xs:inline">HAPUS</span>
             </button>
           </div>
@@ -178,7 +178,7 @@ export default function MessageReader({
           </div>
 
           <div className="flex items-center gap-1.5 text-[var(--text-muted)] flex-shrink-0 ml-auto sm:ml-0">
-            <Clock className="w-3 h-3 text-[var(--color-orange)] flex-shrink-0" />
+            <Clock className="w-3 h-3 text-[var(--color-orange)] flex-shrink-0 anim-clock" />
             <span className="bg-[var(--color-yellow)] text-black border border-[var(--border-color)] sm:border-2 px-1.5 py-0.2 font-black text-[9px] xs:text-[10px] sm:text-[11px] shadow-[1px_1px_0px_var(--shadow-color)]">
               {formatDateWIB(message.createdAt)}
             </span>
@@ -194,7 +194,7 @@ export default function MessageReader({
             <div className="p-2 xs:p-2.5 sm:p-3 bg-amber-50 dark:bg-amber-950/40 border-[2px] border-amber-400 dark:border-amber-600 flex flex-wrap items-center justify-between gap-2 shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="w-6 h-6 sm:w-7 sm:h-7 bg-[var(--color-yellow)] text-black border border-[var(--border-color)] flex items-center justify-center flex-shrink-0 shadow-[1px_1px_0px_var(--shadow-color)]">
-                  <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black fill-black" />
+                  <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black fill-black anim-zap" />
                 </div>
                 <div className="min-w-0">
                   <span className="text-[8px] xs:text-[9px] font-mono-custom font-black text-amber-700 dark:text-amber-300 uppercase block leading-none">
@@ -226,7 +226,7 @@ export default function MessageReader({
             <div className="p-2 xs:p-2.5 sm:p-3 bg-[#ecfdf5] dark:bg-emerald-950/50 border-[2px] border-[var(--color-green)] flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-[2px_2px_0px_var(--shadow-color)] motion-scale-in group">
               <div className="min-w-0 flex items-start gap-2">
                 <div className="w-6 h-6 sm:w-7 sm:h-7 bg-[var(--color-green)] text-white border border-[var(--border-color)] flex items-center justify-center flex-shrink-0 shadow-[1px_1px_0px_var(--shadow-color)]">
-                  <Sparkles className="w-3.5 h-3.5 text-white" />
+                  <Sparkles className="w-3.5 h-3.5 text-white anim-sparkle" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -238,7 +238,7 @@ export default function MessageReader({
                         &quot;{linksResult.primaryLabel}&quot;
                       </span>
                     )}
-                    <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                    <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0 anim-shield" />
                   </div>
                   <p className="font-mono-custom text-[10px] xs:text-[11px] text-zinc-600 dark:text-zinc-300 truncate max-w-[200px] xs:max-w-xs sm:max-w-sm">
                     {linksResult.primaryLink}
