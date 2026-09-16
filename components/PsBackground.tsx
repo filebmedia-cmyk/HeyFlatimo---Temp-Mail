@@ -172,6 +172,7 @@ const TOKENS: PsToken[] = [
 ];
 
 function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }) {
+  const glowStyle = { color, filter: 'drop-shadow(0 0 7px currentColor)' };
   switch (shape) {
     case 'triangle':
       return (
@@ -180,7 +181,7 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="w-full h-full p-2"
-          style={{ color }}
+          style={glowStyle}
         >
           <polygon
             points="50,16 88,82 12,82"
@@ -199,7 +200,7 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="w-full h-full p-2"
-          style={{ color }}
+          style={glowStyle}
         >
           <circle cx="50" cy="50" r="35" stroke="currentColor" strokeWidth="12" fill="none" />
         </svg>
@@ -211,7 +212,7 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="w-full h-full p-2"
-          style={{ color }}
+          style={glowStyle}
         >
           <line
             x1="22"
@@ -240,7 +241,7 @@ function RenderIcon({ shape, color }: { shape: PsToken['shape']; color: string }
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="w-full h-full p-2"
-          style={{ color }}
+          style={glowStyle}
         >
           <rect
             x="18"
@@ -295,8 +296,13 @@ export default function PsBackground() {
                 animationDelay: token.delay,
               }}
             >
-              {/* Neo-Brutalist Button Box with Black Border & 3D Shadow (Matching Temp Mail Card) */}
-              <div className="w-full h-full bg-white dark:bg-[#121622] border-[2.5px] sm:border-[3px] border-[var(--border-color)] rounded-xl sm:rounded-2xl shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] flex items-center justify-center transition-all">
+              {/* Neo-Brutalist Button Box with Black Border & 3D Shadow + Luminous Glow */}
+              <div
+                className="w-full h-full bg-white dark:bg-[#121622] border-[2.5px] sm:border-[3px] border-[var(--border-color)] rounded-xl sm:rounded-2xl shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] dark:shadow-[3px_3px_0px_#000000,0_0_18px_rgba(0,0,0,0.8)] flex items-center justify-center transition-all"
+                style={{
+                  boxShadow: undefined,
+                }}
+              >
                 <RenderIcon shape={token.shape} color={token.color} />
               </div>
             </div>
