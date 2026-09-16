@@ -78,6 +78,8 @@ type AdminSection =
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [adminAuth, setAdminAuth] = useState<string>('');
+  const [adminToken, setAdminToken] = useState<string>('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -247,25 +249,23 @@ export default function AdminPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setOrigin(window.location.origin);
-      // Sinkronkan daftar domain segera saat halaman dibuka
+      // Strict Security: Selalu wajib login ulang setiap refresh halaman / buka browser
+      sessionStorage.removeItem('heyflatimo_admin_logged');
+      sessionStorage.removeItem('heyflatimo_admin_auth');
+      sessionStorage.removeItem('heyflatimo_admin_token');
+      sessionStorage.removeItem('heyflatimo_admin_key');
+      setIsLoggedIn(false);
+      setAdminAuth('');
+      setAdminToken('');
+      // Sinkronkan daftar domain publik segera saat halaman dibuka
       fetchDomains();
-      const isLogged = sessionStorage.getItem('heyflatimo_admin_logged');
-      if (isLogged === 'true') {
-        setIsLoggedIn(true);
-        const savedKey = sessionStorage.getItem('heyflatimo_admin_key');
-        if (savedKey) setApiKey(savedKey);
-        fetchApiKeys();
-        fetchCleanupStats();
-        fetchSettings();
-        fetchStats(savedKey || undefined);
-      }
     }
   }, []);
 
-  const getAdminHeaders = (): Record<string, string> => {
-    const auth = typeof window !== 'undefined' ? sessionStorage.getItem('heyflatimo_admin_auth') || '' : '';
-    const token = typeof window !== 'undefined' ? sessionStorage.getItem('heyflatimo_admin_token') || '' : '';
-    const key = typeof window !== 'undefined' ? sessionStorage.getItem('heyflatimo_admin_key') || apiKey || '' : '';
+  const getAdminHeaders = (authOverride?: any, tokenOverride?: any, keyOverride?: any): Record<string, string> => {
+    const auth = typeof authOverride === 'string' ? authOverride : adminAuth;
+    const token = typeof tokenOverride === 'string' ? tokenOverride : adminToken;
+    const key = typeof keyOverride === 'string' ? keyOverride : apiKey;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -300,22 +300,21 @@ export default function AdminPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         playSound('success');
-        sessionStorage.setItem('heyflatimo_admin_logged', 'true');
-        sessionStorage.setItem('heyflatimo_admin_auth', basicAuth);
-        if (data.sessionToken) {
-          sessionStorage.setItem('heyflatimo_admin_token', data.sessionToken);
+        setAdminAuth(basicAuth);
+        const sessionTok = data.sessionToken || '';
+        if (sessionTok) {
+          setAdminToken(sessionTok);
         }
-        const activeApiKey = data.apiKey || data.admin?.apiKey;
+        const activeApiKey = data.apiKey || data.admin?.apiKey || apiKey;
         if (activeApiKey) {
-          sessionStorage.setItem('heyflatimo_admin_key', activeApiKey);
           setApiKey(activeApiKey);
         }
         setIsLoggedIn(true);
         showToast('Login Admin Berhasil!', 'success');
-        fetchApiKeys();
-        fetchDomains();
-        fetchCleanupStats();
-        fetchSettings();
+        fetchApiKeys(basicAuth, sessionTok, activeApiKey);
+        fetchDomains(basicAuth, sessionTok);
+        fetchCleanupStats(basicAuth, sessionTok);
+        fetchSettings(basicAuth, sessionTok);
         fetchStats(activeApiKey);
       } else {
         playSound('error');
@@ -336,16 +335,19 @@ export default function AdminPage() {
     sessionStorage.removeItem('heyflatimo_admin_token');
     sessionStorage.removeItem('heyflatimo_admin_key');
     setIsLoggedIn(false);
+    setAdminAuth('');
+    setAdminToken('');
+    setApiKey('hfl_key_8899aabbccddeeff00112233');
     setUsername('');
     setPassword('');
     setIsMobileMenuOpen(false);
     showToast('Berhasil logout dari panel admin.', 'info');
   };
 
-  const fetchApiKeys = async () => {
+  const fetchApiKeys = async (authOverride?: string, tokenOverride?: string, keyOverride?: string) => {
     setIsLoadingKeys(true);
     try {
-      const res = await fetch('/api/admin/apikeys', { headers: getAdminHeaders() });
+      const res = await fetch('/api/admin/apikeys', { headers: getAdminHeaders(authOverride, tokenOverride, keyOverride) });
       const data = await res.json();
       if (data.success && Array.isArray(data.keys)) {
         setApiKeys(data.keys);
@@ -549,9 +551,9 @@ export default function AdminPage() {
     }
   };
 
-  const fetchDomains = async () => {
+  const fetchDomains = async (authOverride?: string, tokenOverride?: string) => {
     try {
-      const res = await fetch('/api/admin/domains', { headers: getAdminHeaders() });
+      const res = await fetch('/api/admin/domains', { headers: getAdminHeaders(authOverride, tokenOverride) });
       const data = await res.json();
       if (data.success && Array.isArray(data.domains) && data.domains.length > 0) {
         const normalized = data.domains.map((d: any) => {
@@ -597,9 +599,9 @@ export default function AdminPage() {
     }
   };
 
-  const fetchCleanupStats = async () => {
+  const fetchCleanupStats = async (authOverride?: string, tokenOverride?: string) => {
     try {
-      const res = await fetch('/api/admin/cleanup', { headers: getAdminHeaders() });
+      const res = await fetch('/api/admin/cleanup', { headers: getAdminHeaders(authOverride, tokenOverride) });
       const data = await res.json();
       if (data.success) setCleanupStats(data);
     } catch (err) {
@@ -607,9 +609,9 @@ export default function AdminPage() {
     }
   };
 
-  const fetchSettings = async () => {
+  const fetchSettings = async (authOverride?: string, tokenOverride?: string) => {
     try {
-      const res = await fetch('/api/admin/settings', { headers: getAdminHeaders() });
+      const res = await fetch('/api/admin/settings', { headers: getAdminHeaders(authOverride, tokenOverride) });
       const data = await res.json();
       if (data.success) {
         if (data.access) {
@@ -664,7 +666,7 @@ export default function AdminPage() {
         showToast('Kredensial Admin berhasil diperbarui!', 'success');
         if (adminPassInput.trim()) {
           const newAuth = btoa(`${adminUserInput.trim()}:${adminPassInput.trim()}`);
-          sessionStorage.setItem('heyflatimo_admin_auth', newAuth);
+          setAdminAuth(newAuth);
         }
         setAdminPassInput('');
       } else {
@@ -1915,7 +1917,10 @@ if (!empty($otpData['found'])) {
                     </span>
                     <button
                       type="button"
-                      onClick={fetchApiKeys}
+                      onClick={() => {
+                        playSound('click');
+                        fetchApiKeys();
+                      }}
                       disabled={isLoadingKeys}
                       className="text-[11px] font-mono-custom font-bold text-[var(--color-blue)] hover:underline flex items-center gap-1 cursor-pointer"
                     >
