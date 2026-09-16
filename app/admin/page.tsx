@@ -44,8 +44,6 @@ import {
   Timer,
   Power,
   Edit3,
-  Layers,
-  Activity,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 
@@ -61,19 +59,6 @@ export interface ApiKeyItem {
   totalRequests: number;
   isActive: boolean;
   createdAt: string;
-}
-
-export interface ClusterStatusItem {
-  id: number;
-  key: string;
-  name: string;
-  role: string;
-  isOptional: boolean;
-  configured: boolean;
-  maskedUri?: string;
-  status: 'connected' | 'connecting' | 'unconfigured' | 'optional_unconfigured' | 'error';
-  latencyMs: number | null;
-  error: string | null;
 }
 
 export default function AdminPage() {
@@ -188,10 +173,6 @@ export default function AdminPage() {
   const [isTesting, setIsTesting] = useState(false);
   const [origin, setOrigin] = useState('http://localhost:3000');
 
-  // Quad-MongoDB Multi-Cluster Engine State (4 Cluster Support)
-  const [clusters, setClusters] = useState<ClusterStatusItem[]>([]);
-  const [isLoadingClusters, setIsLoadingClusters] = useState(false);
-
   // Stats State
   const [stats, setStats] = useState<any>(null);
 
@@ -199,21 +180,6 @@ export default function AdminPage() {
     setToastMsg(msg);
     setToastType(type);
     setTimeout(() => setToastMsg(null), 3000);
-  };
-
-  const fetchClusters = async () => {
-    setIsLoadingClusters(true);
-    try {
-      const res = await fetch('/api/admin/clusters', { headers: getAdminHeaders() });
-      const data = await res.json();
-      if (data.success && Array.isArray(data.clusters)) {
-        setClusters(data.clusters);
-      }
-    } catch (err) {
-      console.error('Error fetching cluster health:', err);
-    } finally {
-      setIsLoadingClusters(false);
-    }
   };
 
   useEffect(() => {
@@ -230,7 +196,6 @@ export default function AdminPage() {
         fetchStats();
         fetchSettings();
         fetchCleanupStats();
-        fetchClusters();
       }
 
       // Auto logout when leaving web / closing tab
@@ -280,7 +245,6 @@ export default function AdminPage() {
         fetchStats(loggedKey);
         fetchSettings();
         fetchCleanupStats();
-        fetchClusters();
       } else {
         showToast(data.error || 'Username atau password salah', 'error');
       }
@@ -2654,208 +2618,6 @@ if (!empty($otpData['found'])) {
                   </button>
                 </div>
               </form>
-            </div>
-
-            {/* QUAD-MONGODB MULTI-CLUSTER ENGINE SECTION */}
-            <div className="brutal-card p-4 xs:p-5 sm:p-6 bg-[var(--card-bg)]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
-                <div className="flex items-center gap-2 sm:gap-2.5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-green)] border-2 border-[var(--border-color)] flex items-center justify-center text-white shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
-                    <Layers className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
-                      QUAD-MONGODB MULTI-CLUSTER ENGINE (4 CLUSTER)
-                    </h3>
-                    <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
-                      Arsitektur 4 Cluster MongoDB terisolasi dengan auto-failover penampung email dan cadangan darurat.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <div className="text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] flex items-center gap-1.5">
-                    <Activity className="w-3.5 h-3.5 text-[var(--color-green)]" />
-                    <span>
-                      {clusters.filter((c) => c.status === 'connected').length} / {clusters.length || 4} CLUSTER AKTIF
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={fetchClusters}
-                    disabled={isLoadingClusters}
-                    className="brutal-btn bg-white dark:bg-zinc-800 text-black dark:text-white px-2.5 py-1 text-xs font-bold flex items-center gap-1 cursor-pointer shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
-                    title="Perbarui Status Cluster"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isLoadingClusters ? 'animate-spin-fast' : ''}`} />
-                    <span className="hidden sm:inline">CEK LIVE</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* 4 Cluster Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5 mb-5">
-                {[
-                  {
-                    id: 1,
-                    defaultName: 'MongoDB 1: Master System & Config',
-                    role: 'Kredensial Admin, Multi-API Key (1-Bot Lock), Daftar Domain & Statistik',
-                    envVar: 'MONGODB_URI_SYSTEM',
-                    tag: 'MASTER SYSTEM',
-                    tagBg: 'bg-[var(--color-blue)] text-white',
-                    isOptional: false,
-                  },
-                  {
-                    id: 2,
-                    defaultName: 'MongoDB 2: Primary Message Inbox',
-                    role: 'Penyimpanan Email Utama, OTP & Link (Auto-Delete 3 Hari)',
-                    envVar: 'MONGODB_URI_PRIMARY',
-                    tag: 'PRIMARY INBOX',
-                    tagBg: 'bg-[var(--color-green)] text-white',
-                    isOptional: false,
-                  },
-                  {
-                    id: 3,
-                    defaultName: 'MongoDB 3: Secondary / Failover 1',
-                    role: 'Cadangan Otomatis Lapis 1 (Failover Inbox saat DB 2 Penuh / Gangguan)',
-                    envVar: 'MONGODB_URI_SECONDARY',
-                    tag: 'FAILOVER 1',
-                    tagBg: 'bg-[var(--color-orange)] text-white',
-                    isOptional: false,
-                  },
-                  {
-                    id: 4,
-                    defaultName: 'MongoDB 4: Standby Backup / Failover 2',
-                    role: 'Cadangan Darurat Lapis 2 (Ekstra Redundansi & Kapasitas +512 MB)',
-                    envVar: 'MONGODB_URI_STANDBY',
-                    tag: 'OPSIONAL',
-                    tagBg: 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300',
-                    isOptional: true,
-                  },
-                ].map((item) => {
-                  const clusterData = clusters.find((c) => c.id === item.id);
-                  const isConnected = clusterData?.status === 'connected';
-                  const isConfigured = clusterData?.configured || (item.id <= 2 && clusters.length === 0);
-                  const isOptionalUnconfigured = item.isOptional && !clusterData?.configured;
-
-                  return (
-                    <div
-                      key={item.id}
-                      className={`p-3.5 sm:p-4 border-[2px] sm:border-[2.5px] border-[var(--border-color)] bg-white dark:bg-zinc-950 shadow-[3px_3px_0px_var(--shadow-color)] flex flex-col justify-between space-y-3 ${
-                        isConnected
-                          ? 'border-emerald-500/80 dark:border-emerald-500/60'
-                          : isOptionalUnconfigured
-                          ? 'opacity-80 bg-zinc-50 dark:bg-zinc-900/60'
-                          : ''
-                      }`}
-                    >
-                      <div>
-                        {/* Top Tag & Status Badge */}
-                        <div className="flex items-center justify-between gap-1.5 mb-2">
-                          <span className={`text-[9px] font-mono-custom font-black px-1.5 py-0.5 border border-[var(--border-color)] uppercase ${item.tagBg}`}>
-                            {item.tag}
-                          </span>
-
-                          {isConnected ? (
-                            <span className="bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 text-[9px] font-mono-custom font-black px-1.5 py-0.2 border border-emerald-400 flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 motion-pulse-dot" />
-                              <span>ONLINE</span>
-                            </span>
-                          ) : isOptionalUnconfigured ? (
-                            <span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[9px] font-mono-custom font-bold px-1.5 py-0.2 border border-zinc-300 dark:border-zinc-700">
-                              OPSIONAL (OFF)
-                            </span>
-                          ) : (
-                            <span className="bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 text-[9px] font-mono-custom font-black px-1.5 py-0.2 border border-amber-400">
-                              STANDBY / FALLBACK
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Cluster Name */}
-                        <h4 className="font-heading font-black text-xs sm:text-sm uppercase tracking-tight text-[var(--text-main)] mb-1">
-                          {clusterData?.name || item.defaultName}
-                        </h4>
-
-                        {/* Role Description */}
-                        <p className="text-[10px] sm:text-[11px] font-mono-custom text-[var(--text-muted)] leading-relaxed mb-2.5">
-                          {item.role}
-                        </p>
-                      </div>
-
-                      {/* Bottom Env & Latency Bar */}
-                      <div className="pt-2 border-t border-dashed border-zinc-200 dark:border-zinc-800 space-y-1 text-[10px] font-mono-custom">
-                        <div className="flex items-center justify-between text-[var(--text-muted)]">
-                          <span>Env Var:</span>
-                          <code className="bg-zinc-100 dark:bg-zinc-900 px-1 py-0.2 border text-[9px] font-bold text-[var(--text-main)] truncate max-w-[130px]">
-                            {item.envVar}
-                          </code>
-                        </div>
-
-                        {clusterData?.latencyMs !== null && clusterData?.latencyMs !== undefined && (
-                          <div className="flex items-center justify-between text-[var(--text-muted)]">
-                            <span>Latency:</span>
-                            <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                              {clusterData.latencyMs} ms
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Vercel Environment Variables Setup Guide Box */}
-              <div className="p-3.5 sm:p-4 bg-[#f0f9ff] dark:bg-zinc-900 border-[2px] border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] space-y-2.5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-dashed border-sky-300 dark:border-sky-800 pb-2">
-                  <div className="flex items-center gap-1.5 text-xs font-mono-custom font-black uppercase text-[var(--color-blue)]">
-                    <Info className="w-4 h-4" />
-                    <span>PANDUAN KONFIGURASI ENVIRONMENT VARIABLES DI VERCEL / .ENV</span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const sampleEnv = `# Database 1: Master System (Auth, API Keys, Domains)\nMONGODB_URI_SYSTEM="mongodb+srv://user1:pass1@cluster1.mongodb.net/tmail_system"\n\n# Database 2: Primary Message Inbox (Email Utama & OTP)\nMONGODB_URI_PRIMARY="mongodb+srv://user2:pass2@cluster2.mongodb.net/tmail_messages"\n\n# Database 3: Secondary / Failover 1 Inbox\nMONGODB_URI_SECONDARY="mongodb+srv://user3:pass3@cluster3.mongodb.net/tmail_failover1"\n\n# Database 4: Standby Backup / Failover 2 (OPSIONAL - Boleh Dikosongkan)\nMONGODB_URI_STANDBY=""`;
-                      navigator.clipboard.writeText(sampleEnv);
-                      showToast('Format nama environment variables berhasil disalin!');
-                    }}
-                    className="brutal-btn bg-[var(--color-yellow)] text-black px-2.5 py-1 text-[10px] font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] cursor-pointer self-start sm:self-auto"
-                  >
-                    <Copy className="w-3 h-3" />
-                    <span>SALIN TEMPLATE VERCEL ENV</span>
-                  </button>
-                </div>
-
-                <div className="text-[11px] sm:text-xs font-mono-custom text-[var(--text-main)] space-y-1.5">
-                  <p>
-                    Buka <strong>Vercel Dashboard &gt; Project Anda &gt; Settings &gt; Environment Variables</strong>, lalu tambahkan variabel berikut:
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] xs:text-[11px] pt-1">
-                    <div className="p-2 bg-white dark:bg-zinc-950 border border-[var(--border-color)]">
-                      <span className="font-bold text-[var(--color-blue)] block">1. MONGODB_URI_SYSTEM</span>
-                      <span className="text-[var(--text-muted)] text-[9px] block">URI untuk Akun Admin, Multi-API Key, &amp; Domain</span>
-                    </div>
-                    <div className="p-2 bg-white dark:bg-zinc-950 border border-[var(--border-color)]">
-                      <span className="font-bold text-[var(--color-green)] block">2. MONGODB_URI_PRIMARY</span>
-                      <span className="text-[var(--text-muted)] text-[9px] block">URI untuk Inbox Pesan Email Utama &amp; OTP</span>
-                    </div>
-                    <div className="p-2 bg-white dark:bg-zinc-950 border border-[var(--border-color)]">
-                      <span className="font-bold text-[var(--color-orange)] block">3. MONGODB_URI_SECONDARY</span>
-                      <span className="text-[var(--text-muted)] text-[9px] block">URI Cadangan Otomatis Lapis 1 (Failover 1)</span>
-                    </div>
-                    <div className="p-2 bg-white dark:bg-zinc-950 border border-[var(--border-color)]">
-                      <span className="font-bold text-zinc-600 dark:text-zinc-400 block">4. MONGODB_URI_STANDBY (OPSIONAL)</span>
-                      <span className="text-[var(--text-muted)] text-[9px] block">URI Cadangan Darurat Lapis 2 (Boleh dikosongkan)</span>
-                    </div>
-                  </div>
-                  <p className="text-[10px] font-mono-custom text-[var(--text-muted)] pt-1">
-                    <em>Catatan: Jika hanya mengisi <code>MONGODB_URI</code> standar 1 saja, sistem tetap otomatis berjalan normal dengan fallback cerdas.</em>
-                  </p>
-                </div>
-              </div>
             </div>
 
             {/* DATABASE & AUTO-DELETE 3 HARI (WIB) CLEANER SECTION */}

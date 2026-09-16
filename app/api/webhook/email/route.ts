@@ -76,11 +76,10 @@ export async function POST(req: NextRequest) {
     const ttlHours = retention.retentionHours > 0 ? retention.retentionHours : 72;
     const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000);
 
-    // 3. Simpan ke MongoDB dengan multi-cluster failover
+    // 3. Simpan ke MongoDB
     await connectToDatabase();
-    const { saveIncomingMessageMultiCluster } = await import('@/lib/models/Message');
 
-    const saveResult = await saveIncomingMessageMultiCluster({
+    const newMessage = await Message.create({
       recipient: cleanRecipient,
       sender: cleanSender,
       senderAddress: senderAddress || cleanSender,
@@ -96,21 +95,18 @@ export async function POST(req: NextRequest) {
       expiresAt: expiresAt,
     });
 
-    const newMessage = saveResult.doc;
-
     // Catat ke statistik seumur hidup (lifetime stats)
     const { recordIncomingEmail } = await import('@/lib/stats');
     await recordIncomingEmail(1).catch(() => null);
 
     return NextResponse.json({
       success: true,
-      message: `Email successfully received and saved to ${saveResult.clusterName || 'MongoDB'}`,
+      message: 'Email successfully received and saved',
       data: {
-        id: newMessage._id || newMessage.id,
+        id: newMessage._id,
         recipient: newMessage.recipient,
         subject: newMessage.subject,
         createdAt: newMessage.createdAt,
-        clusterId: saveResult.clusterId,
       },
     });
   } catch (error: any) {

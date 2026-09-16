@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import {
-  Message,
-  findMessagesMultiCluster,
-  deleteMessagesMultiCluster,
-} from '@/lib/models/Message';
+import { Message } from '@/lib/models/Message';
 import { checkRateLimit } from '@/lib/rateLimiter';
 
 export const dynamic = 'force-dynamic';
@@ -46,13 +42,13 @@ export async function GET(req: NextRequest) {
       query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
     }
 
-    const messages = await findMessagesMultiCluster(query, {
-      sort: { createdAt: -1 },
-      limit: 100,
-    });
+    const messages = await Message.find(query)
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
 
     const formattedMessages = messages.map((m: any) => ({
-      id: m._id ? m._id.toString() : m.id,
+      id: m._id.toString(),
       recipient: m.recipient,
       sender: m.sender,
       senderName: m.senderName,
@@ -113,12 +109,12 @@ export async function DELETE(req: NextRequest) {
       query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
     }
 
-    const deletedCount = await deleteMessagesMultiCluster(query);
+    const result = await Message.deleteMany(query);
 
     return NextResponse.json({
       success: true,
-      message: `Deleted ${deletedCount} messages`,
-      deletedCount: deletedCount,
+      message: `Deleted ${result.deletedCount} messages`,
+      deletedCount: result.deletedCount,
     });
   } catch (error: any) {
     console.error('Error deleting messages:', error);

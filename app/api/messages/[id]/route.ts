@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import {
-  findMessageByIdMultiCluster,
-  deleteMessageByIdMultiCluster,
-} from '@/lib/models/Message';
+import { Message } from '@/lib/models/Message';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,15 +17,19 @@ export async function GET(
 
     await connectToDatabase();
 
-    // Temukan dan update status isRead menjadi true di seluruh cluster
-    const message = await findMessageByIdMultiCluster(id, { isRead: true });
+    // Temukan dan update status isRead menjadi true
+    const message = await Message.findByIdAndUpdate(
+      id,
+      { $set: { isRead: true } },
+      { new: true }
+    ).lean();
 
     if (!message) {
       return NextResponse.json({ error: 'Message not found' }, { status: 404 });
     }
 
     const formattedMessage = {
-      id: (message as any)._id?.toString() || (message as any).id,
+      id: (message as any)._id.toString(),
       recipient: (message as any).recipient,
       sender: (message as any).sender,
       senderName: (message as any).senderName,
@@ -69,9 +70,9 @@ export async function DELETE(
 
     await connectToDatabase();
 
-    const deleted = await deleteMessageByIdMultiCluster(id);
+    const result = await Message.findByIdAndDelete(id);
 
-    if (!deleted) {
+    if (!result) {
       return NextResponse.json({ error: 'Message not found' }, { status: 404 });
     }
 

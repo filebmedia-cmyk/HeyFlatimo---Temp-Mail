@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import {
-  Message,
-  findMessagesMultiCluster,
-} from '@/lib/models/Message';
+import { Message } from '@/lib/models/Message';
 import { getAllDomainDetails } from '@/lib/domains';
 import { getTelegramSettings } from '@/lib/settings';
 import { extractOtp, extractLinks } from '@/lib/otpParser';
@@ -149,7 +146,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Fetch messages for Free domain
-        const msgList = await findMessagesMultiCluster({ recipient: targetEmail }, { limit: 3 });
+        const msgList = await Message.find({ recipient: targetEmail }).sort({ createdAt: -1 }).limit(3).lean();
 
         if (msgList.length > 0) {
           const latestMsg = msgList[0];
@@ -356,7 +353,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ ok: true });
         }
 
-        const msgList = await findMessagesMultiCluster({ recipient: targetEmail }, { limit: 3 });
+        const msgList = await Message.find({ recipient: targetEmail }).sort({ createdAt: -1 }).limit(3).lean();
 
         if (msgList.length > 0) {
           const latestMsg = msgList[0];
