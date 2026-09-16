@@ -431,6 +431,14 @@ body {
   animation: pulseSubtle 2s ease-in-out infinite;
 }
 
+.motion-pulse-dot {
+  animation: pulseSubtle 1.5s ease-in-out infinite;
+}
+
+.motion-radar-sweep {
+  animation: radarSweep 8s linear infinite;
+}
+
 .motion-live-badge {
   animation: liveGlow 2.4s ease-in-out infinite;
 }

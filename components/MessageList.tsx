@@ -95,25 +95,42 @@ export default function MessageList({
       {/* Message List Body */}
       <div className="p-3 xs:p-3.5 sm:p-5 bg-[var(--card-bg)] min-h-[220px] sm:min-h-[260px] flex flex-col space-y-3 sm:space-y-3.5">
         {messages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center py-9 sm:py-12 select-none">
-            {/* Dual Capsule / Pill Loop Design */}
-            <div className="relative mb-5 sm:mb-6 flex items-center justify-center">
-              {/* Left Capsule Loop */}
-              <div className="absolute w-20 xs:w-24 sm:w-28 h-32 xs:h-36 sm:h-40 rounded-full border-2 border-sky-200 dark:border-sky-900/60 pointer-events-none -translate-x-3 -translate-y-2" />
-              {/* Right Capsule Loop */}
-              <div className="absolute w-20 xs:w-24 sm:w-28 h-32 xs:h-36 sm:h-40 rounded-full border-2 border-sky-200 dark:border-sky-900/60 pointer-events-none translate-x-3 translate-y-2" />
+          <div className="flex-1 flex flex-col items-center justify-center text-center py-7 sm:py-10 select-none">
+            {/* Animated Radar Antenna & Floating Mailbox Beacon */}
+            <div className="relative mb-4 sm:mb-5">
+              {/* Outer Radar Pulse Wave */}
+              <div className="absolute -inset-4 sm:-inset-6 rounded-full border-2 border-dashed border-[var(--color-green)] opacity-40 motion-radar-sweep pointer-events-none" />
+              <div className="absolute -inset-2 sm:-inset-3 rounded-full bg-[var(--color-green)] opacity-15 motion-pulse-dot pointer-events-none" />
 
-              {/* Central White Neo-Brutalist Mailbox Box */}
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-zinc-900 border-[2.5px] sm:border-[3px] border-black dark:border-white flex items-center justify-center shadow-[4px_4px_0px_#000000] relative z-10">
-                <Mail className="w-7 h-7 sm:w-8 sm:h-8 text-[var(--color-blue)]" />
+              {/* Central Floating Neo-Brutalist Mailbox (Yellow Box) */}
+              <div className="relative w-14 h-14 sm:w-16 sm:h-16 bg-[var(--color-yellow)] border-[2.5px] sm:border-[3px] border-[var(--border-color)] flex items-center justify-center shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)] motion-float z-10">
+                <MailOpen className="w-7 h-7 sm:w-8 sm:h-8 text-black" />
+                {/* Active Sonar Beacon Indicator on Corner */}
+                <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[var(--color-green)] border-2 border-[var(--border-color)] rounded-full flex items-center justify-center shadow-[1px_1px_0px_var(--shadow-color)]">
+                  <span className="w-1.5 h-1.5 bg-white rounded-full motion-pulse-dot" />
+                </div>
               </div>
             </div>
 
-            <h3 className="font-heading font-black text-sm xs:text-base sm:text-lg md:text-xl uppercase text-[var(--text-main)] mb-1.5 tracking-tight">
-              MENUNGGU EMAIL MASUK...
+            {/* Live INBOX READY Status Pill with Animated Signal Equalizer */}
+            <div className="inline-flex items-center gap-2 brutal-badge bg-[#ecfdf5] dark:bg-emerald-950 text-[#065f46] dark:text-[#6ee7b7] px-3 py-1 sm:py-1.5 text-[10px] xs:text-xs font-mono-custom font-black border-2 border-[var(--border-color)] mb-2 sm:mb-2.5 motion-live-badge">
+              <div className="relative flex items-center justify-center w-2.5 h-2.5 flex-shrink-0">
+                <span className="motion-radar-ring" />
+                <span className="relative w-1.5 h-1.5 rounded-full bg-[var(--color-green)]" />
+              </div>
+              <div className="flex items-end gap-0.5 h-2.5 flex-shrink-0">
+                <span className="w-1 bg-[var(--color-green)] rounded-full signal-bar-1" />
+                <span className="w-1 bg-[var(--color-green)] rounded-full signal-bar-2" />
+                <span className="w-1 bg-[var(--color-green)] rounded-full signal-bar-3" />
+              </div>
+              <span className="tracking-wide">INBOX READY &bull; STANDBY</span>
+            </div>
+
+            <h3 className="font-heading text-sm xs:text-base sm:text-lg md:text-xl font-black uppercase tracking-tight mb-1 text-[var(--text-main)]">
+              MENUNGGU PESAN MASUK
             </h3>
-            <p className="font-mono-custom text-[11px] xs:text-xs text-[var(--text-muted)] max-w-sm mx-auto leading-relaxed px-2">
-              Kirim email ke alamat di atas. Pesan, kode OTP &amp; link akan muncul otomatis secara real-time.
+            <p className="font-mono-custom text-[11px] xs:text-xs text-[var(--text-muted)] max-w-xs sm:max-w-sm leading-relaxed px-2">
+              Kirim email ke alamat di atas. Pesan atau kode OTP akan otomatis muncul di sini dalam 3 detik.
             </p>
           </div>
         ) : (
