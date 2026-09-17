@@ -65,10 +65,11 @@ export async function POST(req: NextRequest) {
       cleanRecipient = (match ? match[1] : (first?.address || first)).trim().toLowerCase();
     }
 
+    const { decodeQuotedPrintable } = await import('@/lib/formatters');
     const cleanSender = from || payloadSender || 'Unknown Sender';
-    const finalSubject = subject || '(Tanpa Subjek)';
-    const finalBodyText = text || bodyText || '';
-    const finalBodyHtml = html || bodyHtml || '';
+    const finalSubject = decodeQuotedPrintable(subject || '(Tanpa Subjek)');
+    const finalBodyText = decodeQuotedPrintable(text || bodyText || '');
+    const finalBodyHtml = decodeQuotedPrintable(html || bodyHtml || '');
 
     // Hitung waktu kadaluarsa TTL (Default 72 jam / 3 hari standar WIB)
     const { getRetentionSettings } = await import('@/lib/settings');

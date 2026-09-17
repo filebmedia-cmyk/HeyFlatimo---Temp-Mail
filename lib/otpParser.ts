@@ -70,9 +70,9 @@ function cleanTextForOtp(input: string): string {
 export function extractOtp(text: string = '', html: string = '', subject: string = ''): ExtractedOtpResult {
   const candidates: string[] = [];
 
-  // Bersihkan subject dan konten dari tanggal/waktu
-  const cleanSubject = cleanTextForOtp(subject);
-  const cleanBody = cleanTextForOtp(`${text} ${html}`);
+  // Bersihkan subject dan konten dari tanggal/waktu dan decode Quoted-Printable
+  const cleanSubject = cleanTextForOtp(decodeQuotedPrintable(subject));
+  const cleanBody = cleanTextForOtp(decodeQuotedPrintable(`${text} ${html}`));
   const combined = `${cleanSubject}\n${cleanBody}`;
 
   // 1. PRIORITY TIER 1: Pola Kontekstual Kuat (Indonesian & English)
@@ -150,6 +150,8 @@ export function extractOtp(text: string = '', html: string = '', subject: string
   };
 }
 
+import { decodeQuotedPrintable } from '@/lib/formatters';
+
 /**
  * Decode HTML entities in URLs and text
  */
@@ -170,17 +172,21 @@ export function decodeHtmlEntities(str: string = ''): string {
 }
 
 /**
- * Pembersih URL mentah: menghapus karakter pembungkus, spasi/newline internal, dan tanda baca di akhir
+ * Pembersih URL mentah: menghapus karakter pembungkus, spasi/newline internal, artefak Quoted-Printable, dan tanda baca di akhir
  */
 export function cleanRawUrl(url: string = ''): string {
   if (!url) return '';
-  let cleaned = decodeHtmlEntities(url);
+  let cleaned = decodeQuotedPrintable(decodeHtmlEntities(url));
+  // Hapus sisa artefak Quoted-Printable di awal URL (seperti 3D' atau 3D" atau =3D)
+  cleaned = cleaned.replace(/^(?:=3D|3D)['"]?/i, '');
   // Bersihkan spasi dan newline internal (misal URL terpecah baris di HTML attribute)
   cleaned = cleaned.replace(/[\r\n\t\s]+/g, '').trim();
   // Bersihkan tanda baca trailing yang tidak sengaja terbawa dari akhir kalimat
   cleaned = cleaned.replace(/[.,;:!?)\]}>"']+$/g, '');
   // Bersihkan kurung pembuka atau kutip di depan
   cleaned = cleaned.replace(/^[<(\[{'"]+/g, '');
+  // Bersihkan trailing = atau =3D yang menggantung di akhir URL
+  cleaned = cleaned.replace(/(?:=3D|=)+$/i, '');
   return cleaned;
 }
 
@@ -253,9 +259,9 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
   const linkCandidates: ExtractedLinkItem[] = [];
   const seenUrls = new Set<string>();
 
-  // Normalisasi Quoted-Printable soft breaks
-  const normalizedHtml = (html || '').replace(/=\r?\n/g, '');
-  let normalizedText = (text || '').replace(/=\r?\n/g, '');
+  // Normalisasi Quoted-Printable (decode =3D, =20, soft breaks, dll)
+  const normalizedHtml = decodeQuotedPrintable(html || '');
+  let normalizedText = decodeQuotedPrintable(text || '');
 
   // Sambung URL plain text yang terpotong ke baris baru
   for (let i = 0; i < 3; i++) {

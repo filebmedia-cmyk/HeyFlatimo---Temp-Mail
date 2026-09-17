@@ -1,5 +1,34 @@
 // Helper untuk memformat konten email & tanggal
 
+/**
+ * Decode Quoted-Printable (RFC 2045) transfer encoding
+ * e.g., converts =3D to =, =20 to space, =C3=A9 to é, removes soft line breaks (=\r\n)
+ */
+export function decodeQuotedPrintable(str: string = ''): string {
+  if (!str) return '';
+
+  if (!/=[0-9A-Fa-f]{2}|=\r?\n/i.test(str)) {
+    return str;
+  }
+
+  const withoutSoftBreaks = str.replace(/=\r?\n/g, '');
+
+  try {
+    const percentEncoded = withoutSoftBreaks
+      .replace(/%(?![0-9A-Fa-f]{2})/g, '%25')
+      .replace(/=([0-9A-Fa-f]{2})/g, '%$1');
+    return decodeURIComponent(percentEncoded);
+  } catch (e) {
+    return withoutSoftBreaks.replace(/=([0-9A-Fa-f]{2})/g, (match, hex) => {
+      try {
+        return String.fromCharCode(parseInt(hex, 16));
+      } catch {
+        return match;
+      }
+    });
+  }
+}
+
 export function escapeHtml(str: string = ''): string {
   return str
     .replace(/&/g, '&amp;')
@@ -26,7 +55,7 @@ export function formatEmailBody(rawBody?: string): string {
     `;
   }
 
-  let html = rawBody;
+  let html = decodeQuotedPrintable(rawBody);
 
   // Jika tidak terdeteksi tag HTML, format plain text menjadi HTML interaktif
   const hasHtmlTag = /<[a-z][\s\S]*>/i.test(html);
