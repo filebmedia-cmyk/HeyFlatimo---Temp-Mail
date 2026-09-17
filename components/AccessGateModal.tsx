@@ -44,9 +44,8 @@ export default function AccessGateModal({
       const data = await res.json();
 
       if (res.ok && data.success) {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('tmail_access_token');
-          sessionStorage.removeItem('tmail_access_token');
+        if (typeof window !== 'undefined' && data.token) {
+          sessionStorage.setItem('tmail_access_token', data.token);
         }
         playSound('success');
         onUnlockSuccess();

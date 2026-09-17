@@ -53,6 +53,9 @@ export default function VipCdkModal({
 
       // Simpan status aktif di sessionStorage (akan reset otomatis saat refresh / tutup web)
       sessionStorage.setItem('tmail_vip_session', 'true');
+      if (data.token) {
+        sessionStorage.setItem('tmail_vip_token', data.token);
+      }
       setCdkInput('');
       setIsLoading(false);
       playSound('success');

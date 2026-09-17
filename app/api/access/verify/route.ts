@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAccessSettings } from '@/lib/settings';
+import { createAccessToken } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         message: 'Kode akses valid',
-        token: `verified_${Buffer.from(key).toString('base64')}`,
+        token: createAccessToken(access.key),
       });
     }
 

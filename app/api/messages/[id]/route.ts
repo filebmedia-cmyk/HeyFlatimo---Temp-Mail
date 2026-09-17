@@ -15,7 +15,49 @@ export async function GET(
       return NextResponse.json({ error: 'Message ID is required' }, { status: 400 });
     }
 
+    // 1. Validasi Global Access Gate
+    const { getAccessSettings } = await import('@/lib/settings');
+    const access = await getAccessSettings();
+    if (access.enabled) {
+      const accessToken = req.headers.get('x-access-token') || new URL(req.url).searchParams.get('access_token') || '';
+      const { verifyAccessToken } = await import('@/lib/auth');
+      const isAccessValid = verifyAccessToken(accessToken, access.key) || accessToken === access.key;
+      if (!isAccessValid) {
+        return NextResponse.json(
+          { error: 'Akses ditolak. Layanan email dikunci oleh Access Gate.' },
+          { status: 403 }
+        );
+      }
+    }
+
     await connectToDatabase();
+
+    const existingMsg = await Message.findById(id).lean();
+    if (!existingMsg) {
+      return NextResponse.json({ error: 'Message not found' }, { status: 404 });
+    }
+
+    // 2. Validasi Domain VIP jika pesan ditujukan ke domain VIP
+    const recipient = (existingMsg as any).recipient || '';
+    const domainPart = recipient.includes('@') ? recipient.split('@')[1]?.toLowerCase() : '';
+    if (domainPart) {
+      const { getAllDomainDetails } = await import('@/lib/domains');
+      const domainDetails = await getAllDomainDetails();
+      const matchedDomain = domainDetails.find((d) => d.domain.toLowerCase() === domainPart);
+
+      if (matchedDomain?.isVip) {
+        const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
+        const { verifyVipSessionToken } = await import('@/lib/auth');
+        const isVipValid = verifyVipSessionToken(vipToken);
+
+        if (!isVipValid) {
+          return NextResponse.json(
+            { error: `Pesan ini milik domain VIP @${domainPart}. Kode CDK / Password diperlukan.` },
+            { status: 403 }
+          );
+        }
+      }
+    }
 
     // Temukan dan update status isRead menjadi true
     const message = await Message.findByIdAndUpdate(
@@ -23,10 +65,6 @@ export async function GET(
       { $set: { isRead: true } },
       { new: true }
     ).lean();
-
-    if (!message) {
-      return NextResponse.json({ error: 'Message not found' }, { status: 404 });
-    }
 
     const formattedMessage = {
       id: (message as any)._id.toString(),
@@ -68,7 +106,49 @@ export async function DELETE(
       return NextResponse.json({ error: 'Message ID is required' }, { status: 400 });
     }
 
+    // 1. Validasi Global Access Gate
+    const { getAccessSettings } = await import('@/lib/settings');
+    const access = await getAccessSettings();
+    if (access.enabled) {
+      const accessToken = req.headers.get('x-access-token') || new URL(req.url).searchParams.get('access_token') || '';
+      const { verifyAccessToken } = await import('@/lib/auth');
+      const isAccessValid = verifyAccessToken(accessToken, access.key) || accessToken === access.key;
+      if (!isAccessValid) {
+        return NextResponse.json(
+          { error: 'Akses ditolak. Layanan email dikunci oleh Access Gate.' },
+          { status: 403 }
+        );
+      }
+    }
+
     await connectToDatabase();
+
+    const existingMsg = await Message.findById(id).lean();
+    if (!existingMsg) {
+      return NextResponse.json({ error: 'Message not found' }, { status: 404 });
+    }
+
+    // 2. Validasi Domain VIP jika pesan berada di domain VIP
+    const recipient = (existingMsg as any).recipient || '';
+    const domainPart = recipient.includes('@') ? recipient.split('@')[1]?.toLowerCase() : '';
+    if (domainPart) {
+      const { getAllDomainDetails } = await import('@/lib/domains');
+      const domainDetails = await getAllDomainDetails();
+      const matchedDomain = domainDetails.find((d) => d.domain.toLowerCase() === domainPart);
+
+      if (matchedDomain?.isVip) {
+        const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
+        const { verifyVipSessionToken } = await import('@/lib/auth');
+        const isVipValid = verifyVipSessionToken(vipToken);
+
+        if (!isVipValid) {
+          return NextResponse.json(
+            { error: `Pesan ini milik domain VIP @${domainPart}. Kode CDK / Password diperlukan.` },
+            { status: 403 }
+          );
+        }
+      }
+    }
 
     const result = await Message.findByIdAndDelete(id);
 

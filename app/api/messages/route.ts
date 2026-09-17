@@ -32,6 +32,53 @@ export async function GET(req: NextRequest) {
 
     const email = emailRaw.replace(/[^a-z0-9.@_-]/g, '');
 
+    // 1. Validasi Global Access Gate (jika diaktifkan di admin)
+    const { getAccessSettings } = await import('@/lib/settings');
+    const access = await getAccessSettings();
+    if (access.enabled) {
+      const accessToken = req.headers.get('x-access-token') || new URL(req.url).searchParams.get('access_token') || '';
+      const { verifyAccessToken } = await import('@/lib/auth');
+      const isAccessValid = verifyAccessToken(accessToken, access.key) || accessToken === access.key;
+      if (!isAccessValid) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Akses ditolak. Layanan email dikunci oleh Access Gate.',
+            isAccessLocked: true,
+            data: [],
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    // 2. Validasi Domain VIP (mencegah bypass direct slug URL)
+    const domainPart = email.includes('@') ? email.split('@')[1]?.toLowerCase() : '';
+    if (domainPart) {
+      const { getAllDomainDetails } = await import('@/lib/domains');
+      const domainDetails = await getAllDomainDetails();
+      const matchedDomain = domainDetails.find((d) => d.domain.toLowerCase() === domainPart);
+
+      if (matchedDomain?.isVip) {
+        const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
+        const { verifyVipSessionToken } = await import('@/lib/auth');
+        const isVipValid = verifyVipSessionToken(vipToken);
+
+        if (!isVipValid) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Domain @${domainPart} berstatus VIP eksklusif. Kode CDK / Password diperlukan untuk mengakses kotak masuk.`,
+              isVipRequired: true,
+              domain: domainPart,
+              data: [],
+            },
+            { status: 403 }
+          );
+        }
+      }
+    }
+
     await connectToDatabase();
 
     // Cari pesan berdasarkan recipient dengan sanitasi aman
@@ -99,6 +146,42 @@ export async function DELETE(req: NextRequest) {
     }
 
     const email = emailRaw.replace(/[^a-z0-9.@_-]/g, '');
+
+    // 1. Validasi Global Access Gate
+    const { getAccessSettings } = await import('@/lib/settings');
+    const access = await getAccessSettings();
+    if (access.enabled) {
+      const accessToken = req.headers.get('x-access-token') || new URL(req.url).searchParams.get('access_token') || '';
+      const { verifyAccessToken } = await import('@/lib/auth');
+      const isAccessValid = verifyAccessToken(accessToken, access.key) || accessToken === access.key;
+      if (!isAccessValid) {
+        return NextResponse.json(
+          { error: 'Akses ditolak. Layanan email dikunci oleh Access Gate.' },
+          { status: 403 }
+        );
+      }
+    }
+
+    // 2. Validasi Domain VIP jika email berada di domain VIP
+    const domainPart = email.includes('@') ? email.split('@')[1]?.toLowerCase() : '';
+    if (domainPart) {
+      const { getAllDomainDetails } = await import('@/lib/domains');
+      const domainDetails = await getAllDomainDetails();
+      const matchedDomain = domainDetails.find((d) => d.domain.toLowerCase() === domainPart);
+
+      if (matchedDomain?.isVip) {
+        const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
+        const { verifyVipSessionToken } = await import('@/lib/auth');
+        const isVipValid = verifyVipSessionToken(vipToken);
+
+        if (!isVipValid) {
+          return NextResponse.json(
+            { error: `Domain @${domainPart} berstatus VIP eksklusif. Kode CDK / Password diperlukan.` },
+            { status: 403 }
+          );
+        }
+      }
+    }
 
     await connectToDatabase();
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminCredentials, verifyPassword } from '@/lib/auth';
+import { getAdminCredentials, verifyPassword, createVipSessionToken } from '@/lib/auth';
 import {
   checkLoginBruteForce,
   recordLoginFailure,
@@ -60,12 +60,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Success: Reset rate-limit failures
+    // 3. Success: Reset rate-limit failures & generate signed token
     resetLoginFailures(req);
+    const vipToken = createVipSessionToken();
 
     return NextResponse.json({
       success: true,
       message: 'Akses Domain VIP Berhasil Diaktifkan!',
+      token: vipToken,
     });
   } catch (error: any) {
     return NextResponse.json(

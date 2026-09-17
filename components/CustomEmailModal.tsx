@@ -50,6 +50,21 @@ export default function CustomEmailModal({
       playSound('error');
       return;
     }
+
+    const domainIsVip = availableDomains.find(
+      (d) => (typeof d === 'string' ? d : d.domain).toLowerCase() === selectedDomain.toLowerCase()
+    );
+    const isVip = typeof domainIsVip === 'object' ? Boolean(domainIsVip.isVip) : false;
+
+    if (isVip && !isVipUnlocked) {
+      playSound('pop');
+      if (onRequestVipUnlock) {
+        onRequestVipUnlock(selectedDomain);
+      }
+      onClose();
+      return;
+    }
+
     playSound('success');
     onApply(cleanPrefix, selectedDomain);
     onClose();

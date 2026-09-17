@@ -100,6 +100,88 @@ export function verifyAdminSessionToken(token: string): { valid: boolean; userna
   }
 }
 
+/**
+ * Generate HMAC-SHA256 signed Session Token for VIP domain access
+ */
+export function createVipSessionToken(): string {
+  const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 Hours
+  const payload = Buffer.from(JSON.stringify({ vip: true, exp: expiresAt })).toString('base64url');
+  const signature = crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(payload)
+    .digest('base64url');
+  return `${payload}.${signature}`;
+}
+
+/**
+ * Verify HMAC-SHA256 signed VIP Session Token
+ */
+export function verifyVipSessionToken(token: string): boolean {
+  if (!token || typeof token !== 'string') return false;
+
+  const parts = token.split('.');
+  if (parts.length !== 2) return false;
+
+  const [payloadB64, signature] = parts;
+  const expectedSig = crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(payloadB64)
+    .digest('base64url');
+
+  if (!safeCompare(signature, expectedSig)) {
+    return false;
+  }
+
+  try {
+    const jsonStr = Buffer.from(payloadB64, 'base64url').toString('utf-8');
+    const parsed = JSON.parse(jsonStr);
+    return parsed.vip === true && Date.now() <= parsed.exp;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Generate HMAC-SHA256 signed Token for Global Access Gate
+ */
+export function createAccessToken(key: string): string {
+  const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+  const payload = Buffer.from(JSON.stringify({ access: true, k: key, exp: expiresAt })).toString('base64url');
+  const signature = crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(payload)
+    .digest('base64url');
+  return `${payload}.${signature}`;
+}
+
+/**
+ * Verify Global Access Gate Token
+ */
+export function verifyAccessToken(token: string, currentKey: string): boolean {
+  if (!token || typeof token !== 'string') return false;
+
+  const parts = token.split('.');
+  if (parts.length !== 2) return false;
+
+  const [payloadB64, signature] = parts;
+  const expectedSig = crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(payloadB64)
+    .digest('base64url');
+
+  if (!safeCompare(signature, expectedSig)) {
+    return false;
+  }
+
+  try {
+    const jsonStr = Buffer.from(payloadB64, 'base64url').toString('utf-8');
+    const parsed = JSON.parse(jsonStr);
+    return parsed.access === true && parsed.k === currentKey && Date.now() <= parsed.exp;
+  } catch {
+    return false;
+  }
+}
+
 import { ApiKey } from '@/lib/models/ApiKey';
 
 /**

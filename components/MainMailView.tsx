@@ -245,8 +245,19 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
           if (reqDomain && reqDomain.includes('.')) {
             // Cek apakah reqDomain cocok dengan salah satu domain terdaftar (case-insensitive)
             const matchedDomain = domainsList.find((d) => d.trim().toLowerCase() === reqDomain);
+            const matchedDetail = detailsList.find((d) => d.domain.trim().toLowerCase() === reqDomain);
+            const isVipDomain = Boolean(matchedDetail?.isVip);
+
             if (matchedDomain) {
-              initialDomain = matchedDomain;
+              if (isVipDomain && !isSessionVip) {
+                // Domain berstatus VIP tapi sesi belum membuka akses VIP CDK!
+                initialDomain = safeDefaultPool[0] || 'tempmail.com';
+                setTargetVipDomain(matchedDomain);
+                setIsVipModalOpen(true);
+                showToast(`Domain @${matchedDomain} berstatus VIP eksklusif. Masukkan CDK untuk membuka akses.`, 'error');
+              } else {
+                initialDomain = matchedDomain;
+              }
             } else {
               // Jika domain spesifik diminta dari URL (misal: kingoutlook.my.id), gunakan domain tersebut langsung
               initialDomain = reqDomain;
@@ -311,8 +322,36 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       if (!isSilent) setIsRefreshing(true);
 
       try {
-        const res = await fetch(`/api/messages?email=${encodeURIComponent(emailToFetch)}`);
+        const vipToken = typeof window !== 'undefined' ? sessionStorage.getItem('tmail_vip_token') || '' : '';
+        const accessToken = typeof window !== 'undefined' ? sessionStorage.getItem('tmail_access_token') || '' : '';
+        const headers: Record<string, string> = {};
+        if (vipToken) headers['x-vip-token'] = vipToken;
+        if (accessToken) headers['x-access-token'] = accessToken;
+
+        const res = await fetch(`/api/messages?email=${encodeURIComponent(emailToFetch)}`, {
+          headers,
+        });
         const result = await res.json();
+
+        if (res.status === 403) {
+          if (result.isVipRequired) {
+            setMessages([]);
+            setSelectedMessage(null);
+            if (result.domain) {
+              setTargetVipDomain(result.domain);
+            }
+            setIsVipModalOpen(true);
+            showToast(result.error || 'Akses VIP diperlukan untuk melihat pesan.', 'error');
+            return;
+          }
+          if (result.isAccessLocked) {
+            setMessages([]);
+            setSelectedMessage(null);
+            setIsAccessLocked(true);
+            showToast(result.error || 'Akses layanan email dikunci.', 'error');
+            return;
+          }
+        }
 
         if (result.success && Array.isArray(result.data)) {
           const fetchedMessages: EmailMessage[] = result.data;
@@ -479,7 +518,13 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   const handleDeleteMessage = async (id: string) => {
     try {
       playSound('delete');
-      const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
+      const vipToken = typeof window !== 'undefined' ? sessionStorage.getItem('tmail_vip_token') || '' : '';
+      const accessToken = typeof window !== 'undefined' ? sessionStorage.getItem('tmail_access_token') || '' : '';
+      const headers: Record<string, string> = {};
+      if (vipToken) headers['x-vip-token'] = vipToken;
+      if (accessToken) headers['x-access-token'] = accessToken;
+
+      const res = await fetch(`/api/messages/${id}`, { method: 'DELETE', headers });
       if (res.ok) {
         setMessages((prev) => prev.filter((m) => m.id !== id));
         if (selectedMessage?.id === id) {
@@ -497,8 +542,15 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
 
     try {
       playSound('delete');
+      const vipToken = typeof window !== 'undefined' ? sessionStorage.getItem('tmail_vip_token') || '' : '';
+      const accessToken = typeof window !== 'undefined' ? sessionStorage.getItem('tmail_access_token') || '' : '';
+      const headers: Record<string, string> = {};
+      if (vipToken) headers['x-vip-token'] = vipToken;
+      if (accessToken) headers['x-access-token'] = accessToken;
+
       const res = await fetch(`/api/messages?email=${encodeURIComponent(currentEmail)}`, {
         method: 'DELETE',
+        headers,
       });
       if (res.ok) {
         setMessages([]);
