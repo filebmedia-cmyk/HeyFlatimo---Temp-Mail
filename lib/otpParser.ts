@@ -151,21 +151,100 @@ export function extractOtp(text: string = '', html: string = '', subject: string
 }
 
 /**
- * Decode nested/wrapped redirect tracking URLs
- * e.g. https://email.company.com/click?url=https%3A%2F%2Fapp.com%2Fverify%3Ftoken%3D123
+ * Decode HTML entities in URLs and text
  */
-function unwrapTrackingUrl(rawUrl: string): string {
+export function decodeHtmlEntities(str: string = ''): string {
+  if (!str) return '';
+  return str
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#039;/gi, "'")
+    .replace(/&#39;/gi, "'")
+    .replace(/&#x3D;/gi, '=')
+    .replace(/&#61;/gi, '=')
+    .replace(/&equals;/gi, '=')
+    .replace(/&#x2F;/gi, '/')
+    .replace(/&#47;/gi, '/');
+}
+
+/**
+ * Pembersih URL mentah: menghapus karakter pembungkus, spasi/newline internal, dan tanda baca di akhir
+ */
+export function cleanRawUrl(url: string = ''): string {
+  if (!url) return '';
+  let cleaned = decodeHtmlEntities(url);
+  // Bersihkan spasi dan newline internal (misal URL terpecah baris di HTML attribute)
+  cleaned = cleaned.replace(/[\r\n\t\s]+/g, '').trim();
+  // Bersihkan tanda baca trailing yang tidak sengaja terbawa dari akhir kalimat
+  cleaned = cleaned.replace(/[.,;:!?)\]}>"']+$/g, '');
+  // Bersihkan kurung pembuka atau kutip di depan
+  cleaned = cleaned.replace(/^[<(\[{'"]+/g, '');
+  return cleaned;
+}
+
+/**
+ * Decode nested/wrapped redirect tracking URLs secara aman tanpa memotong parameter query string
+ * e.g. https://email.company.com/click?url=https%3A%2F%2Fapp.com%2Fverify%3Ftoken%3D123%26sig%3D456
+ */
+export function unwrapTrackingUrl(rawUrl: string = ''): string {
+  if (!rawUrl) return '';
   try {
-    const parsed = new URL(rawUrl);
-    const searchParams = parsed.searchParams;
-    for (const key of ['url', 'target', 'dest', 'destination', 'redirect', 'next', 'u', 'r', 'link']) {
-      const nested = searchParams.get(key);
-      if (nested && (nested.startsWith('http://') || nested.startsWith('https://'))) {
-        return decodeURIComponent(nested);
+    const cleanUrl = rawUrl.replace(/&amp;/g, '&');
+    const parsed = new URL(cleanUrl);
+    const targetKeys = [
+      'url',
+      'target',
+      'dest',
+      'destination',
+      'redirect',
+      'next',
+      'redirect_to',
+      'redirect_uri',
+      'u',
+      'r',
+      'link',
+      'continue',
+    ];
+
+    for (const key of targetKeys) {
+      if (parsed.searchParams.has(key)) {
+        const val = parsed.searchParams.get(key) || '';
+
+        // Kasus 1: URL mentah dimulai langsung dengan http:// atau https://
+        if (val.startsWith('http://') || val.startsWith('https://')) {
+          const searchStr = parsed.search.slice(1);
+          const keyIdx = searchStr.search(new RegExp(`(?:^|&)${key}=https?://`, 'i'));
+          if (keyIdx !== -1) {
+            const afterKey = searchStr.slice(keyIdx + key.length + (searchStr[keyIdx] === '&' ? 2 : 1));
+            if (afterKey.startsWith('http://') || afterKey.startsWith('https://')) {
+              try {
+                new URL(afterKey);
+                return afterKey;
+              } catch {}
+            }
+          }
+          try {
+            new URL(val);
+            return val;
+          } catch {}
+        }
+
+        // Kasus 2: URL ter-encode dalam query (e.g. https%3A%2F%2F...)
+        if (/^https?%3A/i.test(val)) {
+          try {
+            const decoded = decodeURIComponent(val);
+            if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
+              new URL(decoded);
+              return decoded;
+            }
+          } catch {}
+        }
       }
     }
   } catch (e) {
-    // If not a valid URL object, return raw
+    // Abaikan jika bukan URL valid
   }
   return rawUrl;
 }
@@ -174,24 +253,42 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
   const linkCandidates: ExtractedLinkItem[] = [];
   const seenUrls = new Set<string>();
 
+  // Normalisasi Quoted-Printable soft breaks
+  const normalizedHtml = (html || '').replace(/=\r?\n/g, '');
+  let normalizedText = (text || '').replace(/=\r?\n/g, '');
+
+  // Sambung URL plain text yang terpotong ke baris baru
+  for (let i = 0; i < 3; i++) {
+    normalizedText = normalizedText.replace(
+      /(https?:\/\/[^\s<>"'\r\n]+)\r?\n\s*([a-zA-Z0-9%_.~#&?=\-]+)/gi,
+      (m, p1, p2) => {
+        if (/[=?&/_#\-]$/.test(p1) || /^[=&?#]/.test(p2)) {
+          return p1 + p2;
+        }
+        return m;
+      }
+    );
+  }
+
   // 1. Ekstrak dari Tag HTML `<a ... href="...">Text</a>`
-  const anchorTagRegex = /<a\b([^>]*?)href=["']([^"'\s>]+)["']([^>]*)>([\s\S]*?)<\/a>/gi;
+  const anchorTagRegex = /<a\b([\s\S]*?)>([\s\S]*?)<\/a>/gi;
   let anchorMatch;
 
-  while ((anchorMatch = anchorTagRegex.exec(html)) !== null) {
-    const beforeAttr = anchorMatch[1] || '';
-    const rawUrl = anchorMatch[2].trim();
-    const afterAttr = anchorMatch[3] || '';
-    const innerHtml = anchorMatch[4] || '';
+  while ((anchorMatch = anchorTagRegex.exec(normalizedHtml)) !== null) {
+    const tagAttrs = anchorMatch[1] || '';
+    const innerHtml = anchorMatch[2] || '';
 
-    // Bersihkan inner text dari tag child (misal <span> atau <b>)
-    const labelText = innerHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    const fullAttr = `${beforeAttr} ${afterAttr}`;
+    // Tangkap href baik menggunakan petik ganda, petik tunggal, maupun tanpa petik
+    const hrefMatch = tagAttrs.match(/href\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+    if (!hrefMatch) continue;
 
-    if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) continue;
+    const rawHref = hrefMatch[1] || hrefMatch[2] || hrefMatch[3] || '';
+    const cleanedHref = cleanRawUrl(rawHref);
+
+    if (!cleanedHref.startsWith('http://') && !cleanedHref.startsWith('https://')) continue;
 
     // Filter link tidak relevan / media / schema
-    const lowerUrl = rawUrl.toLowerCase();
+    const lowerUrl = cleanedHref.toLowerCase();
     if (
       lowerUrl.includes('schemas.microsoft.com') ||
       lowerUrl.includes('w3.org') ||
@@ -208,9 +305,12 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
       continue;
     }
 
+    // Bersihkan inner text dari tag child (misal <span> atau <b>)
+    const labelText = decodeHtmlEntities(innerHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim());
+
     // Ambil konteks di sekitar tag ini (150 karakter sebelum dan sesudah)
     const matchIndex = anchorMatch.index;
-    const surroundingSnippet = html
+    const surroundingSnippet = normalizedHtml
       .slice(Math.max(0, matchIndex - 150), matchIndex + anchorMatch[0].length + 150)
       .replace(/<[^>]*>/g, ' ');
 
@@ -221,7 +321,6 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
     // ==========================================
     // SKORING: Teks Tombol / Anchor Label
     // ==========================================
-    // Keyword Verifikasi Akun / Email / Langganan (Sangat Tinggi)
     const highIntentLabelKeywords = [
       'verifikasi',
       'verify',
@@ -303,7 +402,7 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
     }
 
     // Ada parameter token / kode keamanan di URL (misal ?token=... / ?code=... / ?key=...)
-    if (/(?:token|code|key|auth|signature|hash|id|uuid|ticket)=/i.test(rawUrl)) {
+    if (/(?:token|code|key|auth|sig|signature|hash|id|uuid|ticket)=/i.test(cleanedHref)) {
       score += 25;
     }
 
@@ -324,7 +423,7 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
     }
 
     // Tombol CTA (Class seperti btn, button, cta)
-    if (/(?:btn|button|cta|action-link|verify-btn)/i.test(fullAttr)) {
+    if (/(?:btn|button|cta|action-link|verify-btn)/i.test(tagAttrs)) {
       score += 20;
     }
 
@@ -355,7 +454,7 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
     if (isPrivacyOrTerms) score -= 150;
     if (isSocialMedia) score -= 150;
 
-    const finalUrl = unwrapTrackingUrl(rawUrl);
+    const finalUrl = unwrapTrackingUrl(cleanedHref);
 
     if (!seenUrls.has(finalUrl)) {
       seenUrls.add(finalUrl);
@@ -368,15 +467,17 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
     }
   }
 
-  // 2. Ekstrak URL polos dari plain text (jika format email plain text atau link raw)
-  const combinedContent = `${html}\n${text}`;
-  const plainUrlRegex = /(https?:\/\/[^\s<>"']+)/gi;
+  // 2. Ekstrak URL polos dari plain text & HTML
+  const combinedContent = `${normalizedHtml}\n${normalizedText}`;
+  const plainUrlRegex = /(https?:\/\/[^\s<>"'\r\n]+)/gi;
   let textMatch;
   while ((textMatch = plainUrlRegex.exec(combinedContent)) !== null) {
-    const rawUrl = textMatch[1].trim();
-    const finalUrl = unwrapTrackingUrl(rawUrl);
+    const rawUrl = textMatch[1];
+    const cleanedUrl = cleanRawUrl(rawUrl);
+    const finalUrl = unwrapTrackingUrl(cleanedUrl);
     const lowerUrl = finalUrl.toLowerCase();
 
+    if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) continue;
     if (seenUrls.has(finalUrl)) continue;
 
     if (
@@ -397,7 +498,7 @@ export function extractLinks(text: string = '', html: string = ''): ExtractedLin
     ) {
       score += 50;
     }
-    if (/(?:token|code|key|auth)=/i.test(finalUrl)) {
+    if (/(?:token|code|key|auth|sig|signature)=/i.test(finalUrl)) {
       score += 30;
     }
 

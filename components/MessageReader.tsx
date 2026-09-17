@@ -253,7 +253,11 @@ export default function MessageReader({
                     )}
                     <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                   </div>
-                  <p className="font-mono-custom text-[10px] xs:text-[11px] text-zinc-600 dark:text-zinc-300 truncate max-w-[200px] xs:max-w-xs sm:max-w-sm">
+                  <p
+                    className="font-mono-custom text-[10px] xs:text-[11px] text-zinc-600 dark:text-zinc-300 break-all line-clamp-2 max-w-full cursor-pointer hover:underline select-all"
+                    title={linksResult.primaryLink}
+                    onClick={() => handleCopyLink(linksResult.primaryLink!)}
+                  >
                     {linksResult.primaryLink}
                   </p>
                 </div>
@@ -263,11 +267,11 @@ export default function MessageReader({
                 <button
                   type="button"
                   onClick={() => handleCopyLink(linksResult.primaryLink!)}
-                  className="brutal-btn bg-white dark:bg-zinc-800 text-black dark:text-white px-2 py-1 text-[11px] font-mono-custom font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-zinc-100"
-                  title="Salin URL Verifikasi"
+                  className="brutal-btn bg-white dark:bg-zinc-800 text-black dark:text-white px-2.5 py-1 text-[11px] font-mono-custom font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-zinc-100 cursor-pointer"
+                  title="Salin URL Verifikasi Lengkap"
                 >
                   {copiedLink ? <Check className="w-3 h-3 text-[var(--color-green)]" /> : <Copy className="w-3 h-3" />}
-                  <span className="hidden xs:inline">{copiedLink ? 'TERSALIN' : 'SALIN'}</span>
+                  <span>{copiedLink ? 'TERSALIN' : 'SALIN'}</span>
                 </button>
 
                 <a
@@ -276,6 +280,7 @@ export default function MessageReader({
                   rel="noopener noreferrer"
                   onClick={() => playSound('click')}
                   className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-2.5 xs:px-3 py-1 text-[11px] font-mono-custom font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] cursor-pointer"
+                  title="Buka Link Verifikasi di Tab Baru"
                 >
                   <span>BUKA LINK</span>
                   <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
@@ -297,7 +302,7 @@ export default function MessageReader({
             <iframe
               title="Email Content Preview"
               srcDoc={formattedHtml}
-              sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+              sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
               className="w-full h-full min-h-[300px] border-0 bg-white"
             />
           </div>

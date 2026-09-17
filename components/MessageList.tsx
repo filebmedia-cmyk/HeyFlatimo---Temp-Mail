@@ -274,7 +274,14 @@ export default function MessageList({
                                     )}
                                     <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                                   </div>
-                                  <p className="font-mono-custom text-[10px] xs:text-[11px] text-zinc-600 dark:text-zinc-300 truncate max-w-xs sm:max-w-sm">
+                                  <p
+                                    className="font-mono-custom text-[10px] xs:text-[11px] text-zinc-600 dark:text-zinc-300 break-all line-clamp-2 max-w-full cursor-pointer hover:underline select-all"
+                                    title={linksRes.primaryLink}
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(linksRes.primaryLink!);
+                                      playSound('success');
+                                    }}
+                                  >
                                     {linksRes.primaryLink}
                                   </p>
                                 </div>
@@ -287,18 +294,19 @@ export default function MessageList({
                                     navigator.clipboard.writeText(linksRes.primaryLink!);
                                     playSound('success');
                                   }}
-                                  className="brutal-btn bg-white dark:bg-zinc-800 text-black dark:text-white px-2 py-1 text-xs font-mono-custom font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-zinc-100"
-                                  title="Salin Link"
+                                  className="brutal-btn bg-white dark:bg-zinc-800 text-black dark:text-white px-2.5 py-1 text-xs font-mono-custom font-bold flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-zinc-100 cursor-pointer"
+                                  title="Salin Link Lengkap"
                                 >
                                   <Copy className="w-3 h-3" />
-                                  <span className="hidden xs:inline">SALIN</span>
+                                  <span>SALIN</span>
                                 </button>
                                 <a
                                   href={linksRes.primaryLink}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   onClick={() => playSound('click')}
-                                  className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-3 py-1 text-xs font-mono-custom font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                                  className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-3 py-1 text-xs font-mono-custom font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_var(--shadow-color)] cursor-pointer"
+                                  title="Buka Link Verifikasi"
                                 >
                                   <span>BUKA LINK</span>
                                   <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
@@ -312,7 +320,7 @@ export default function MessageList({
                       <iframe
                         title={`Inline Message ${msg.id}`}
                         srcDoc={formattedHtml}
-                        sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                        sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
                         className="w-full min-h-[260px] xs:min-h-[300px] sm:min-h-[380px] md:min-h-[440px] border-[2.5px] sm:border-[3px] border-[var(--border-color)] bg-white shadow-[3px_3px_0px_var(--shadow-color)] sm:shadow-[4px_4px_0px_var(--shadow-color)]"
                       />
                     </div>

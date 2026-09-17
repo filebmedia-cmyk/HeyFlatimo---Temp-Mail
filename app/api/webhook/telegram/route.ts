@@ -43,32 +43,34 @@ async function getRandomFreeDomain(): Promise<string> {
 
 /**
  * Returns standard inline keyboard buttons:
- * 1. Buat Email Baru
+ * 1. Buka Link Verifikasi (jika ada link verifikasi)
  * 2. Baca Inbox Email
  * 3. Buka Web Email
+ * 4. Buat Email Baru
  */
-function getStandardKeyboard(origin: string, email?: string) {
-  if (email) {
-    return {
-      inline_keyboard: [
-        [
-          { text: 'Baca Inbox Email', callback_data: `inbox:${email}` },
-          { text: 'Buka Web Email', url: `${origin}/${encodeURIComponent(email)}` },
-        ],
-        [
-          { text: 'Buat Email Baru', callback_data: 'gen_email' },
-        ],
-      ],
-    };
+function getStandardKeyboard(origin: string, email?: string, verificationLink?: string | null) {
+  const rows: Array<Array<{ text: string; url?: string; callback_data?: string }>> = [];
+
+  if (verificationLink) {
+    rows.push([{ text: 'Buka Link Verifikasi', url: verificationLink }]);
   }
-  return {
-    inline_keyboard: [
-      [
-        { text: 'Buat Email Baru', callback_data: 'gen_email' },
-        { text: 'Buka Web Email', url: origin },
-      ],
-    ],
-  };
+
+  if (email) {
+    rows.push([
+      { text: 'Baca Inbox Email', callback_data: `inbox:${email}` },
+      { text: 'Buka Web Email', url: `${origin}/${encodeURIComponent(email)}` },
+    ]);
+    rows.push([
+      { text: 'Buat Email Baru', callback_data: 'gen_email' },
+    ]);
+  } else {
+    rows.push([
+      { text: 'Buat Email Baru', callback_data: 'gen_email' },
+      { text: 'Buka Web Email', url: origin },
+    ]);
+  }
+
+  return { inline_keyboard: rows };
 }
 
 export async function POST(req: NextRequest) {
@@ -159,15 +161,19 @@ export async function POST(req: NextRequest) {
               latestMsg.subject || '(Tanpa Subjek)'
             )}`;
           } else {
+            let snippet = (latestMsg.bodyText || '').trim();
+            if (snippet.length > 280) {
+              snippet = snippet.slice(0, 280).replace(/\s+\S*$/, '') + '...';
+            }
             contentText = `<b>Pesan Masuk:</b>\n\n<b>Subjek:</b> ${escapeTelegramHtml(
               latestMsg.subject || '(Tanpa Subjek)'
             )}\n\n<i>${escapeTelegramHtml(
-              (latestMsg.bodyText || '').slice(0, 250) || 'Buka website untuk membaca isi lengkap.'
+              snippet || 'Buka website untuk membaca isi lengkap.'
             )}</i>`;
           }
 
           if (linksRes.found && linksRes.primaryLink) {
-            contentText += `\n\n<b>Link Verifikasi:</b> ${escapeTelegramHtml(linksRes.primaryLink)}`;
+            contentText += `\n\n<b>Link Verifikasi:</b>\n<code>${escapeTelegramHtml(linksRes.primaryLink)}</code>`;
           }
 
           if (msgList.length > 1) {
@@ -180,18 +186,20 @@ export async function POST(req: NextRequest) {
             time: formatDateWIB(latestMsg.createdAt),
           });
 
+          const activeKeyboard = getStandardKeyboard(origin, targetEmail, linksRes.primaryLink);
+
           if (chatId && messageId) {
             const editRes = await editTelegramMessageText(token, chatId, messageId, formatted, {
-              reply_markup: getStandardKeyboard(origin, targetEmail),
+              reply_markup: activeKeyboard,
             });
             if (!editRes.success) {
               await sendTelegramMessage(token, chatId, formatted, {
-                reply_markup: getStandardKeyboard(origin, targetEmail),
+                reply_markup: activeKeyboard,
               });
             }
           } else if (chatId) {
             await sendTelegramMessage(token, chatId, formatted, {
-              reply_markup: getStandardKeyboard(origin, targetEmail),
+              reply_markup: activeKeyboard,
             });
           }
 
@@ -366,15 +374,19 @@ export async function POST(req: NextRequest) {
               latestMsg.subject || '(Tanpa Subjek)'
             )}`;
           } else {
+            let snippet = (latestMsg.bodyText || '').trim();
+            if (snippet.length > 280) {
+              snippet = snippet.slice(0, 280).replace(/\s+\S*$/, '') + '...';
+            }
             contentText = `<b>Pesan Masuk:</b>\n\n<b>Subjek:</b> ${escapeTelegramHtml(
               latestMsg.subject || '(Tanpa Subjek)'
             )}\n\n<i>${escapeTelegramHtml(
-              (latestMsg.bodyText || '').slice(0, 250) || 'Buka website untuk membaca isi lengkap.'
+              snippet || 'Buka website untuk membaca isi lengkap.'
             )}</i>`;
           }
 
           if (linksRes.found && linksRes.primaryLink) {
-            contentText += `\n\n<b>Link Verifikasi:</b> ${escapeTelegramHtml(linksRes.primaryLink)}`;
+            contentText += `\n\n<b>Link Verifikasi:</b>\n<code>${escapeTelegramHtml(linksRes.primaryLink)}</code>`;
           }
 
           if (msgList.length > 1) {
@@ -388,7 +400,7 @@ export async function POST(req: NextRequest) {
           });
 
           await sendTelegramMessage(token, chatId, formatted, {
-            reply_markup: getStandardKeyboard(origin, targetEmail),
+            reply_markup: getStandardKeyboard(origin, targetEmail, linksRes.primaryLink),
           });
         } else {
           const formatted = formatTelegramMessage(
