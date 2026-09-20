@@ -53,29 +53,26 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Validasi Domain VIP (mencegah bypass direct slug URL)
-    const domainPart = email.includes('@') ? email.split('@')[1]?.toLowerCase() : '';
-    if (domainPart) {
-      const { getAllDomainDetails } = await import('@/lib/domains');
-      const domainDetails = await getAllDomainDetails();
-      const matchedDomain = domainDetails.find((d) => d.domain.toLowerCase() === domainPart);
+    const { checkIsVipDomain, extractDomainFromEmail, getAllDomainDetails, normalizeDomain } = await import('@/lib/domains');
+    const { verifyVipSessionToken } = await import('@/lib/auth');
+    const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
+    const isVipTokenValid = verifyVipSessionToken(vipToken);
 
-      if (matchedDomain?.isVip) {
-        const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
-        const { verifyVipSessionToken } = await import('@/lib/auth');
-        const isVipValid = verifyVipSessionToken(vipToken);
+    if (email.includes('@')) {
+      const isVip = await checkIsVipDomain(email);
+      const domainPart = extractDomainFromEmail(email);
 
-        if (!isVipValid) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: `Domain @${domainPart} berstatus VIP eksklusif. Kode CDK / Password diperlukan untuk mengakses kotak masuk.`,
-              isVipRequired: true,
-              domain: domainPart,
-              data: [],
-            },
-            { status: 403 }
-          );
-        }
+      if (isVip && !isVipTokenValid) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Domain @${domainPart} berstatus VIP eksklusif. Kode CDK / Passcode diperlukan untuk mengakses kotak masuk.`,
+            isVipRequired: true,
+            domain: domainPart,
+            data: [],
+          },
+          { status: 403 }
+        );
       }
     }
 
@@ -86,7 +83,21 @@ export async function GET(req: NextRequest) {
     if (email.includes('@')) {
       query.recipient = email;
     } else {
-      query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
+      // Jika query tanpa domain (@) dan token VIP tidak ada, kecualikan domain VIP
+      if (!isVipTokenValid) {
+        const allDetails = await getAllDomainDetails();
+        const vipDomains = allDetails.filter((d) => d.isVip).map((d) => normalizeDomain(d.domain));
+        if (vipDomains.length > 0) {
+          const excludePattern = vipDomains.map((d) => escapeRegex(d)).join('|');
+          query.recipient = {
+            $regex: new RegExp(`^${escapeRegex(email)}@(?!(${excludePattern})$)`, 'i'),
+          };
+        } else {
+          query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
+        }
+      } else {
+        query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
+      }
     }
 
     const messages = await Message.find(query)
@@ -163,23 +174,20 @@ export async function DELETE(req: NextRequest) {
     }
 
     // 2. Validasi Domain VIP jika email berada di domain VIP
-    const domainPart = email.includes('@') ? email.split('@')[1]?.toLowerCase() : '';
-    if (domainPart) {
-      const { getAllDomainDetails } = await import('@/lib/domains');
-      const domainDetails = await getAllDomainDetails();
-      const matchedDomain = domainDetails.find((d) => d.domain.toLowerCase() === domainPart);
+    const { checkIsVipDomain, extractDomainFromEmail, getAllDomainDetails, normalizeDomain } = await import('@/lib/domains');
+    const { verifyVipSessionToken } = await import('@/lib/auth');
+    const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
+    const isVipTokenValid = verifyVipSessionToken(vipToken);
 
-      if (matchedDomain?.isVip) {
-        const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
-        const { verifyVipSessionToken } = await import('@/lib/auth');
-        const isVipValid = verifyVipSessionToken(vipToken);
+    if (email.includes('@')) {
+      const isVip = await checkIsVipDomain(email);
+      const domainPart = extractDomainFromEmail(email);
 
-        if (!isVipValid) {
-          return NextResponse.json(
-            { error: `Domain @${domainPart} berstatus VIP eksklusif. Kode CDK / Password diperlukan.` },
-            { status: 403 }
-          );
-        }
+      if (isVip && !isVipTokenValid) {
+        return NextResponse.json(
+          { error: `Domain @${domainPart} berstatus VIP eksklusif. Kode CDK / Passcode diperlukan.` },
+          { status: 403 }
+        );
       }
     }
 
@@ -189,7 +197,20 @@ export async function DELETE(req: NextRequest) {
     if (email.includes('@')) {
       query.recipient = email;
     } else {
-      query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
+      if (!isVipTokenValid) {
+        const allDetails = await getAllDomainDetails();
+        const vipDomains = allDetails.filter((d) => d.isVip).map((d) => normalizeDomain(d.domain));
+        if (vipDomains.length > 0) {
+          const excludePattern = vipDomains.map((d) => escapeRegex(d)).join('|');
+          query.recipient = {
+            $regex: new RegExp(`^${escapeRegex(email)}@(?!(${excludePattern})$)`, 'i'),
+          };
+        } else {
+          query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
+        }
+      } else {
+        query.recipient = { $regex: new RegExp(`^${escapeRegex(email)}@`, 'i') };
+      }
     }
 
     const result = await Message.deleteMany(query);

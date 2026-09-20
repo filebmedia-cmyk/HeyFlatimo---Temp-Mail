@@ -51,22 +51,23 @@ export default function CustomEmailModal({
       return;
     }
 
+    const cleanSelected = selectedDomain.trim().toLowerCase().replace(/^@+/, '');
     const domainIsVip = availableDomains.find(
-      (d) => (typeof d === 'string' ? d : d.domain).toLowerCase() === selectedDomain.toLowerCase()
+      (d) => (typeof d === 'string' ? d : d.domain).trim().toLowerCase().replace(/^@+/, '') === cleanSelected
     );
     const isVip = typeof domainIsVip === 'object' ? Boolean(domainIsVip.isVip) : false;
 
     if (isVip && !isVipUnlocked) {
       playSound('pop');
       if (onRequestVipUnlock) {
-        onRequestVipUnlock(selectedDomain);
+        onRequestVipUnlock(cleanSelected);
       }
       onClose();
       return;
     }
 
     playSound('success');
-    onApply(cleanPrefix, selectedDomain);
+    onApply(cleanPrefix, cleanSelected);
     onClose();
   };
 

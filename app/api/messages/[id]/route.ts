@@ -39,23 +39,20 @@ export async function GET(
 
     // 2. Validasi Domain VIP jika pesan ditujukan ke domain VIP
     const recipient = (existingMsg as any).recipient || '';
-    const domainPart = recipient.includes('@') ? recipient.split('@')[1]?.toLowerCase() : '';
-    if (domainPart) {
-      const { getAllDomainDetails } = await import('@/lib/domains');
-      const domainDetails = await getAllDomainDetails();
-      const matchedDomain = domainDetails.find((d) => d.domain.toLowerCase() === domainPart);
+    const { checkIsVipDomain, extractDomainFromEmail } = await import('@/lib/domains');
+    const isVip = await checkIsVipDomain(recipient);
+    const domainPart = extractDomainFromEmail(recipient);
 
-      if (matchedDomain?.isVip) {
-        const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
-        const { verifyVipSessionToken } = await import('@/lib/auth');
-        const isVipValid = verifyVipSessionToken(vipToken);
+    if (isVip) {
+      const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
+      const { verifyVipSessionToken } = await import('@/lib/auth');
+      const isVipValid = verifyVipSessionToken(vipToken);
 
-        if (!isVipValid) {
-          return NextResponse.json(
-            { error: `Pesan ini milik domain VIP @${domainPart}. Kode CDK / Password diperlukan.` },
-            { status: 403 }
-          );
-        }
+      if (!isVipValid) {
+        return NextResponse.json(
+          { error: `Pesan ini milik domain VIP @${domainPart}. Kode CDK / Passcode diperlukan.` },
+          { status: 403 }
+        );
       }
     }
 
@@ -130,23 +127,20 @@ export async function DELETE(
 
     // 2. Validasi Domain VIP jika pesan berada di domain VIP
     const recipient = (existingMsg as any).recipient || '';
-    const domainPart = recipient.includes('@') ? recipient.split('@')[1]?.toLowerCase() : '';
-    if (domainPart) {
-      const { getAllDomainDetails } = await import('@/lib/domains');
-      const domainDetails = await getAllDomainDetails();
-      const matchedDomain = domainDetails.find((d) => d.domain.toLowerCase() === domainPart);
+    const { checkIsVipDomain, extractDomainFromEmail } = await import('@/lib/domains');
+    const isVip = await checkIsVipDomain(recipient);
+    const domainPart = extractDomainFromEmail(recipient);
 
-      if (matchedDomain?.isVip) {
-        const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
-        const { verifyVipSessionToken } = await import('@/lib/auth');
-        const isVipValid = verifyVipSessionToken(vipToken);
+    if (isVip) {
+      const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
+      const { verifyVipSessionToken } = await import('@/lib/auth');
+      const isVipValid = verifyVipSessionToken(vipToken);
 
-        if (!isVipValid) {
-          return NextResponse.json(
-            { error: `Pesan ini milik domain VIP @${domainPart}. Kode CDK / Password diperlukan.` },
-            { status: 403 }
-          );
-        }
+      if (!isVipValid) {
+        return NextResponse.json(
+          { error: `Pesan ini milik domain VIP @${domainPart}. Kode CDK / Passcode diperlukan.` },
+          { status: 403 }
+        );
       }
     }
 

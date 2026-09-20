@@ -52,7 +52,9 @@ export default function DomainDropdown({
   }, [domains]);
 
   const currentSelectedOption = useMemo(() => {
-    return normalizedDomains.find((d) => d.domain.toLowerCase() === selectedDomain.toLowerCase());
+    return normalizedDomains.find(
+      (d) => d.domain.trim().toLowerCase().replace(/^@+/, '') === selectedDomain.trim().toLowerCase().replace(/^@+/, '')
+    );
   }, [normalizedDomains, selectedDomain]);
 
   // Close on outside click
@@ -95,22 +97,23 @@ export default function DomainDropdown({
 
   const filteredDomains = useMemo(() => {
     if (!searchQuery.trim()) return normalizedDomains;
-    const q = searchQuery.toLowerCase().trim();
-    return normalizedDomains.filter((d) => d.domain.toLowerCase().includes(q));
+    const q = searchQuery.toLowerCase().trim().replace(/^@+/, '');
+    return normalizedDomains.filter((d) => d.domain.toLowerCase().replace(/^@+/, '').includes(q));
   }, [normalizedDomains, searchQuery]);
 
   const handleSelect = (domain: string) => {
-    const selectedItem = normalizedDomains.find((d) => d.domain.toLowerCase() === domain.toLowerCase());
+    const clean = domain.trim().toLowerCase().replace(/^@+/, '');
+    const selectedItem = normalizedDomains.find((d) => d.domain.trim().toLowerCase().replace(/^@+/, '') === clean);
     if (selectedItem?.isVip && !isVipUnlocked) {
       playSound('pop');
       setIsOpen(false);
       if (onRequestVipUnlock) {
-        onRequestVipUnlock(domain);
+        onRequestVipUnlock(selectedItem.domain);
       }
       return;
     }
     playSound('click');
-    onSelect(domain);
+    onSelect(selectedItem ? selectedItem.domain : domain);
     setIsOpen(false);
   };
 

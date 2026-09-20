@@ -8,6 +8,31 @@ export interface DomainItem {
 }
 
 /**
+ * Normalize domain string by trimming, lowercasing, and removing leading @ and invalid characters
+ */
+export function normalizeDomain(domain: string): string {
+  if (!domain || typeof domain !== 'string') return '';
+  return domain
+    .trim()
+    .toLowerCase()
+    .replace(/^@+/, '')
+    .replace(/[^a-z0-9.-]/g, '');
+}
+
+/**
+ * Extract clean normalized domain from an email address or raw domain string
+ */
+export function extractDomainFromEmail(emailOrDomain: string): string {
+  if (!emailOrDomain || typeof emailOrDomain !== 'string') return '';
+  const clean = emailOrDomain.trim().toLowerCase();
+  if (clean.includes('@')) {
+    const parts = clean.split('@');
+    return normalizeDomain(parts[parts.length - 1]);
+  }
+  return normalizeDomain(clean);
+}
+
+/**
  * Get all domains as full objects with VIP status
  */
 export async function getAllDomainDetails(): Promise<DomainItem[]> {
@@ -17,8 +42,8 @@ export async function getAllDomainDetails(): Promise<DomainItem[]> {
     '';
   const envDomains = envDomainsRaw
     .split(',')
-    .map((d) => d.trim().toLowerCase())
-    .filter((d) => d.length > 0);
+    .map((d) => normalizeDomain(d))
+    .filter((d) => d.length > 0 && d.includes('.'));
 
   const domainMap = new Map<string, DomainItem>();
 
@@ -31,12 +56,14 @@ export async function getAllDomainDetails(): Promise<DomainItem[]> {
     const dbDomains = await Domain.find().lean();
     for (const d of dbDomains) {
       if ((d as any).domain) {
-        const cleanName = (d as any).domain.toLowerCase().trim();
-        domainMap.set(cleanName, {
-          domain: cleanName,
-          isVip: Boolean((d as any).isVip),
-          createdAt: (d as any).createdAt,
-        });
+        const cleanName = normalizeDomain((d as any).domain);
+        if (cleanName && cleanName.includes('.')) {
+          domainMap.set(cleanName, {
+            domain: cleanName,
+            isVip: Boolean((d as any).isVip),
+            createdAt: (d as any).createdAt,
+          });
+        }
       }
     }
   } catch (err) {
@@ -50,6 +77,17 @@ export async function getAllDomainDetails(): Promise<DomainItem[]> {
     // 2. Alphabetical sort within the same VIP status
     return a.domain.localeCompare(b.domain);
   });
+}
+
+/**
+ * Check if a domain or email belongs to a VIP domain
+ */
+export async function checkIsVipDomain(domainOrEmail: string): Promise<boolean> {
+  const domainPart = extractDomainFromEmail(domainOrEmail);
+  if (!domainPart) return false;
+  const allDomains = await getAllDomainDetails();
+  const matched = allDomains.find((d) => normalizeDomain(d.domain) === domainPart);
+  return Boolean(matched?.isVip);
 }
 
 /**

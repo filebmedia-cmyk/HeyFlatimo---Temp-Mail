@@ -37,6 +37,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   const [isVipUnlocked, setIsVipUnlocked] = useState(false);
   const [isVipModalOpen, setIsVipModalOpen] = useState(false);
   const [targetVipDomain, setTargetVipDomain] = useState<string | null>(null);
+  const [targetVipPrefix, setTargetVipPrefix] = useState<string | null>(null);
 
   // Access Gate State
   const [isAccessLocked, setIsAccessLocked] = useState(false);
@@ -105,10 +106,15 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     setIsSoundEnabled(soundActive);
     isSoundEnabledRef.current = soundActive;
 
-    // Cek apakah sesi ini sudah pernah membuka VIP (sessionStorage otomatis reset jika refresh / keluar web)
+    // Cek apakah sesi ini memiliki token VIP yang valid
     const isVipActive = sessionStorage.getItem('tmail_vip_session') === 'true';
-    if (isVipActive) {
+    const vipToken = sessionStorage.getItem('tmail_vip_token');
+    if (isVipActive && vipToken) {
       setIsVipUnlocked(true);
+    } else {
+      setIsVipUnlocked(false);
+      sessionStorage.removeItem('tmail_vip_session');
+      sessionStorage.removeItem('tmail_vip_token');
     }
 
     return () => {
@@ -151,12 +157,15 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
         const res = await fetch('/api/domains');
         const data = await res.json();
         if (data.domainDetails && Array.isArray(data.domainDetails)) {
-          detailsList = data.domainDetails;
+          detailsList = data.domainDetails.map((d: any) => ({
+            domain: typeof d === 'string' ? d.trim().toLowerCase().replace(/^@+/, '') : (d.domain || '').trim().toLowerCase().replace(/^@+/, ''),
+            isVip: Boolean(d.isVip),
+          }));
           setDomainDetails(detailsList);
-          domainsList = detailsList.map((d: any) => d.domain);
+          domainsList = detailsList.map((d) => d.domain);
           setAvailableDomains(domainsList);
         } else if (data.domains && Array.isArray(data.domains)) {
-          domainsList = data.domains;
+          domainsList = data.domains.map((d: string) => d.trim().toLowerCase().replace(/^@+/, ''));
           detailsList = domainsList.map((d) => ({ domain: d, isVip: false }));
           setAvailableDomains(domainsList);
           setDomainDetails(detailsList);
@@ -217,7 +226,8 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
 
       // Daftar domain Free (Biasa) untuk inisialisasi default aman bagi pengunjung biasa
       const freeDomains = detailsList.filter((d) => !d.isVip).map((d) => d.domain);
-      const safeDefaultPool = freeDomains.length > 0 ? freeDomains : domainsList;
+      const hasFree = freeDomains.length > 0;
+      const safeDefaultPool = hasFree ? freeDomains : domainsList;
 
       // Prioritas 1: initialSlug dari URL path jika membuka domain.com/emailtemp atau domain.com/slug
       let parsedSlug = '';
@@ -231,7 +241,9 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       }
 
       const savedEmail = typeof window !== 'undefined' ? localStorage.getItem('tmail_address') : null;
-      const isSessionVip = sessionStorage.getItem('tmail_vip_session') === 'true';
+      const isSessionVip =
+        sessionStorage.getItem('tmail_vip_session') === 'true' &&
+        Boolean(sessionStorage.getItem('tmail_vip_token'));
 
       let initialPrefix = '';
       let initialDomain = safeDefaultPool[0] || 'tempmail.com';
@@ -239,71 +251,118 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       if (parsedSlug && parsedSlug.length > 0) {
         if (parsedSlug.includes('@')) {
           const parts = parsedSlug.split('@');
-          initialPrefix = parts[0]?.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '') || generateRandomPrefix();
-          const reqDomain = parts[1]?.trim().toLowerCase().replace(/[^a-z0-9.-]/g, '');
+          const reqPrefix = parts[0]?.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '') || generateRandomPrefix();
+          const reqDomain = parts[parts.length - 1]?.trim().toLowerCase().replace(/^@+/, '').replace(/[^a-z0-9.-]/g, '');
 
-          if (reqDomain && reqDomain.includes('.')) {
-            // Cek apakah reqDomain cocok dengan salah satu domain terdaftar (case-insensitive)
-            const matchedDomain = domainsList.find((d) => d.trim().toLowerCase() === reqDomain);
-            const matchedDetail = detailsList.find((d) => d.domain.trim().toLowerCase() === reqDomain);
-            const isVipDomain = Boolean(matchedDetail?.isVip);
+          const matchedDetail = detailsList.find(
+            (d) => d.domain.toLowerCase().trim().replace(/^@+/, '') === reqDomain
+          );
+          const isVipDomain = matchedDetail ? Boolean(matchedDetail.isVip) : false;
 
-            if (matchedDomain) {
-              if (isVipDomain && !isSessionVip) {
-                // Domain berstatus VIP tapi sesi belum membuka akses VIP CDK!
-                initialDomain = safeDefaultPool[0] || 'tempmail.com';
-                setTargetVipDomain(matchedDomain);
-                setIsVipModalOpen(true);
-                showToast(`Domain @${matchedDomain} berstatus VIP eksklusif. Masukkan CDK untuk membuka akses.`, 'error');
-              } else {
-                initialDomain = matchedDomain;
-              }
+          if (isVipDomain && !isSessionVip) {
+            // Domain berstatus VIP tapi sesi belum membuka akses VIP CDK!
+            const targetDom = matchedDetail?.domain || reqDomain;
+            setTargetVipDomain(targetDom);
+            setTargetVipPrefix(reqPrefix);
+            setIsVipModalOpen(true);
+            showToast(`Domain @${targetDom} berstatus VIP eksklusif. Masukkan Kode Passcode / CDK.`, 'error');
+
+            if (hasFree) {
+              initialPrefix = generateRandomPrefix();
+              initialDomain = freeDomains[0];
             } else {
-              // Jika domain spesifik diminta dari URL (misal: kingoutlook.my.id), gunakan domain tersebut langsung
-              initialDomain = reqDomain;
-              if (!domainsList.map((d) => d.toLowerCase()).includes(reqDomain)) {
-                domainsList.push(reqDomain);
-                detailsList.push({ domain: reqDomain, isVip: false });
-                setAvailableDomains([...domainsList]);
-                setDomainDetails([...detailsList]);
-              }
+              initialPrefix = '';
+              initialDomain = '';
             }
+          } else if (matchedDetail) {
+            initialPrefix = reqPrefix;
+            initialDomain = matchedDetail.domain;
           } else {
-            initialDomain = safeDefaultPool[0] || reqDomain || 'tempmail.com';
+            // Jika domain tidak ada di daftar resmi
+            if (hasFree) {
+              initialPrefix = reqPrefix;
+              initialDomain = freeDomains[0];
+            } else if (!isSessionVip) {
+              setTargetVipDomain(domainsList[0]);
+              setTargetVipPrefix(reqPrefix);
+              setIsVipModalOpen(true);
+              initialPrefix = '';
+              initialDomain = '';
+            } else {
+              initialPrefix = reqPrefix;
+              initialDomain = domainsList[0];
+            }
           }
         } else {
-          initialPrefix = parsedSlug.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '') || generateRandomPrefix();
-          initialDomain = safeDefaultPool[0] || 'tempmail.com';
+          // Slug tanpa @
+          const cleanPrefix = parsedSlug.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '') || generateRandomPrefix();
+          if (hasFree) {
+            initialPrefix = cleanPrefix;
+            initialDomain = freeDomains[0];
+          } else if (!isSessionVip) {
+            setTargetVipDomain(domainsList[0]);
+            setTargetVipPrefix(cleanPrefix);
+            setIsVipModalOpen(true);
+            initialPrefix = '';
+            initialDomain = '';
+          } else {
+            initialPrefix = cleanPrefix;
+            initialDomain = domainsList[0];
+          }
         }
       } else if (savedEmail && savedEmail.includes('@')) {
         const parts = savedEmail.split('@');
-        initialPrefix = parts[0]?.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '') || generateRandomPrefix();
-        const savedDom = parts[1]?.trim().toLowerCase();
-        const matchedSaved = domainsList.find((d) => d.trim().toLowerCase() === savedDom);
-        const savedIsVip = detailsList.find((d) => d.domain.toLowerCase() === savedDom)?.isVip;
+        const savedPrefix = parts[0]?.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '') || generateRandomPrefix();
+        const savedDom = parts[parts.length - 1]?.trim().toLowerCase().replace(/^@+/, '');
+        const matchedDetail = detailsList.find(
+          (d) => d.domain.toLowerCase().trim().replace(/^@+/, '') === savedDom
+        );
+        const savedIsVip = matchedDetail ? Boolean(matchedDetail.isVip) : false;
 
         // Jika domain lama adalah VIP tapi sesi ini belum unlock, beralih ke domain Free
-        if (matchedSaved && (!savedIsVip || isSessionVip)) {
-          initialDomain = matchedSaved;
-        } else if (matchedSaved && savedIsVip && !isSessionVip) {
-          initialDomain = safeDefaultPool[0];
-        } else if (savedDom && savedDom.includes('.')) {
-          initialDomain = savedDom;
+        if (matchedDetail && (!savedIsVip || isSessionVip)) {
+          initialPrefix = savedPrefix;
+          initialDomain = matchedDetail.domain;
+        } else if (hasFree) {
+          initialPrefix = generateRandomPrefix();
+          initialDomain = freeDomains[0];
+        } else if (!isSessionVip) {
+          setTargetVipDomain(domainsList[0]);
+          setIsVipModalOpen(true);
+          initialPrefix = '';
+          initialDomain = '';
         } else {
-          initialDomain = safeDefaultPool[0];
+          initialPrefix = savedPrefix;
+          initialDomain = domainsList[0];
         }
       } else {
-        initialPrefix = generateRandomPrefix();
-        initialDomain = safeDefaultPool[Math.floor(Math.random() * safeDefaultPool.length)] || safeDefaultPool[0];
+        if (hasFree) {
+          initialPrefix = generateRandomPrefix();
+          initialDomain = freeDomains[Math.floor(Math.random() * freeDomains.length)] || freeDomains[0];
+        } else if (!isSessionVip) {
+          setTargetVipDomain(domainsList[0]);
+          setIsVipModalOpen(true);
+          initialPrefix = '';
+          initialDomain = '';
+        } else {
+          initialPrefix = generateRandomPrefix();
+          initialDomain = domainsList[0];
+        }
       }
 
-      setCurrentPrefix(initialPrefix);
-      setCurrentDomain(initialDomain);
-      const fullEmail = `${initialPrefix}@${initialDomain}`;
-      setCurrentEmail(fullEmail);
+      if (initialDomain) {
+        setCurrentPrefix(initialPrefix);
+        setCurrentDomain(initialDomain);
+        const fullEmail = `${initialPrefix}@${initialDomain}`;
+        setCurrentEmail(fullEmail);
 
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('tmail_address', fullEmail);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('tmail_address', fullEmail);
+        }
+      } else {
+        setCurrentPrefix('');
+        setCurrentDomain('');
+        setCurrentEmail('');
       }
     }
 
@@ -731,19 +790,38 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
           playSound('click');
           setIsVipModalOpen(false);
           setTargetVipDomain(null);
+          setTargetVipPrefix(null);
+          // Jika URL path sebelumnya adalah slug VIP, bersihkan URL ke /
+          if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+            window.history.replaceState(null, '', '/');
+          }
+          // Jika saat ini belum ada email aktif karena semua domain VIP, dan user menutup modal:
+          const freeDomains = domainDetails.filter((d) => !d.isVip).map((d) => d.domain);
+          if (freeDomains.length > 0 && !currentEmail) {
+            const prefix = generateRandomPrefix();
+            const dom = freeDomains[0];
+            const mail = `${prefix}@${dom}`;
+            setCurrentPrefix(prefix);
+            setCurrentDomain(dom);
+            setCurrentEmail(mail);
+            localStorage.setItem('tmail_address', mail);
+          }
         }}
         onSuccess={(unlockedDomain) => {
           playSound('success');
           setIsVipUnlocked(true);
           showToast('Akses VIP Aktif! Semua domain bermahkota terbuka.', 'success');
-          if (unlockedDomain && availableDomains.includes(unlockedDomain)) {
-            setCurrentDomain(unlockedDomain);
-            const prefix = currentPrefix || generateRandomPrefix();
+          const targetDom = unlockedDomain || targetVipDomain || availableDomains[0];
+          if (targetDom) {
+            const prefix = targetVipPrefix || currentPrefix || generateRandomPrefix();
             setCurrentPrefix(prefix);
-            const newEmail = `${prefix}@${unlockedDomain}`;
+            setCurrentDomain(targetDom);
+            const newEmail = `${prefix}@${targetDom}`;
             setCurrentEmail(newEmail);
             localStorage.setItem('tmail_address', newEmail);
             setSelectedMessage(null);
+            setTargetVipDomain(null);
+            setTargetVipPrefix(null);
           }
         }}
       />
