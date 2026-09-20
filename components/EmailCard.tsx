@@ -69,7 +69,7 @@ export default function EmailCard({
   onRequestVipUnlock,
   isDark = false,
   onToggleTheme,
-  isSoundEnabled = false,
+  isSoundEnabled = true,
   onToggleSound,
   onOpenQrModal,
   heroHeader,

@@ -26,9 +26,9 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   const [isDark, setIsDark] = useState(false);
   const [activeView, setActiveView] = useState<'home' | 'split'>('home');
 
-  // Sound Notification State (Default: MUTE / SILENT)
-  const [isSoundEnabled, setIsSoundEnabled] = useState(false);
-  const isSoundEnabledRef = useRef<boolean>(false);
+  // Sound Notification State (Default: ON)
+  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+  const isSoundEnabledRef = useRef<boolean>(true);
 
   // QR Code Modal State
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
