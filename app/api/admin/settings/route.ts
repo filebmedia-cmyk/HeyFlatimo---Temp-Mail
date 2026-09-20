@@ -8,6 +8,8 @@ import {
   saveTelegramSettings,
   getRetentionSettings,
   saveRetentionSettings,
+  getHeroHeaderSettings,
+  saveHeroHeaderSettings,
 } from '@/lib/settings';
 import { getAdminCredentials, saveAdminCredentials, verifyAdminRequest } from '@/lib/auth';
 import {
@@ -41,6 +43,7 @@ export async function GET(req: NextRequest) {
     const announcement = await getAnnouncementSettings();
     const telegram = await getTelegramSettings();
     const retention = await getRetentionSettings();
+    const heroHeader = await getHeroHeaderSettings();
     const creds = await getAdminCredentials();
 
     return NextResponse.json({
@@ -49,6 +52,7 @@ export async function GET(req: NextRequest) {
       announcement,
       telegram,
       retention,
+      heroHeader,
       credentials: {
         username: creds.username,
       },
@@ -230,6 +234,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    let updatedHeroHeader = null;
+
+    if (body.heroHeader) {
+      updatedHeroHeader = await saveHeroHeaderSettings(body.heroHeader);
+    }
+
     if (body.retention) {
       updatedRetention = await saveRetentionSettings(body.retention);
     }
@@ -246,6 +256,7 @@ export async function POST(req: NextRequest) {
     const announcement = updatedAnnouncement || (await getAnnouncementSettings());
     const telegram = updatedTelegram || (await getTelegramSettings());
     const retention = updatedRetention || (await getRetentionSettings());
+    const heroHeader = updatedHeroHeader || (await getHeroHeaderSettings());
     const credentials = updatedCredentials || (await getAdminCredentials());
 
     return NextResponse.json({
@@ -255,6 +266,7 @@ export async function POST(req: NextRequest) {
       announcement,
       telegram,
       retention,
+      heroHeader,
       credentials: {
         username: credentials.username,
       },

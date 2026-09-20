@@ -76,6 +76,7 @@ type AdminSection =
   | 'telegram'
   | 'credentials'
   | 'access'
+  | 'hero'
   | 'announcement'
   | 'cleaner';
 
@@ -203,6 +204,13 @@ export default function AdminPage() {
   const [announcementButtonLinkInput, setAnnouncementButtonLinkInput] = useState('');
   const [isSavingAnnouncement, setIsSavingAnnouncement] = useState(false);
   const [showAnnouncementPreview, setShowAnnouncementPreview] = useState(false);
+
+  // Hero Header Banner Text State
+  const [heroBadgeInput, setHeroBadgeInput] = useState('DISPOSABLE INBOX SYSTEM');
+  const [heroTitlePrefixInput, setHeroTitlePrefixInput] = useState('TEMPORARY');
+  const [heroTitleHighlightInput, setHeroTitleHighlightInput] = useState('INBOX');
+  const [heroSubtitleInput, setHeroSubtitleInput] = useState('Terima kode OTP & verifikasi instan. Otomatis terhapus, aman & tanpa data pribadi.');
+  const [isSavingHeroHeader, setIsSavingHeroHeader] = useState(false);
 
   // Telegram Bot State
   const [telegramEnabled, setTelegramEnabled] = useState(false);
@@ -666,6 +674,12 @@ export default function AdminPage() {
           if (data.telegram.adminId) setTelegramAdminIdInput(data.telegram.adminId);
           if (data.telegram.apiBaseUrl) setTelegramApiBaseUrlInput(data.telegram.apiBaseUrl);
         }
+        if (data.heroHeader) {
+          if (data.heroHeader.badgeText !== undefined) setHeroBadgeInput(data.heroHeader.badgeText);
+          if (data.heroHeader.titlePrefix !== undefined) setHeroTitlePrefixInput(data.heroHeader.titlePrefix);
+          if (data.heroHeader.titleHighlight !== undefined) setHeroTitleHighlightInput(data.heroHeader.titleHighlight);
+          if (data.heroHeader.subtitle !== undefined) setHeroSubtitleInput(data.heroHeader.subtitle);
+        }
       }
     } catch (err) {
       console.error('Error fetching settings:', err);
@@ -828,6 +842,54 @@ export default function AdminPage() {
     } finally {
       setIsSavingTelegram(false);
     }
+  };
+
+  const handleSaveHeroHeader = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingHeroHeader(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({
+          section: 'heroHeader',
+          data: {
+            badgeText: heroBadgeInput.trim(),
+            titlePrefix: heroTitlePrefixInput.trim(),
+            titleHighlight: heroTitleHighlightInput.trim(),
+            subtitle: heroSubtitleInput.trim(),
+          },
+          heroHeader: {
+            badgeText: heroBadgeInput.trim(),
+            titlePrefix: heroTitlePrefixInput.trim(),
+            titleHighlight: heroTitleHighlightInput.trim(),
+            subtitle: heroSubtitleInput.trim(),
+          },
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        playSound('success');
+        showToast('Pengaturan Banner & Header Web berhasil disimpan!', 'success');
+      } else {
+        playSound('error');
+        showToast(data.error || 'Gagal menyimpan pengaturan header', 'error');
+      }
+    } catch (err) {
+      playSound('error');
+      showToast('Koneksi gagal saat menyimpan pengaturan header', 'error');
+    } finally {
+      setIsSavingHeroHeader(false);
+    }
+  };
+
+  const handleResetHeroHeader = () => {
+    playSound('click');
+    setHeroBadgeInput('DISPOSABLE INBOX SYSTEM');
+    setHeroTitlePrefixInput('TEMPORARY');
+    setHeroTitleHighlightInput('INBOX');
+    setHeroSubtitleInput('Terima kode OTP & verifikasi instan. Otomatis terhapus, aman & tanpa data pribadi.');
+    showToast('Teks header direset ke bawaan sistem.', 'info');
   };
 
   const handleTestTelegramConnection = async () => {
@@ -1222,6 +1284,7 @@ if (!empty($otpData['found'])) {
     { id: 'telegram' as const, label: 'Bot Telegram & Tester', icon: Bot, badge: telegramEnabled ? 'ON' : 'OFF' },
     { id: 'credentials' as const, label: 'Kredensial Admin', icon: User, badge: null },
     { id: 'access' as const, label: 'Kode Akses TMail', icon: Lock, badge: accessEnabled ? 'ON' : 'OFF' },
+    { id: 'hero' as const, label: 'Kustom Banner & Header', icon: Sparkles, badge: 'UI' },
     { id: 'announcement' as const, label: 'Pop-Up Broadcast', icon: Megaphone, badge: announcementEnabled ? 'ON' : 'OFF' },
     { id: 'cleaner' as const, label: 'Database Cleaner', icon: Database, badge: '72 Jam' },
   ];
@@ -1689,11 +1752,11 @@ if (!empty($otpData['found'])) {
                     <div className="text-xs font-mono-custom font-black uppercase text-[var(--text-main)]">
                       AKSES CEPAT MODUL ADMIN:
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                       <button
                         type="button"
                         onClick={() => { playSound('click'); setActiveSection('domains'); }}
-                        className="brutal-btn bg-[#f8fbff] dark:bg-zinc-900 p-2.5 text-left border-[2px] border-[var(--border-color)] shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-sky-50"
+                        className="brutal-btn bg-[#f8fbff] dark:bg-zinc-900 p-2.5 text-left border-[2px] border-[var(--border-color)] shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-sky-50 cursor-pointer"
                       >
                         <Globe className="w-4 h-4 text-[var(--color-blue)] mb-1" />
                         <div className="text-[11px] font-mono-custom font-black">KELOLA DOMAIN</div>
@@ -1703,7 +1766,7 @@ if (!empty($otpData['found'])) {
                       <button
                         type="button"
                         onClick={() => { playSound('click'); setActiveSection('apikeys'); }}
-                        className="brutal-btn bg-[#f8fbff] dark:bg-zinc-900 p-2.5 text-left border-[2px] border-[var(--border-color)] shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-amber-50"
+                        className="brutal-btn bg-[#f8fbff] dark:bg-zinc-900 p-2.5 text-left border-[2px] border-[var(--border-color)] shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-amber-50 cursor-pointer"
                       >
                         <Key className="w-4 h-4 text-[var(--color-orange)] mb-1" />
                         <div className="text-[11px] font-mono-custom font-black">API KEY & BOT</div>
@@ -1713,7 +1776,7 @@ if (!empty($otpData['found'])) {
                       <button
                         type="button"
                         onClick={() => { playSound('click'); setActiveSection('endpoints'); }}
-                        className="brutal-btn bg-[#f8fbff] dark:bg-zinc-900 p-2.5 text-left border-[2px] border-[var(--border-color)] shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-emerald-50"
+                        className="brutal-btn bg-[#f8fbff] dark:bg-zinc-900 p-2.5 text-left border-[2px] border-[var(--border-color)] shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-emerald-50 cursor-pointer"
                       >
                         <Code2 className="w-4 h-4 text-[var(--color-green)] mb-1" />
                         <div className="text-[11px] font-mono-custom font-black">REST API DOCS</div>
@@ -1722,8 +1785,28 @@ if (!empty($otpData['found'])) {
 
                       <button
                         type="button"
+                        onClick={() => { playSound('click'); setActiveSection('hero'); }}
+                        className="brutal-btn bg-[#f8fbff] dark:bg-zinc-900 p-2.5 text-left border-[2px] border-[var(--border-color)] shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-yellow-50 cursor-pointer"
+                      >
+                        <Sparkles className="w-4 h-4 text-[var(--color-yellow)] mb-1" />
+                        <div className="text-[11px] font-mono-custom font-black">BANNER HEADER</div>
+                        <div className="text-[9px] text-[var(--text-muted)]">Kustom Teks</div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => { playSound('click'); setActiveSection('announcement'); }}
+                        className="brutal-btn bg-[#f8fbff] dark:bg-zinc-900 p-2.5 text-left border-[2px] border-[var(--border-color)] shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-purple-50 cursor-pointer"
+                      >
+                        <Megaphone className="w-4 h-4 text-[var(--color-purple)] mb-1" />
+                        <div className="text-[11px] font-mono-custom font-black">POP-UP BROADCAST</div>
+                        <div className="text-[9px] text-[var(--text-muted)]">{announcementEnabled ? 'ON' : 'OFF'}</div>
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => { playSound('click'); setActiveSection('cleaner'); }}
-                        className="brutal-btn bg-[#f8fbff] dark:bg-zinc-900 p-2.5 text-left border-[2px] border-[var(--border-color)] shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-rose-50"
+                        className="brutal-btn bg-[#f8fbff] dark:bg-zinc-900 p-2.5 text-left border-[2px] border-[var(--border-color)] shadow-[1.5px_1.5px_0px_var(--shadow-color)] hover:bg-rose-50 cursor-pointer"
                       >
                         <Database className="w-4 h-4 text-[var(--color-red)] mb-1" />
                         <div className="text-[11px] font-mono-custom font-black">DB CLEANER</div>
@@ -3093,7 +3176,149 @@ if (!empty($otpData['found'])) {
               </div>
             )}
 
-            {/* 8. POP-UP PENGUMUMAN / BROADCAST */}
+            {/* 8. KUSTOM TEKS BANNER & HEADER UTAMA */}
+            {activeSection === 'hero' && (
+              <div className="brutal-card p-3.5 xs:p-4.5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full overflow-hidden min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">
+                  <div className="flex items-center gap-2 sm:gap-2.5">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] text-black border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] flex-shrink-0">
+                      <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
+                    </div>
+                    <div>
+                      <h3 className="font-heading font-black text-base xs:text-lg sm:text-xl uppercase tracking-tight text-[var(--text-main)]">
+                        KUSTOM TEKS BANNER & HEADER UTAMA
+                      </h3>
+                      <p className="text-[11px] xs:text-xs font-mono-custom text-[var(--text-muted)]">
+                        Sesuaikan badge, judul banner, warna highlight biru, dan deskripsi pada halaman depan website.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-[10px] xs:text-xs font-mono-custom font-black px-2.5 py-1 bg-[var(--color-blue)] text-white border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)] self-start sm:self-auto flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>REALTIME WEB DISPLAY</span>
+                  </div>
+                </div>
+
+                {/* Live Preview Box */}
+                <div className="mb-5 p-4 sm:p-5 bg-white dark:bg-zinc-900 border-[2.5px] border-[var(--border-color)] shadow-[3px_3px_0px_var(--shadow-color)]">
+                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-dashed border-[var(--border-color)] text-[10px] font-mono-custom font-bold text-[var(--text-muted)] uppercase">
+                    <span>LIVE PREVIEW TAMPILAN HEADER WEB:</span>
+                    <span className="text-[var(--color-blue)] font-black">HASIL LANGSUNG</span>
+                  </div>
+                  <div className="text-center py-2 px-2">
+                    {heroBadgeInput.trim() && (
+                      <div className="inline-flex items-center gap-1.5 brutal-badge bg-[var(--color-yellow)] text-black px-2.5 py-0.5 sm:py-1 text-[9px] xs:text-[10px] sm:text-[11px] mb-2 font-mono-custom uppercase tracking-wide max-w-full truncate border-2 border-black">
+                        <Sparkles className="w-3 h-3 text-[var(--color-orange)] flex-shrink-0" />
+                        <span className="truncate">{heroBadgeInput.trim()}</span>
+                      </div>
+                    )}
+                    <h2 className="font-heading text-lg xs:text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-[var(--text-main)] mb-1.5">
+                      {heroTitlePrefixInput.trim()}{' '}
+                      {heroTitleHighlightInput.trim() && (
+                        <span className="text-[var(--color-blue)]">{heroTitleHighlightInput.trim()}</span>
+                      )}
+                    </h2>
+                    {heroSubtitleInput.trim() && (
+                      <p className="text-[var(--text-muted)] font-mono-custom text-[11px] xs:text-xs max-w-lg mx-auto leading-relaxed">
+                        {heroSubtitleInput.trim()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Form Input Customization */}
+                <form onSubmit={handleSaveHeroHeader} className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                      1. Teks Badge Atas (Kuning):
+                    </label>
+                    <input
+                      type="text"
+                      value={heroBadgeInput}
+                      onChange={(e) => setHeroBadgeInput(e.target.value)}
+                      placeholder="DISPOSABLE INBOX SYSTEM"
+                      className="brutal-input w-full px-3 py-2 text-xs sm:text-sm font-mono-custom font-bold"
+                    />
+                    <p className="text-[10px] font-mono-custom text-[var(--text-muted)] mt-1">
+                      Label kotak kuning kecil di atas judul utama (kosongkan jika tidak ingin menampilkan badge).
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+                    <div>
+                      <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                        2. Judul Utama (Teks Biasa / Prefix):
+                      </label>
+                      <input
+                        type="text"
+                        value={heroTitlePrefixInput}
+                        onChange={(e) => setHeroTitlePrefixInput(e.target.value)}
+                        placeholder="TEMPORARY"
+                        className="brutal-input w-full px-3 py-2 text-xs sm:text-sm font-mono-custom font-bold"
+                      />
+                      <p className="text-[10px] font-mono-custom text-[var(--text-muted)] mt-1">
+                        Kata pembuka judul utama sebelum teks highlight.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                        3. Judul Highlight (Warna Biru):
+                      </label>
+                      <input
+                        type="text"
+                        value={heroTitleHighlightInput}
+                        onChange={(e) => setHeroTitleHighlightInput(e.target.value)}
+                        placeholder="INBOX"
+                        className="brutal-input w-full px-3 py-2 text-xs sm:text-sm font-mono-custom font-bold text-[var(--color-blue)]"
+                      />
+                      <p className="text-[10px] font-mono-custom text-[var(--text-muted)] mt-1">
+                        Kata akhir yang disorot dengan warna biru khas HeyFlatimo.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] xs:text-xs font-black uppercase font-mono-custom mb-1 text-[var(--text-main)]">
+                      4. Subtitle / Deskripsi Header:
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={heroSubtitleInput}
+                      onChange={(e) => setHeroSubtitleInput(e.target.value)}
+                      placeholder="Terima kode OTP & verifikasi instan. Otomatis terhapus, aman & tanpa data pribadi."
+                      className="brutal-input w-full px-3 py-2 text-xs sm:text-sm font-mono-custom font-bold"
+                    />
+                    <p className="text-[10px] font-mono-custom text-[var(--text-muted)] mt-1">
+                      Deskripsi penjelasan di bawah judul utama pada halaman depan.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={handleResetHeroHeader}
+                      className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3.5 py-2 text-xs font-bold flex items-center gap-1.5 shadow-[2px_2px_0px_var(--shadow-color)] cursor-pointer hover:bg-zinc-300"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>RESET DEFAULT</span>
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={isSavingHeroHeader}
+                      className="brutal-btn bg-[var(--color-blue)] text-white hover:bg-sky-600 px-4 xs:px-6 py-2 sm:py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-[2.5px_2.5px_0px_var(--shadow-color)]"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>{isSavingHeroHeader ? 'MENYIMPAN...' : 'SIMPAN TEKS HEADER'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* 9. POP-UP PENGUMUMAN / BROADCAST */}
             {activeSection === 'announcement' && (
               <div className="brutal-card p-3.5 xs:p-4.5 sm:p-6 bg-[var(--card-bg)] w-full max-w-full overflow-hidden min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5 pb-3 border-b-2 border-dashed border-[var(--border-color)]">

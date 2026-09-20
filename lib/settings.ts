@@ -190,3 +190,51 @@ export async function saveRetentionSettings(settings: Partial<RetentionSettings>
 
   return updated;
 }
+
+export interface HeroHeaderSettings {
+  badgeText: string;
+  titlePrefix: string;
+  titleHighlight: string;
+  subtitle: string;
+}
+
+const DEFAULT_HERO_HEADER_SETTINGS: HeroHeaderSettings = {
+  badgeText: 'DISPOSABLE INBOX SYSTEM',
+  titlePrefix: 'TEMPORARY',
+  titleHighlight: 'INBOX',
+  subtitle: 'Terima kode OTP & verifikasi instan. Otomatis terhapus, aman & tanpa data pribadi.',
+};
+
+export async function getHeroHeaderSettings(): Promise<HeroHeaderSettings> {
+  try {
+    await connectToDatabase();
+    const setting = await Setting.findOne({ key: 'hero_header' }).lean();
+    if (setting && setting.value) {
+      return { ...DEFAULT_HERO_HEADER_SETTINGS, ...JSON.parse(setting.value) };
+    }
+  } catch (err) {
+    console.error('Error fetching hero header settings:', err);
+  }
+  return DEFAULT_HERO_HEADER_SETTINGS;
+}
+
+export async function saveHeroHeaderSettings(settings: Partial<HeroHeaderSettings>): Promise<HeroHeaderSettings> {
+  await connectToDatabase();
+  const current = await getHeroHeaderSettings();
+  const updated: HeroHeaderSettings = {
+    ...current,
+    ...settings,
+    badgeText: settings.badgeText !== undefined ? settings.badgeText.trim() : current.badgeText,
+    titlePrefix: settings.titlePrefix !== undefined ? settings.titlePrefix.trim() : current.titlePrefix,
+    titleHighlight: settings.titleHighlight !== undefined ? settings.titleHighlight.trim() : current.titleHighlight,
+    subtitle: settings.subtitle !== undefined ? settings.subtitle.trim() : current.subtitle,
+  };
+
+  await Setting.findOneAndUpdate(
+    { key: 'hero_header' },
+    { value: JSON.stringify(updated), updatedAt: new Date() },
+    { upsert: true, new: true }
+  );
+
+  return updated;
+}

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAccessSettings, getAnnouncementSettings } from '@/lib/settings';
+import { getAccessSettings, getAnnouncementSettings, getHeroHeaderSettings } from '@/lib/settings';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,11 +7,18 @@ export async function GET() {
   try {
     const access = await getAccessSettings();
     const announcement = await getAnnouncementSettings();
+    const heroHeader = await getHeroHeaderSettings();
 
     return NextResponse.json({
       success: true,
       accessKeyRequired: access.enabled,
       accessMessage: access.message,
+      heroHeader: {
+        badgeText: heroHeader.badgeText,
+        titlePrefix: heroHeader.titlePrefix,
+        titleHighlight: heroHeader.titleHighlight,
+        subtitle: heroHeader.subtitle,
+      },
       announcement: {
         enabled: announcement.enabled,
         id: announcement.id,

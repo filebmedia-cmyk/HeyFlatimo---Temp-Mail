@@ -57,6 +57,18 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   } | null>(null);
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
 
+  const [heroHeader, setHeroHeader] = useState<{
+    badgeText?: string;
+    titlePrefix?: string;
+    titleHighlight?: string;
+    subtitle?: string;
+  }>({
+    badgeText: 'DISPOSABLE INBOX SYSTEM',
+    titlePrefix: 'TEMPORARY',
+    titleHighlight: 'INBOX',
+    subtitle: 'Terima kode OTP & verifikasi instan. Otomatis terhapus, aman & tanpa data pribadi.',
+  });
+
   const [availableDomains, setAvailableDomains] = useState<string[]>([]);
   const [domainDetails, setDomainDetails] = useState<{ domain: string; isVip?: boolean }[]>([]);
   const [currentPrefix, setCurrentPrefix] = useState<string>('');
@@ -188,6 +200,15 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
             setIsAccessLocked(true);
           } else {
             setIsAccessLocked(false);
+          }
+
+          if (configData.heroHeader) {
+            setHeroHeader({
+              badgeText: configData.heroHeader.badgeText || 'DISPOSABLE INBOX SYSTEM',
+              titlePrefix: configData.heroHeader.titlePrefix || 'TEMPORARY',
+              titleHighlight: configData.heroHeader.titleHighlight || 'INBOX',
+              subtitle: configData.heroHeader.subtitle || 'Terima kode OTP & verifikasi instan. Otomatis terhapus, aman & tanpa data pribadi.',
+            });
           }
 
           if (configData.announcement && configData.announcement.enabled) {
@@ -672,6 +693,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
             onToggleTheme={toggleTheme}
             isSoundEnabled={isSoundEnabled}
             onToggleSound={handleToggleSound}
+            heroHeader={heroHeader}
             onOpenQrModal={() => {
               playSound('pop');
               setIsQrModalOpen(true);

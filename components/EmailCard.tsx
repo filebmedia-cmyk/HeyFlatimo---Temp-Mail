@@ -44,6 +44,12 @@ interface EmailCardProps {
   isSoundEnabled?: boolean;
   onToggleSound?: () => void;
   onOpenQrModal?: () => void;
+  heroHeader?: {
+    badgeText?: string;
+    titlePrefix?: string;
+    titleHighlight?: string;
+    subtitle?: string;
+  };
 }
 
 export default function EmailCard({
@@ -66,9 +72,15 @@ export default function EmailCard({
   isSoundEnabled = false,
   onToggleSound,
   onOpenQrModal,
+  heroHeader,
 }: EmailCardProps) {
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const badgeText = heroHeader?.badgeText !== undefined ? heroHeader.badgeText : 'DISPOSABLE INBOX SYSTEM';
+  const titlePrefix = heroHeader?.titlePrefix !== undefined ? heroHeader.titlePrefix : 'TEMPORARY';
+  const titleHighlight = heroHeader?.titleHighlight !== undefined ? heroHeader.titleHighlight : 'INBOX';
+  const subtitle = heroHeader?.subtitle !== undefined ? heroHeader.subtitle : 'Terima kode OTP & verifikasi instan. Otomatis terhapus, aman & tanpa data pribadi.';
 
   const handleCopyClick = () => {
     if (!currentEmail) return;
@@ -121,16 +133,21 @@ export default function EmailCard({
 
       {/* Title Header: Symmetrically Balanced, Protected from Overlap */}
       <div className="text-center mb-5 sm:mb-6 px-9 xs:px-11 sm:px-14">
-        <div className="inline-flex items-center gap-1.5 brutal-badge bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 sm:px-3 py-0.5 sm:py-1 text-[9px] xs:text-[10px] sm:text-[11px] mb-2 sm:mb-2.5 font-mono-custom uppercase tracking-wide max-w-full truncate">
-          <Sparkles className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-[var(--color-orange)] icon-wiggle flex-shrink-0" />
-          <span className="truncate">DISPOSABLE INBOX SYSTEM</span>
-        </div>
+        {badgeText && (
+          <div className="inline-flex items-center gap-1.5 brutal-badge bg-[var(--color-yellow)] text-black px-2 xs:px-2.5 sm:px-3 py-0.5 sm:py-1 text-[9px] xs:text-[10px] sm:text-[11px] mb-2 sm:mb-2.5 font-mono-custom uppercase tracking-wide max-w-full truncate">
+            <Sparkles className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-[var(--color-orange)] icon-wiggle flex-shrink-0" />
+            <span className="truncate">{badgeText}</span>
+          </div>
+        )}
         <h1 className="font-heading text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black uppercase tracking-tight text-[var(--text-main)] mb-1.5 sm:mb-2">
-          TEMPORARY <span className="text-[var(--color-blue)]">INBOX</span>
+          {titlePrefix}{' '}
+          {titleHighlight && <span className="text-[var(--color-blue)]">{titleHighlight}</span>}
         </h1>
-        <p className="text-[var(--text-muted)] font-mono-custom text-[11px] xs:text-xs sm:text-sm max-w-lg mx-auto leading-relaxed">
-          Terima kode OTP & verifikasi instan. Otomatis terhapus, aman & tanpa data pribadi.
-        </p>
+        {subtitle && (
+          <p className="text-[var(--text-muted)] font-mono-custom text-[11px] xs:text-xs sm:text-sm max-w-lg mx-auto leading-relaxed">
+            {subtitle}
+          </p>
+        )}
       </div>
 
       {/* Main Email Input Display + Copy Button */}
