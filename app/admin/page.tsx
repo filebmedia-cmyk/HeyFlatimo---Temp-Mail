@@ -1964,8 +1964,8 @@ if (!empty($otpData['found'])) {
                   </div>
                 </div>
 
-                {/* HEYFLATIMO - TERMINAL (Mac Style 3 Color Dots + 1-Line Live Stream) */}
-                <div className="brutal-card bg-[#0b0f19] border-[3px] border-[var(--border-color)] overflow-hidden shadow-[6px_6px_0px_var(--shadow-color)]">
+                {/* HEYFLATIMO - TERMINAL (Mac Style 3 Color Dots + Glow & Animated Icons) */}
+                <div className="brutal-card bg-[#0b0f19] border-[3px] border-[var(--border-color)] dark:border-emerald-500/40 overflow-hidden shadow-[6px_6px_0px_var(--shadow-color)] dark:shadow-[0_0_35px_rgba(16,185,129,0.18)] transition-all duration-500">
                   {/* TERMINAL HEADER (Mac Style 3 Color Dots + Title) */}
                   <div className="bg-[#151c2e] border-b-[2.5px] border-[var(--border-color)] px-3 sm:px-4 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2 select-none">
                     {/* Left: 3 Color Icons + Title */}
@@ -1977,7 +1977,7 @@ if (!empty($otpData['found'])) {
                             playSound('click');
                             handleClearLogs();
                           }}
-                          className="w-3 h-3 rounded-full bg-[#ef4444] border border-[#dc2626] hover:opacity-80 transition-opacity cursor-pointer flex-shrink-0 shadow-sm"
+                          className="w-3.5 h-3.5 rounded-full bg-[#ef4444] border border-[#dc2626] hover:scale-125 active:scale-90 shadow-[0_0_8px_rgba(239,68,68,0.7)] hover:shadow-[0_0_15px_rgba(239,68,68,1)] transition-all duration-200 cursor-pointer flex-shrink-0"
                           title="Hapus / Bersihkan Log"
                           aria-label="Bersihkan Log"
                         />
@@ -1987,7 +1987,7 @@ if (!empty($otpData['found'])) {
                             playSound('click');
                             setAutoScrollLogs(!autoScrollLogs);
                           }}
-                          className="w-3 h-3 rounded-full bg-[#f59e0b] border border-[#d97706] hover:opacity-80 transition-opacity cursor-pointer flex-shrink-0 shadow-sm"
+                          className="w-3.5 h-3.5 rounded-full bg-[#f59e0b] border border-[#d97706] hover:scale-125 active:scale-90 shadow-[0_0_8px_rgba(245,158,11,0.7)] hover:shadow-[0_0_15px_rgba(245,158,11,1)] transition-all duration-200 cursor-pointer flex-shrink-0"
                           title={`Auto Scroll: ${autoScrollLogs ? 'AKTIF' : 'NONAKTIF'}`}
                           aria-label="Toggle Auto Scroll"
                         />
@@ -1997,17 +1997,18 @@ if (!empty($otpData['found'])) {
                             playSound('click');
                             setIsLiveStreaming(!isLiveStreaming);
                           }}
-                          className="w-3 h-3 rounded-full bg-[#10b981] border border-[#059669] hover:opacity-80 transition-opacity cursor-pointer flex-shrink-0 shadow-sm"
+                          className="w-3.5 h-3.5 rounded-full bg-[#10b981] border border-[#059669] hover:scale-125 active:scale-90 shadow-[0_0_8px_rgba(16,185,129,0.7)] hover:shadow-[0_0_15px_rgba(16,185,129,1)] transition-all duration-200 cursor-pointer flex-shrink-0"
                           title={`Live Stream: ${isLiveStreaming ? 'AKTIF' : 'PAUSED'}`}
                           aria-label="Toggle Live Stream"
                         />
                       </div>
 
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-heading font-black text-xs sm:text-sm text-white tracking-wider uppercase truncate">
+                        <Terminal className="w-4 h-4 text-emerald-400 animate-pulse drop-shadow-[0_0_8px_rgba(52,211,153,0.8)] flex-shrink-0" />
+                        <span className="font-heading font-black text-xs sm:text-sm text-white tracking-wider uppercase truncate drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]">
                           HeyFlatimo - Terminal
                         </span>
-                        <span className="hidden sm:inline-block text-[10px] font-mono-custom text-zinc-400 bg-[#0b0f19] px-2 py-0.5 border border-zinc-700">
+                        <span className="hidden sm:inline-block text-[10px] font-mono-custom text-zinc-400 bg-[#0b0f19] px-2 py-0.5 border border-zinc-700 shadow-inner">
                           ~/logs/bot-api.log
                         </span>
                       </div>
@@ -2015,11 +2016,11 @@ if (!empty($otpData['found'])) {
 
                     {/* Right: Status & Actions */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[#0b0f19] border border-zinc-700 text-[10px] font-mono-custom">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[#0b0f19] border border-zinc-700 text-[10px] font-mono-custom shadow-inner">
                         {isLiveStreaming ? (
                           <>
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 motion-pulse-dot flex-shrink-0" />
-                            <span className="text-emerald-400 font-bold">LIVE (2.5s)</span>
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shadow-[0_0_8px_rgba(52,211,153,1)] flex-shrink-0" />
+                            <span className="text-emerald-400 font-bold drop-shadow-[0_0_6px_rgba(52,211,153,0.7)]">LIVE (2.5s)</span>
                           </>
                         ) : (
                           <>
@@ -2040,21 +2041,21 @@ if (!empty($otpData['found'])) {
                           playSound('click');
                           setIsLiveStreaming(!isLiveStreaming);
                         }}
-                        className={`px-2 py-1 text-[10px] font-mono-custom font-bold border transition-all cursor-pointer flex items-center gap-1 ${
+                        className={`group px-2.5 py-1 text-[10px] font-mono-custom font-bold border transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 ${
                           isLiveStreaming
-                            ? 'bg-zinc-800 text-zinc-300 border-zinc-600 hover:bg-zinc-700'
-                            : 'bg-[var(--color-yellow)] text-black border-black shadow-[1px_1px_0px_#000]'
+                            ? 'bg-zinc-800 text-zinc-300 border-zinc-600 hover:bg-zinc-700 hover:text-white dark:hover:shadow-[0_0_12px_rgba(255,255,255,0.3)]'
+                            : 'bg-[var(--color-yellow)] text-black border-black shadow-[1px_1px_0px_#000] dark:shadow-[0_0_12px_rgba(234,179,8,0.6)]'
                         }`}
                         title={isLiveStreaming ? 'Jeda Stream Realtime' : 'Lanjutkan Stream Realtime'}
                       >
                         {isLiveStreaming ? (
                           <>
-                            <Pause className="w-3 h-3" />
+                            <Pause className="w-3.5 h-3.5 group-hover:scale-125 transition-transform duration-200" />
                             <span>JEDA</span>
                           </>
                         ) : (
                           <>
-                            <Play className="w-3 h-3 fill-current" />
+                            <Play className="w-3.5 h-3.5 fill-current group-hover:scale-125 transition-transform duration-200" />
                             <span>LANJUTKAN</span>
                           </>
                         )}
@@ -2068,10 +2069,10 @@ if (!empty($otpData['found'])) {
                           fetchBotLogs();
                         }}
                         disabled={isLoadingLogs}
-                        className="px-2 py-1 text-[10px] font-mono-custom font-bold bg-[#0b0f19] hover:bg-zinc-800 text-zinc-300 border border-zinc-700 transition-all cursor-pointer flex items-center gap-1"
+                        className="group px-2.5 py-1 text-[10px] font-mono-custom font-bold bg-[#0b0f19] hover:bg-zinc-800 text-zinc-300 border border-zinc-700 hover:border-sky-500 hover:text-white transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 dark:hover:shadow-[0_0_14px_rgba(56,189,248,0.5)]"
                         title="Muat Ulang Log Sekarang"
                       >
-                        <RefreshCw className={`w-3 h-3 ${isLoadingLogs ? 'animate-spin text-[var(--color-yellow)]' : ''}`} />
+                        <RefreshCw className={`w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500 ${isLoadingLogs ? 'animate-spin text-[var(--color-yellow)]' : ''}`} />
                         <span className="hidden sm:inline">REFRESH</span>
                       </button>
 
@@ -2080,32 +2081,59 @@ if (!empty($otpData['found'])) {
                         type="button"
                         onClick={handleClearLogs}
                         disabled={isClearingLogs}
-                        className="px-2 py-1 text-[10px] font-mono-custom font-black bg-[var(--color-red)] hover:bg-red-600 text-white border border-red-900 transition-all cursor-pointer flex items-center gap-1 shadow-[1.5px_1.5px_0px_#000]"
+                        className="group px-2.5 py-1 text-[10px] font-mono-custom font-black bg-[var(--color-red)] hover:bg-red-600 text-white border border-red-900 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#000] dark:hover:shadow-[0_0_15px_rgba(239,68,68,0.8)]"
                         title="Hapus Semua Riwayat Log di Database"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5 group-hover:-rotate-12 group-hover:scale-125 transition-transform duration-200" />
                         <span className="hidden sm:inline">CLEAR</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* 24-HOUR KPI SUMMARY CARDS */}
+                  {/* 24-HOUR KPI SUMMARY CARDS (WITH MOTION & NEON GLOW) */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-[#0e1424] border-b-[2px] border-zinc-800 text-xs font-mono-custom">
-                    <div className="bg-[#151c2e] p-2 border border-zinc-700/70">
-                      <div className="text-[10px] text-zinc-400 font-bold uppercase">TOTAL API HIT (24H)</div>
-                      <div className="text-base sm:text-lg font-black text-white">{botLogStats.totalHits24h}</div>
+                    {/* 1. Total Hits */}
+                    <div className="bg-[#151c2e] p-2.5 border border-zinc-700/70 hover:border-sky-500/60 hover:-translate-y-0.5 transition-all duration-200 dark:hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] group cursor-default">
+                      <div className="flex items-center justify-between">
+                        <div className="text-[10px] text-zinc-400 font-bold uppercase">TOTAL API HIT (24H)</div>
+                        <Zap className="w-3.5 h-3.5 text-sky-400 group-hover:scale-125 group-hover:rotate-12 transition-transform duration-300 animate-pulse" />
+                      </div>
+                      <div className="text-base sm:text-lg font-black text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.3)] mt-0.5">
+                        {botLogStats.totalHits24h}
+                      </div>
                     </div>
-                    <div className="bg-[#151c2e] p-2 border border-amber-500/30">
-                      <div className="text-[10px] text-amber-400 font-bold uppercase">OTP DITEMUKAN</div>
-                      <div className="text-base sm:text-lg font-black text-amber-300">{botLogStats.otpSuccess24h}</div>
+
+                    {/* 2. OTP Found */}
+                    <div className="bg-[#151c2e] p-2.5 border border-emerald-500/30 hover:border-emerald-400/70 hover:-translate-y-0.5 transition-all duration-200 dark:hover:shadow-[0_0_18px_rgba(52,211,153,0.4)] group cursor-default">
+                      <div className="flex items-center justify-between">
+                        <div className="text-[10px] text-emerald-400 font-bold uppercase">OTP DITEMUKAN</div>
+                        <Key className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-125 group-hover:rotate-12 transition-transform duration-300 animate-pulse" />
+                      </div>
+                      <div className="text-base sm:text-lg font-black text-emerald-300 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)] mt-0.5">
+                        {botLogStats.otpSuccess24h}
+                      </div>
                     </div>
-                    <div className="bg-[#151c2e] p-2 border border-cyan-500/30">
-                      <div className="text-[10px] text-cyan-400 font-bold uppercase">LINK DITEMUKAN</div>
-                      <div className="text-base sm:text-lg font-black text-cyan-300">{botLogStats.linkSuccess24h}</div>
+
+                    {/* 3. Link Found */}
+                    <div className="bg-[#151c2e] p-2.5 border border-blue-500/30 hover:border-blue-400/70 hover:-translate-y-0.5 transition-all duration-200 dark:hover:shadow-[0_0_18px_rgba(96,165,250,0.4)] group cursor-default">
+                      <div className="flex items-center justify-between">
+                        <div className="text-[10px] text-blue-400 font-bold uppercase">LINK DITEMUKAN</div>
+                        <ExternalLink className="w-3.5 h-3.5 text-blue-400 group-hover:scale-125 group-hover:rotate-12 transition-transform duration-300 animate-pulse" />
+                      </div>
+                      <div className="text-base sm:text-lg font-black text-blue-300 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)] mt-0.5">
+                        {botLogStats.linkSuccess24h}
+                      </div>
                     </div>
-                    <div className="bg-[#151c2e] p-2 border border-rose-500/30">
-                      <div className="text-[10px] text-rose-400 font-bold uppercase">DITOLAK / ERROR</div>
-                      <div className="text-base sm:text-lg font-black text-rose-300">{botLogStats.blockedOrError24h}</div>
+
+                    {/* 4. Error / Blocked */}
+                    <div className="bg-[#151c2e] p-2.5 border border-rose-500/30 hover:border-rose-400/70 hover:-translate-y-0.5 transition-all duration-200 dark:hover:shadow-[0_0_18px_rgba(244,63,94,0.4)] group cursor-default">
+                      <div className="flex items-center justify-between">
+                        <div className="text-[10px] text-rose-400 font-bold uppercase">DITOLAK / ERROR</div>
+                        <AlertTriangle className="w-3.5 h-3.5 text-rose-400 group-hover:scale-125 group-hover:-rotate-12 transition-transform duration-300" />
+                      </div>
+                      <div className="text-base sm:text-lg font-black text-rose-300 drop-shadow-[0_0_8px_rgba(244,63,94,0.5)] mt-0.5">
+                        {botLogStats.blockedOrError24h}
+                      </div>
                     </div>
                   </div>
 
@@ -2129,10 +2157,10 @@ if (!empty($otpData['found'])) {
                             setLogsFilter(tab.id);
                             fetchBotLogs(undefined, undefined, tab.id, logsSearch);
                           }}
-                          className={`px-2.5 py-1 text-[10px] font-mono-custom font-black uppercase transition-all cursor-pointer whitespace-nowrap border ${
+                          className={`px-2.5 py-1 text-[10px] font-mono-custom font-black uppercase transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap border ${
                             logsFilter === tab.id
-                              ? 'bg-[var(--color-yellow)] text-black border-black shadow-[1.5px_1.5px_0px_#000]'
-                              : 'bg-[#151c2e] text-zinc-300 border-zinc-700 hover:border-zinc-500 hover:text-white'
+                              ? 'bg-[var(--color-yellow)] text-black border-black shadow-[1.5px_1.5px_0px_#000] dark:shadow-[0_0_12px_rgba(234,179,8,0.5)]'
+                              : 'bg-[#151c2e] text-zinc-300 border-zinc-700 hover:border-zinc-500 hover:text-white dark:hover:shadow-[0_0_10px_rgba(255,255,255,0.2)]'
                           }`}
                         >
                           {tab.label}
@@ -2141,8 +2169,8 @@ if (!empty($otpData['found'])) {
                     </div>
 
                     {/* Instant Search Bar */}
-                    <div className="relative flex-1 max-w-full sm:max-w-xs">
-                      <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <div className="relative flex-1 max-w-full sm:max-w-xs group">
+                      <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none group-focus-within:text-[var(--color-yellow)] group-focus-within:scale-110 transition-all duration-200" />
                       <input
                         type="text"
                         value={logsSearch}
@@ -2152,7 +2180,7 @@ if (!empty($otpData['found'])) {
                           fetchBotLogs(undefined, undefined, logsFilter, val);
                         }}
                         placeholder="Cari email, OTP, link, key, IP..."
-                        className="w-full bg-[#0b0f19] border border-zinc-700 text-white placeholder-zinc-500 text-xs font-mono-custom pl-8 pr-7 py-1.5 focus:outline-none focus:border-[var(--color-yellow)]"
+                        className="w-full bg-[#0b0f19] border border-zinc-700 text-white placeholder-zinc-500 text-xs font-mono-custom pl-8 pr-7 py-1.5 focus:outline-none focus:border-[var(--color-yellow)] focus:shadow-[0_0_15px_rgba(234,179,8,0.35)] transition-all duration-200"
                       />
                       {logsSearch && (
                         <button
@@ -2161,7 +2189,7 @@ if (!empty($otpData['found'])) {
                             setLogsSearch('');
                             fetchBotLogs(undefined, undefined, logsFilter, '');
                           }}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white hover:scale-125 transition-transform"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -2169,7 +2197,7 @@ if (!empty($otpData['found'])) {
                     </div>
                   </div>
 
-                  {/* TERMINAL LOG VIEWPORT (1-BARIS COMPACT FORMAT) */}
+                  {/* TERMINAL LOG VIEWPORT (1-BARIS COMPACT FORMAT WITH GLOW) */}
                   <div
                     ref={terminalLogContainerRef}
                     className="p-3 bg-[#070a12] text-zinc-200 font-mono text-[11px] sm:text-xs h-[480px] max-h-[65vh] overflow-y-auto overflow-x-auto space-y-1 select-text scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent"
@@ -2177,24 +2205,24 @@ if (!empty($otpData['found'])) {
                     {/* Terminal Shell Header Banner */}
                     <div className="pb-2 mb-2 border-b border-zinc-800/80 text-[10px] text-zinc-500 space-y-0.5">
                       <div>
-                        <span className="text-emerald-400 font-bold">heyflatimo@gateway</span>:
-                        <span className="text-sky-400 font-bold">~/logs</span>$ tail -n 300 -f bot-api.log
+                        <span className="text-emerald-400 font-bold drop-shadow-[0_0_6px_rgba(52,211,153,0.5)]">heyflatimo@gateway</span>:
+                        <span className="text-sky-400 font-bold drop-shadow-[0_0_6px_rgba(56,189,248,0.5)]">~/logs</span>$ tail -n 300 -f bot-api.log
                       </div>
                       <div className="text-zinc-600">
-                        [SYS] Live console monitor initialized. Retensi: 24 jam auto-purge. Layout 1-baris aktif.
+                        [SYS] Live console monitor active. Motion & Glow effects enabled. Retensi 24 Jam.
                       </div>
                     </div>
 
                     {botLogs.length === 0 ? (
                       <div className="py-16 text-center text-zinc-500 font-mono-custom space-y-2">
-                        <Terminal className="w-8 h-8 mx-auto opacity-30 text-zinc-400" />
+                        <Terminal className="w-8 h-8 mx-auto opacity-30 text-zinc-400 animate-pulse" />
                         <p className="text-xs">
                           {logsSearch
                             ? `Tidak ada log yang cocok dengan kata kunci "${logsSearch}".`
                             : 'Belum ada aktivitas request bot / script dalam 24 jam terakhir.'}
                         </p>
                         <p className="text-[10px] text-zinc-600">
-                          Log akan otomatis muncul di sini setiap kali bot/SC meminta email, OTP, atau link melalui API v1.
+                          Log akan otomatis muncul di sini setiap kali bot/SC meminta email, OTP, atau link melalui API v1 atau Webhook.
                         </p>
                       </div>
                     ) : (
@@ -2204,27 +2232,27 @@ if (!empty($otpData['found'])) {
                         const isError = log.status === 'error' || log.status === 'blocked';
                         const isCopied = copiedLogId === log.id;
 
-                        // Action badge color
+                        // Action badge color with glow
                         let badgeBg = 'bg-zinc-800 text-zinc-300 border-zinc-700';
                         let actionLabel = log.action.toUpperCase();
 
                         if (log.action === 'generate') {
-                          badgeBg = 'bg-emerald-950/80 text-emerald-400 border-emerald-700/60';
+                          badgeBg = 'bg-emerald-950/80 text-emerald-400 border-emerald-700/60 dark:shadow-[0_0_10px_rgba(52,211,153,0.3)]';
                           actionLabel = 'GENERATE';
                         } else if (log.action === 'otp') {
-                          badgeBg = 'bg-amber-950/80 text-amber-400 border-amber-700/60';
+                          badgeBg = 'bg-emerald-950/80 text-emerald-400 border-emerald-700/60 dark:shadow-[0_0_10px_rgba(52,211,153,0.3)]';
                           actionLabel = 'GET_OTP';
                         } else if (log.action === 'links') {
-                          badgeBg = 'bg-cyan-950/80 text-cyan-400 border-cyan-700/60';
+                          badgeBg = 'bg-blue-950/80 text-blue-400 border-blue-700/60 dark:shadow-[0_0_10px_rgba(96,165,250,0.3)]';
                           actionLabel = 'GET_LINK';
                         } else if (log.action === 'inbox') {
-                          badgeBg = 'bg-purple-950/80 text-purple-400 border-purple-700/60';
+                          badgeBg = 'bg-purple-950/80 text-purple-400 border-purple-700/60 dark:shadow-[0_0_10px_rgba(192,132,252,0.3)]';
                           actionLabel = 'INBOX';
                         } else if (log.action === 'email_in') {
-                          badgeBg = 'bg-blue-950/80 text-blue-400 border-blue-700/60';
+                          badgeBg = 'bg-blue-950/80 text-blue-400 border-blue-700/60 dark:shadow-[0_0_10px_rgba(96,165,250,0.3)]';
                           actionLabel = 'EMAIL_IN';
                         } else if (log.action === 'domains') {
-                          badgeBg = 'bg-teal-950/80 text-teal-400 border-teal-700/60';
+                          badgeBg = 'bg-teal-950/80 text-teal-400 border-teal-700/60 dark:shadow-[0_0_10px_rgba(45,212,191,0.3)]';
                           actionLabel = 'DOMAINS';
                         } else if (log.action === 'delete_inbox') {
                           badgeBg = 'bg-rose-950/80 text-rose-400 border-rose-700/60';
@@ -2233,14 +2261,14 @@ if (!empty($otpData['found'])) {
                           badgeBg = 'bg-indigo-950/80 text-indigo-400 border-indigo-700/60';
                           actionLabel = 'MSG_DETAIL';
                         } else if (log.action === 'auth_error' || log.status === 'blocked') {
-                          badgeBg = 'bg-red-950/80 text-red-400 border-red-700/60';
+                          badgeBg = 'bg-red-950/80 text-red-400 border-red-700/60 dark:shadow-[0_0_10px_rgba(248,113,113,0.4)]';
                           actionLabel = 'BLOCKED';
                         }
 
                         return (
                           <div
                             key={log.id}
-                            className="group whitespace-nowrap flex items-center gap-2 py-1 px-2 rounded hover:bg-white/[0.06] border border-transparent hover:border-zinc-700/50 transition-colors font-mono leading-tight"
+                            className="group whitespace-nowrap flex items-center gap-2 py-1 px-2 rounded hover:bg-white/[0.08] border border-transparent hover:border-emerald-500/40 dark:hover:shadow-[0_0_14px_rgba(16,185,129,0.18)] transition-all duration-150 font-mono leading-tight"
                           >
                             {/* 1. Timestamp */}
                             <span className="text-zinc-500 font-bold flex-shrink-0 text-[10px]">
@@ -2248,7 +2276,7 @@ if (!empty($otpData['found'])) {
                             </span>
 
                             {/* 2. Action Tag Badge */}
-                            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded border flex-shrink-0 ${badgeBg}`}>
+                            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded border flex-shrink-0 transition-transform group-hover:scale-105 ${badgeBg}`}>
                               [{actionLabel}]
                             </span>
 
@@ -2257,15 +2285,15 @@ if (!empty($otpData['found'])) {
                               [{log.keyName || 'Master'} | {log.ip}]
                             </span>
 
-                            {/* 4. Arrow Separator */}
-                            <span className="text-zinc-600 flex-shrink-0 font-bold">➔</span>
+                            {/* 4. Arrow Separator with motion */}
+                            <span className="text-zinc-600 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0 font-bold">➔</span>
 
                             {/* 5. Dynamic Payload Highlight (Single Line: Email White, OTP Green, Link Blue) */}
                             <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden text-ellipsis">
                               {log.action === 'generate' && (
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-zinc-400">Email Dibuat:</span>
-                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
+                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70 shadow-sm">
                                     {log.email}
                                   </span>
                                 </div>
@@ -2274,22 +2302,22 @@ if (!empty($otpData['found'])) {
                               {log.action === 'email_in' && (
                                 <div className="flex items-center gap-1.5 min-w-0">
                                   <span className="text-zinc-400">Email Masuk:</span>
-                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
+                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70 shadow-sm">
                                     {log.email}
                                   </span>
                                   <span className="text-zinc-600">|</span>
                                   <span className="text-zinc-300 truncate max-w-xs">{log.message}</span>
                                   {log.otp && (
                                     <>
-                                      <span className="bg-emerald-400 text-black px-1.5 py-0.2 rounded font-black tracking-widest text-[11px] shadow-sm font-mono flex-shrink-0">
+                                      <span className="bg-emerald-400 text-black px-1.5 py-0.2 rounded font-black tracking-widest text-[11px] font-mono shadow-[0_0_12px_rgba(52,211,153,0.85)] animate-pulse flex-shrink-0">
                                         OTP: {log.otp}
                                       </span>
-                                      <span className="text-emerald-400 font-bold text-[10px] flex-shrink-0">[FOUND ✅]</span>
+                                      <span className="text-emerald-400 font-bold text-[10px] flex-shrink-0 drop-shadow-[0_0_6px_rgba(52,211,153,0.6)]">[FOUND ✅]</span>
                                     </>
                                   )}
                                   {log.link && (
                                     <>
-                                      <span className="text-blue-400 font-bold underline truncate max-w-xs font-mono" title={log.link}>
+                                      <span className="text-blue-400 font-bold underline truncate max-w-xs font-mono drop-shadow-[0_0_8px_rgba(96,165,250,0.8)] hover:text-blue-300 transition-colors" title={log.link}>
                                         {log.link}
                                       </span>
                                     </>
@@ -2300,16 +2328,16 @@ if (!empty($otpData['found'])) {
                               {log.action === 'otp' && (
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-zinc-400">Target:</span>
-                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
+                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70 shadow-sm">
                                     {log.email}
                                   </span>
                                   <span className="text-zinc-600">|</span>
                                   {log.otp ? (
                                     <>
-                                      <span className="bg-emerald-400 text-black px-1.5 py-0.2 rounded font-black tracking-widest text-[11px] shadow-sm font-mono">
+                                      <span className="bg-emerald-400 text-black px-1.5 py-0.2 rounded font-black tracking-widest text-[11px] font-mono shadow-[0_0_12px_rgba(52,211,153,0.85)] animate-pulse flex-shrink-0">
                                         OTP: {log.otp}
                                       </span>
-                                      <span className="text-emerald-400 font-bold text-[10px]">[FOUND ✅]</span>
+                                      <span className="text-emerald-400 font-bold text-[10px] flex-shrink-0 drop-shadow-[0_0_6px_rgba(52,211,153,0.6)]">[FOUND ✅]</span>
                                     </>
                                   ) : (
                                     <span className="text-zinc-500 italic text-[10px]">[MENUNGGU EMAIL masuk... ⏳]</span>
@@ -2320,16 +2348,16 @@ if (!empty($otpData['found'])) {
                               {log.action === 'links' && (
                                 <div className="flex items-center gap-1.5 min-w-0">
                                   <span className="text-zinc-400">Target:</span>
-                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
+                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70 shadow-sm">
                                     {log.email}
                                   </span>
                                   <span className="text-zinc-600">|</span>
                                   {log.link ? (
                                     <>
-                                      <span className="text-blue-400 font-bold underline truncate max-w-xs font-mono inline-block align-middle" title={log.link}>
+                                      <span className="text-blue-400 font-bold underline truncate max-w-xs font-mono drop-shadow-[0_0_8px_rgba(96,165,250,0.8)] hover:text-blue-300 transition-colors" title={log.link}>
                                         {log.link}
                                       </span>
-                                      <span className="text-emerald-400 font-bold text-[10px] flex-shrink-0">[FOUND ✅]</span>
+                                      <span className="text-emerald-400 font-bold text-[10px] flex-shrink-0 drop-shadow-[0_0_6px_rgba(52,211,153,0.6)]">[FOUND ✅]</span>
                                     </>
                                   ) : (
                                     <span className="text-zinc-500 italic text-[10px]">[MENUNGGU TAUTAN... ⏳]</span>
@@ -2340,7 +2368,7 @@ if (!empty($otpData['found'])) {
                               {log.action === 'inbox' && (
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-zinc-400">Target:</span>
-                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
+                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70 shadow-sm">
                                     {log.email}
                                   </span>
                                   <span className="text-zinc-600">|</span>
@@ -2350,14 +2378,14 @@ if (!empty($otpData['found'])) {
 
                               {log.action === 'domains' && (
                                 <div className="flex items-center gap-1.5">
-                                  <span className="text-teal-300 font-bold">{log.message}</span>
+                                  <span className="text-teal-300 font-bold drop-shadow-[0_0_6px_rgba(45,212,191,0.5)]">{log.message}</span>
                                 </div>
                               )}
 
                               {log.action === 'delete_inbox' && (
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-zinc-400">Target:</span>
-                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
+                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70 shadow-sm">
                                     {log.email}
                                   </span>
                                   <span className="text-zinc-600">|</span>
@@ -2373,8 +2401,8 @@ if (!empty($otpData['found'])) {
 
                               {isError && (
                                 <div className="flex items-center gap-1">
-                                  <span className="text-red-400 font-bold">{log.message}</span>
-                                  <span className="text-red-500 font-bold text-[10px]">[DITOLAK ❌]</span>
+                                  <span className="text-red-400 font-bold drop-shadow-[0_0_6px_rgba(248,113,113,0.6)]">{log.message}</span>
+                                  <span className="text-red-500 font-bold text-[10px] drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]">[DITOLAK ❌]</span>
                                 </div>
                               )}
                             </div>
@@ -2383,7 +2411,9 @@ if (!empty($otpData['found'])) {
                             <div className="flex items-center gap-1.5 flex-shrink-0 text-[10px]">
                               <span
                                 className={`font-bold ${
-                                  log.statusCode >= 400 ? 'text-rose-400' : 'text-emerald-400'
+                                  log.statusCode >= 400
+                                    ? 'text-rose-400 drop-shadow-[0_0_6px_rgba(244,63,94,0.7)]'
+                                    : 'text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.7)]'
                                 }`}
                               >
                                 ({log.statusCode})
@@ -2391,17 +2421,17 @@ if (!empty($otpData['found'])) {
                               <span className="text-zinc-500 font-mono">{log.responseTimeMs}ms</span>
                             </div>
 
-                            {/* 7. Hover Copy Button */}
+                            {/* 7. Hover Copy Button with animation */}
                             <button
                               type="button"
                               onClick={() => handleCopyLogLine(log)}
-                              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded transition-opacity cursor-pointer flex-shrink-0"
+                              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded hover:scale-125 active:scale-95 transition-all duration-200 dark:hover:shadow-[0_0_8px_rgba(255,255,255,0.6)] cursor-pointer flex-shrink-0"
                               title="Salin baris log ini"
                             >
                               {isCopied ? (
-                                <Check className="w-3 h-3 text-emerald-400" />
+                                <Check className="w-3.5 h-3.5 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,1)]" />
                               ) : (
-                                <Copy className="w-3 h-3" />
+                                <Copy className="w-3.5 h-3.5" />
                               )}
                             </button>
                           </div>
@@ -2413,7 +2443,7 @@ if (!empty($otpData['found'])) {
                   {/* Terminal Footer Bar */}
                   <div className="bg-[#151c2e] border-t-[2px] border-zinc-800 px-3 py-1.5 flex items-center justify-between text-[10px] font-mono-custom text-zinc-400">
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
                       <span>{botLogs.length} Baris Log (Max 300)</span>
                     </div>
                     <div>
