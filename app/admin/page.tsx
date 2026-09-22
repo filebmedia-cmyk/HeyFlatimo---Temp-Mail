@@ -138,6 +138,7 @@ export default function AdminPage() {
   const [logsFilter, setLogsFilter] = useState<'all' | 'generate' | 'otp' | 'links' | 'inbox' | 'error'>('all');
   const [logsSearch, setLogsSearch] = useState('');
   const [isClearingLogs, setIsClearingLogs] = useState(false);
+  const [showConfirmClearLogsModal, setShowConfirmClearLogsModal] = useState(false);
   const [autoScrollLogs, setAutoScrollLogs] = useState(true);
   const [copiedLogId, setCopiedLogId] = useState<string | null>(null);
   const terminalLogContainerRef = useRef<HTMLDivElement | null>(null);
@@ -471,9 +472,6 @@ export default function AdminPage() {
   };
 
   const handleClearLogs = async () => {
-    if (!confirm('Apakah Anda yakin ingin menghapus semua riwayat logs bot di terminal?')) {
-      return;
-    }
     setIsClearingLogs(true);
     try {
       const res = await fetch('/api/admin/logs', {
@@ -491,6 +489,7 @@ export default function AdminPage() {
           blockedOrError24h: 0,
         });
         showToast(data.message || 'Semua logs berhasil dibersihkan.', 'success');
+        setShowConfirmClearLogsModal(false);
       } else {
         playSound('error');
         showToast(data.error || 'Gagal membersihkan logs', 'error');
@@ -2079,7 +2078,10 @@ if (!empty($otpData['found'])) {
                       {/* Clear Logs */}
                       <button
                         type="button"
-                        onClick={handleClearLogs}
+                        onClick={() => {
+                          playSound('click');
+                          setShowConfirmClearLogsModal(true);
+                        }}
                         disabled={isClearingLogs}
                         className="group px-2.5 py-1 text-[10px] font-mono-custom font-black bg-[var(--color-red)] hover:bg-red-600 text-white border border-red-900 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#000] dark:hover:shadow-[0_0_15px_rgba(239,68,68,0.8)]"
                         title="Hapus Semua Riwayat Log di Database"
@@ -4608,6 +4610,90 @@ if (!empty($otpData['found'])) {
                 } py-2 text-xs font-black`}
               >
                 MENGERTI
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM CLEAR TERMINAL LOGS MODAL */}
+      {showConfirmClearLogsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 xs:p-4 overflow-y-auto w-full max-w-full animate-in fade-in duration-200">
+          <div className="brutal-card bg-[var(--card-bg)] max-w-md w-full p-4 xs:p-6 border-[3px] border-[var(--border-color)] shadow-[6px_6px_0px_var(--shadow-color)] dark:shadow-[0_0_30px_rgba(239,68,68,0.25)] my-auto min-w-0">
+            {/* Modal Titlebar */}
+            <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-[var(--border-color)] mb-4">
+              <div className="flex items-center gap-2 text-[var(--color-red)]">
+                <Terminal className="w-5 h-5 text-emerald-400 animate-pulse drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                <h4 className="font-heading font-black text-base uppercase tracking-wide">
+                  BERSIHKAN LOG TERMINAL?
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  playSound('click');
+                  setShowConfirmClearLogsModal(false);
+                }}
+                className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="space-y-3 mb-5 font-mono-custom text-xs">
+              <div className="p-3 bg-red-950/40 border border-red-800/60 rounded flex items-start gap-2.5 text-red-300">
+                <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="leading-relaxed">
+                  Tindakan ini akan menghapus <strong>seluruh riwayat log bot API</strong>, permintaan OTP, tautan, dan webhook email yang tersimpan di database.
+                </p>
+              </div>
+
+              <div className="p-2.5 bg-[#0b0f19] border border-zinc-800 text-[11px] text-zinc-400 space-y-1 rounded">
+                <div className="flex items-center justify-between">
+                  <span>Log Aktif Saat Ini:</span>
+                  <span className="font-bold text-white font-mono">{botLogs.length} Baris</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Total Hit (24 Jam):</span>
+                  <span className="font-bold text-sky-400 font-mono">{botLogStats.totalHits24h} Hit</span>
+                </div>
+                <div className="text-[10px] text-zinc-500 italic pt-1 border-t border-zinc-800/80">
+                  * Riwayat log dan KPI ringkasan 24 jam terminal akan di-reset.
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  playSound('click');
+                  setShowConfirmClearLogsModal(false);
+                }}
+                disabled={isClearingLogs}
+                className="brutal-btn bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white px-3 py-2 text-xs font-black hover:scale-105 active:scale-95 transition-all"
+              >
+                BATAL
+              </button>
+              <button
+                type="button"
+                onClick={handleClearLogs}
+                disabled={isClearingLogs}
+                className="brutal-btn bg-[var(--color-red)] text-white hover:bg-red-700 px-4 py-2 text-xs font-black hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 shadow-[2px_2px_0px_#000] dark:shadow-[0_0_15px_rgba(239,68,68,0.6)]"
+              >
+                {isClearingLogs ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>MEMBERSIHKAN...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>YA, BERSIHKAN</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
