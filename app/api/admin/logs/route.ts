@@ -31,41 +31,73 @@ export async function GET(req: NextRequest) {
     const querySearch = searchParams.get('q')?.trim();
     const sinceParam = searchParams.get('since')?.trim();
 
-    const query: any = {};
+    const andConditions: any[] = [
+      { keyName: { $ne: 'Public Web / Script' } },
+    ];
+
+    // Purge old public web entries in background
+    BotLog.deleteMany({ keyName: 'Public Web / Script' }).catch(() => {});
 
     // Filter by action
     if (actionFilter && actionFilter !== 'all') {
-      if (actionFilter === 'error' || actionFilter === 'blocked') {
-        query.status = { $in: ['error', 'blocked'] };
+      if (actionFilter === 'otp') {
+        andConditions.push({
+          $or: [
+            { action: 'otp' },
+            { otp: { $exists: true, $ne: null, $nin: ['', null] } },
+          ],
+        });
+      } else if (actionFilter === 'links' || actionFilter === 'link') {
+        andConditions.push({
+          $or: [
+            { action: 'links' },
+            { link: { $exists: true, $ne: null, $nin: ['', null] } },
+          ],
+        });
+      } else if (actionFilter === 'generate') {
+        andConditions.push({ action: 'generate' });
+      } else if (actionFilter === 'inbox') {
+        andConditions.push({
+          action: { $in: ['inbox', 'email_in', 'message_detail', 'delete_inbox'] },
+        });
+      } else if (actionFilter === 'error' || actionFilter === 'blocked') {
+        andConditions.push({
+          $or: [
+            { status: { $in: ['error', 'blocked'] } },
+            { action: 'auth_error' },
+            { statusCode: { $gte: 400 } },
+          ],
+        });
       } else {
-        query.action = actionFilter;
+        andConditions.push({ action: actionFilter });
       }
     }
 
     // Filter by search term
     if (querySearch) {
       const reg = new RegExp(escapeRegex(querySearch), 'i');
-      query.$or = [
-        { email: reg },
-        { keyName: reg },
-        { ip: reg },
-        { otp: reg },
-        { link: reg },
-        { message: reg },
-      ];
+      andConditions.push({
+        $or: [
+          { email: reg },
+          { keyName: reg },
+          { ip: reg },
+          { otp: reg },
+          { link: reg },
+          { message: reg },
+          { action: reg },
+        ],
+      });
     }
 
     // Filter newer than specific timestamp
     if (sinceParam) {
       const sinceDate = new Date(sinceParam);
       if (!isNaN(sinceDate.getTime())) {
-        query.createdAt = { $gt: sinceDate };
+        andConditions.push({ createdAt: { $gt: sinceDate } });
       }
     }
 
-    // Exclude public web polling from logs & purge old public web entries in background
-    query.keyName = { $ne: 'Public Web / Script' };
-    BotLog.deleteMany({ keyName: 'Public Web / Script' }).catch(() => {});
+    const query = andConditions.length > 1 ? { $and: andConditions } : andConditions[0] || {};
 
     const logs = await BotLog.find(query)
       .sort({ createdAt: -1 })

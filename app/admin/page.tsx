@@ -515,14 +515,14 @@ export default function AdminPage() {
   useEffect(() => {
     if (!isLoggedIn || activeSection !== 'dashboard' || !isLiveStreaming) return;
     const interval = setInterval(() => {
-      fetchBotLogs();
+      fetchBotLogs(undefined, undefined, logsFilter, logsSearch);
     }, 2500);
     return () => clearInterval(interval);
   }, [isLoggedIn, activeSection, isLiveStreaming, logsFilter, logsSearch]);
 
   useEffect(() => {
     if (activeSection === 'dashboard') {
-      fetchBotLogs();
+      fetchBotLogs(undefined, undefined, logsFilter, logsSearch);
     }
   }, [activeSection, logsFilter]);
 
@@ -1436,6 +1436,46 @@ if (!empty($otpData['found'])) {
     { id: 'cleaner' as const, label: 'Database Cleaner', icon: Database, badge: '72 Jam' },
   ];
 
+  // Computed Filtered Bot Logs (Instant Client-Side Filtering & Search)
+  const filteredBotLogs = botLogs.filter((log) => {
+    if (logsFilter !== 'all') {
+      if (logsFilter === 'generate') {
+        if (log.action !== 'generate') return false;
+      } else if (logsFilter === 'otp') {
+        const hasOtp = Boolean(log.otp) || log.action === 'otp';
+        if (!hasOtp) return false;
+      } else if (logsFilter === 'links') {
+        const hasLink = Boolean(log.link) || log.action === 'links';
+        if (!hasLink) return false;
+      } else if (logsFilter === 'inbox') {
+        const isInbox = ['inbox', 'email_in', 'message_detail', 'delete_inbox'].includes(log.action);
+        if (!isInbox) return false;
+      } else if (logsFilter === 'error') {
+        const isErr =
+          log.status === 'error' ||
+          log.status === 'blocked' ||
+          log.action === 'auth_error' ||
+          log.statusCode >= 400;
+        if (!isErr) return false;
+      }
+    }
+
+    if (logsSearch.trim()) {
+      const q = logsSearch.toLowerCase().trim();
+      const match =
+        (log.email && log.email.toLowerCase().includes(q)) ||
+        (log.keyName && log.keyName.toLowerCase().includes(q)) ||
+        (log.ip && log.ip.toLowerCase().includes(q)) ||
+        (log.otp && log.otp.toLowerCase().includes(q)) ||
+        (log.link && log.link.toLowerCase().includes(q)) ||
+        (log.message && log.message.toLowerCase().includes(q)) ||
+        (log.action && log.action.toLowerCase().includes(q));
+      if (!match) return false;
+    }
+
+    return true;
+  });
+
   return (
     <div className="min-h-screen bg-transparent flex flex-col selection:bg-[var(--color-blue)] selection:text-white max-w-full overflow-x-hidden">
       <Toast message={toastMsg} type={toastType} onClose={() => setToastMsg(null)} />
@@ -2142,32 +2182,35 @@ if (!empty($otpData['found'])) {
                   {/* FILTER & SEARCH TOOLBAR */}
                   <div className="p-2.5 sm:p-3 bg-[#111728] border-b-[2px] border-zinc-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
                     {/* Category Filter Tabs */}
-                    <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                    <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none flex-shrink-0">
                       {[
                         { id: 'all' as const, label: 'SEMUA' },
                         { id: 'generate' as const, label: 'GENERATE' },
                         { id: 'otp' as const, label: 'OTP' },
                         { id: 'links' as const, label: 'LINK' },
                         { id: 'inbox' as const, label: 'INBOX' },
-                        { id: 'error' as const, label: 'ERROR/BLOCKED' },
-                      ].map((tab) => (
-                        <button
-                          key={tab.id}
-                          type="button"
-                          onClick={() => {
-                            playSound('click');
-                            setLogsFilter(tab.id);
-                            fetchBotLogs(undefined, undefined, tab.id, logsSearch);
-                          }}
-                          className={`px-2.5 py-1 text-[10px] font-mono-custom font-black uppercase transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap border ${
-                            logsFilter === tab.id
-                              ? 'bg-[var(--color-yellow)] text-black border-black shadow-[1.5px_1.5px_0px_#000] dark:shadow-[0_0_12px_rgba(234,179,8,0.5)]'
-                              : 'bg-[#151c2e] text-zinc-300 border-zinc-700 hover:border-zinc-500 hover:text-white dark:hover:shadow-[0_0_10px_rgba(255,255,255,0.2)]'
-                          }`}
-                        >
-                          {tab.label}
-                        </button>
-                      ))}
+                        { id: 'error' as const, label: 'BLOCKED / ERROR' },
+                      ].map((tab) => {
+                        const isActive = logsFilter === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => {
+                              playSound('click');
+                              setLogsFilter(tab.id);
+                              fetchBotLogs(undefined, undefined, tab.id, logsSearch);
+                            }}
+                            className={`flex-shrink-0 px-2.5 py-1 text-[10px] font-mono-custom font-black uppercase whitespace-nowrap border transition-colors duration-150 cursor-pointer ${
+                              isActive
+                                ? 'bg-[var(--color-yellow)] text-black border-yellow-400 dark:shadow-[0_0_12px_rgba(234,179,8,0.5)]'
+                                : 'bg-[#151c2e] text-zinc-300 border-zinc-700 hover:border-zinc-500 hover:text-white dark:hover:shadow-[0_0_10px_rgba(255,255,255,0.2)]'
+                            }`}
+                          >
+                            {tab.label}
+                          </button>
+                        );
+                      })}
                     </div>
 
                     {/* Instant Search Bar */}
@@ -2215,12 +2258,14 @@ if (!empty($otpData['found'])) {
                       </div>
                     </div>
 
-                    {botLogs.length === 0 ? (
+                    {filteredBotLogs.length === 0 ? (
                       <div className="py-16 text-center text-zinc-500 font-mono-custom space-y-2">
                         <Terminal className="w-8 h-8 mx-auto opacity-30 text-zinc-400 animate-pulse" />
                         <p className="text-xs">
                           {logsSearch
                             ? `Tidak ada log yang cocok dengan kata kunci "${logsSearch}".`
+                            : logsFilter !== 'all'
+                            ? `Tidak ada log untuk kategori filter "${logsFilter.toUpperCase()}".`
                             : 'Belum ada aktivitas request bot / script dalam 24 jam terakhir.'}
                         </p>
                         <p className="text-[10px] text-zinc-600">
@@ -2228,7 +2273,7 @@ if (!empty($otpData['found'])) {
                         </p>
                       </div>
                     ) : (
-                      botLogs.map((log) => {
+                      filteredBotLogs.map((log) => {
                         const isSuccess = log.status === 'success';
                         const isWaiting = log.status === 'waiting';
                         const isError = log.status === 'error' || log.status === 'blocked';
@@ -2455,16 +2500,19 @@ if (!empty($otpData['found'])) {
                     )}
                   </div>
 
-                  {/* Terminal Footer Bar */}
-                  <div className="bg-[#151c2e] border-t-[2px] border-zinc-800 px-3 py-1.5 flex items-center justify-between text-[10px] font-mono-custom text-zinc-400">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
-                      <span>{botLogs.length} Baris Log (Max 300)</span>
+                    {/* Terminal Footer Bar */}
+                    <div className="bg-[#151c2e] border-t-[2px] border-zinc-800 px-3 py-1.5 flex items-center justify-between text-[10px] font-mono-custom text-zinc-400">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
+                        <span>
+                          {filteredBotLogs.length} Baris Log
+                          {logsFilter !== 'all' || logsSearch ? ` (dari total ${botLogs.length})` : ' (Max 300)'}
+                        </span>
+                      </div>
+                      <div>
+                        <span>Tekan baris untuk melihat & salin data payload</span>
+                      </div>
                     </div>
-                    <div>
-                      <span>Tekan baris untuk melihat & salin data payload</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
