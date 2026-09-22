@@ -125,10 +125,13 @@ export async function GET(req: NextRequest) {
       const { recordBotLog } = await import('@/lib/botLogger');
       const latestMsg = formattedMessages[0];
       let foundOtp: string | null = null;
+      let foundLink: string | null = null;
       if (latestMsg) {
-        const { extractOtp } = await import('@/lib/otpParser');
+        const { extractOtp, extractLinks } = await import('@/lib/otpParser');
         const otpRes = extractOtp(latestMsg.bodyText || '', latestMsg.bodyHtml || '', latestMsg.subject || '');
         if (otpRes.found) foundOtp = otpRes.otp;
+        const linkRes = extractLinks(latestMsg.bodyText || '', latestMsg.bodyHtml || '');
+        if (linkRes.found) foundLink = linkRes.primaryLink;
       }
 
       recordBotLog({
@@ -136,10 +139,11 @@ export async function GET(req: NextRequest) {
         req,
         email,
         otp: foundOtp,
+        link: foundLink,
         keyName: 'Public Web / Script',
         status: 'success',
         statusCode: 200,
-        message: `Mengecek inbox (${formattedMessages.length} pesan) ${foundOtp ? `| OTP: ${foundOtp}` : ''}`,
+        message: `Mengecek inbox (${formattedMessages.length} pesan)${latestMsg?.subject ? ` - "${latestMsg.subject.substring(0, 40)}"` : ''}`,
       });
     } catch {}
 

@@ -83,14 +83,27 @@ export async function GET(req: NextRequest) {
     }));
 
     const responseTimeMs = Date.now() - startTime;
+    let foundOtp: string | null = null;
+    let foundLink: string | null = null;
+    if (formatted.length > 0) {
+      const { extractOtp, extractLinks } = await import('@/lib/otpParser');
+      const latest = formatted[0];
+      const otpRes = extractOtp(latest.bodyText || '', latest.bodyHtml || '', latest.subject || '');
+      if (otpRes.found) foundOtp = otpRes.otp;
+      const linkRes = extractLinks(latest.bodyText || '', latest.bodyHtml || '');
+      if (linkRes.found) foundLink = linkRes.primaryLink;
+    }
+
     recordBotLog({
       action: 'inbox',
       req,
       auth,
       email,
+      otp: foundOtp,
+      link: foundLink,
       status: 'success',
       statusCode: 200,
-      message: `Membaca ${formatted.length} pesan inbox untuk ${email}`,
+      message: `Membaca ${formatted.length} pesan inbox${formatted[0]?.subject ? ` - "${formatted[0].subject.substring(0, 40)}"` : ''}`,
       responseTimeMs,
     });
 

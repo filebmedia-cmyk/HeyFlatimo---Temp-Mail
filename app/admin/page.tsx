@@ -2366,13 +2366,26 @@ if (!empty($otpData['found'])) {
                               )}
 
                               {log.action === 'inbox' && (
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-1.5 min-w-0">
                                   <span className="text-zinc-400">Target:</span>
                                   <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70 shadow-sm">
                                     {log.email}
                                   </span>
                                   <span className="text-zinc-600">|</span>
-                                  <span className="text-zinc-300">{log.message}</span>
+                                  <span className="text-zinc-300 truncate max-w-[200px]">{log.message}</span>
+                                  {log.otp && (
+                                    <>
+                                      <span className="bg-emerald-400 text-black px-1.5 py-0.2 rounded font-black tracking-widest text-[11px] font-mono shadow-[0_0_12px_rgba(52,211,153,0.85)] animate-pulse flex-shrink-0">
+                                        OTP: {log.otp}
+                                      </span>
+                                      <span className="text-emerald-400 font-bold text-[10px] flex-shrink-0 drop-shadow-[0_0_6px_rgba(52,211,153,0.6)]">[FOUND ✅]</span>
+                                    </>
+                                  )}
+                                  {log.link && (
+                                    <span className="text-blue-400 font-bold underline truncate max-w-xs font-mono drop-shadow-[0_0_8px_rgba(96,165,250,0.8)] hover:text-blue-300 transition-colors" title={log.link}>
+                                      {log.link}
+                                    </span>
+                                  )}
                                 </div>
                               )}
 
