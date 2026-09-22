@@ -504,7 +504,8 @@ export default function AdminPage() {
 
   const handleCopyLogLine = (log: BotLogItem) => {
     playSound('success');
-    const textToCopy = `[${formatLogTime(log.createdAt)}] [${log.action.toUpperCase()}] [${log.keyName} | ${log.ip}] -> ${log.message} ${log.otp ? `| OTP: ${log.otp}` : ''} ${log.link ? `| Link: ${log.link}` : ''} (${log.statusCode} - ${log.responseTimeMs}ms)`;
+    const clientSnippet = log.action === 'email_in' || log.keyName === 'Incoming Mail Server' ? '' : ` [${log.keyName || 'Master'} | ${log.ip}]`;
+    const textToCopy = `[${formatLogTime(log.createdAt)}] [${log.action.toUpperCase()}]${clientSnippet} -> ${log.message} ${log.otp ? `| OTP: ${log.otp}` : ''} ${log.link ? `| Link: ${log.link}` : ''} (${log.statusCode} - ${log.responseTimeMs}ms)`;
     navigator.clipboard.writeText(textToCopy);
     setCopiedLogId(log.id);
     showToast('Baris log berhasil disalin!', 'success');
@@ -2327,10 +2328,12 @@ if (!empty($otpData['found'])) {
                               [{actionLabel}]
                             </span>
 
-                            {/* 3. API Key & Client Identifier */}
-                            <span className="text-zinc-400 font-medium flex-shrink-0 text-[10px]">
-                              [{log.keyName || 'Master'} | {log.ip}]
-                            </span>
+                            {/* 3. API Key & Client Identifier (Hanya tampil untuk Bot API yang menggunakan key / bukan webhook incoming server) */}
+                            {log.action !== 'email_in' && log.keyName !== 'Incoming Mail Server' && (
+                              <span className="text-zinc-400 font-medium flex-shrink-0 text-[10px]">
+                                [{log.keyName || 'Master'} | {log.ip}]
+                              </span>
+                            )}
 
                             {/* 4. Arrow Separator with motion */}
                             <span className="text-zinc-600 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0 font-bold">➔</span>
