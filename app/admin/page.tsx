@@ -2254,23 +2254,27 @@ if (!empty($otpData['found'])) {
                             {/* 4. Arrow Separator */}
                             <span className="text-zinc-600 flex-shrink-0 font-bold">➔</span>
 
-                            {/* 5. Dynamic Payload Highlight (Single Line) */}
+                            {/* 5. Dynamic Payload Highlight (Single Line: Email White, OTP Green, Link Blue) */}
                             <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden text-ellipsis">
                               {log.action === 'generate' && (
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1.5">
                                   <span className="text-zinc-400">Email Dibuat:</span>
-                                  <span className="text-sky-300 font-bold">{log.email}</span>
+                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
+                                    {log.email}
+                                  </span>
                                 </div>
                               )}
 
                               {log.action === 'otp' && (
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-zinc-400">Target:</span>
-                                  <span className="text-sky-300 font-bold">{log.email}</span>
+                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
+                                    {log.email}
+                                  </span>
                                   <span className="text-zinc-600">|</span>
                                   {log.otp ? (
                                     <>
-                                      <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.2 rounded font-black tracking-wider text-[11px] shadow-sm">
+                                      <span className="bg-emerald-400 text-black px-1.5 py-0.2 rounded font-black tracking-widest text-[11px] shadow-sm font-mono">
                                         OTP: {log.otp}
                                       </span>
                                       <span className="text-emerald-400 font-bold text-[10px]">[FOUND ✅]</span>
@@ -2284,11 +2288,13 @@ if (!empty($otpData['found'])) {
                               {log.action === 'links' && (
                                 <div className="flex items-center gap-1.5 min-w-0">
                                   <span className="text-zinc-400">Target:</span>
-                                  <span className="text-sky-300 font-bold">{log.email}</span>
+                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
+                                    {log.email}
+                                  </span>
                                   <span className="text-zinc-600">|</span>
                                   {log.link ? (
                                     <>
-                                      <span className="text-cyan-300 underline truncate max-w-xs font-mono" title={log.link}>
+                                      <span className="text-blue-400 font-bold underline truncate max-w-xs font-mono inline-block align-middle" title={log.link}>
                                         {log.link}
                                       </span>
                                       <span className="text-emerald-400 font-bold text-[10px] flex-shrink-0">[FOUND ✅]</span>
@@ -2300,13 +2306,23 @@ if (!empty($otpData['found'])) {
                               )}
 
                               {log.action === 'inbox' && (
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-zinc-400">Target:</span>
+                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
+                                    {log.email}
+                                  </span>
+                                  <span className="text-zinc-600">|</span>
                                   <span className="text-zinc-300">{log.message}</span>
                                 </div>
                               )}
 
                               {log.action === 'delete_inbox' && (
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-zinc-400">Target:</span>
+                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
+                                    {log.email}
+                                  </span>
+                                  <span className="text-zinc-600">|</span>
                                   <span className="text-rose-300">{log.message}</span>
                                 </div>
                               )}
