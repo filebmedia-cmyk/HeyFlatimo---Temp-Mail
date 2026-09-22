@@ -63,6 +63,10 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Exclude public web polling from logs & purge old public web entries in background
+    query.keyName = { $ne: 'Public Web / Script' };
+    BotLog.deleteMany({ keyName: 'Public Web / Script' }).catch(() => {});
+
     const logs = await BotLog.find(query)
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -70,21 +74,22 @@ export async function GET(req: NextRequest) {
 
     // 24-hour summary metrics
     const past24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const baseFilter = { keyName: { $ne: 'Public Web / Script' }, createdAt: { $gte: past24h } };
     const [totalHits, otpSuccess, linkSuccess, blockedOrError] = await Promise.all([
-      BotLog.countDocuments({ createdAt: { $gte: past24h } }),
+      BotLog.countDocuments(baseFilter),
       BotLog.countDocuments({
+        ...baseFilter,
         action: 'otp',
         status: 'success',
-        createdAt: { $gte: past24h },
       }),
       BotLog.countDocuments({
+        ...baseFilter,
         action: 'links',
         status: 'success',
-        createdAt: { $gte: past24h },
       }),
       BotLog.countDocuments({
+        ...baseFilter,
         status: { $in: ['error', 'blocked'] },
-        createdAt: { $gte: past24h },
       }),
     ]);
 
