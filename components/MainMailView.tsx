@@ -85,6 +85,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
   const previousCountRef = useRef<number>(0);
+  const hasInitialFetchDoneRef = useRef<boolean>(false);
   const initializedRef = useRef<boolean>(false);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -141,7 +142,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
     isSoundEnabledRef.current = next;
     setSoundEnabled(next);
     if (next) {
-      playSound('success');
+      playSound('notification', true);
       showToast('Suara Notifikasi Diaktifkan', 'info');
     } else {
       showToast('Suara Notifikasi Dinonaktifkan (Mute)', 'info');
@@ -437,12 +438,17 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
           const fetchedMessages: EmailMessage[] = result.data;
           setMessages(fetchedMessages);
 
-          // Jika ada pesan baru masuk, bunyikan alert visual dan suara jika diizinkan
-          if (fetchedMessages.length > previousCountRef.current && previousCountRef.current > 0) {
-            showToast(`Ada ${fetchedMessages.length - previousCountRef.current} pesan baru diterima!`, 'info');
-            if (isSoundEnabledRef.current) {
-              playSound('notification');
+          // Jika ada pesan baru masuk setelah inisialisasi awal, bunyikan alert visual dan suara jika diizinkan
+          if (hasInitialFetchDoneRef.current) {
+            if (fetchedMessages.length > previousCountRef.current) {
+              const newCount = fetchedMessages.length - previousCountRef.current;
+              showToast(`Ada ${newCount} pesan baru diterima!`, 'info');
+              if (isSoundEnabledRef.current) {
+                playSound('notification');
+              }
             }
+          } else {
+            hasInitialFetchDoneRef.current = true;
           }
           previousCountRef.current = fetchedMessages.length;
 
@@ -468,6 +474,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   // Fetch when email changes (Silent background load to prevent spinning button)
   useEffect(() => {
     if (currentEmail) {
+      hasInitialFetchDoneRef.current = false;
       previousCountRef.current = 0;
       fetchMessages(currentEmail, true);
       setCountdown(AUTO_SYNC_INTERVAL);

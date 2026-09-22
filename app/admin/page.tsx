@@ -49,6 +49,9 @@ import {
   LayoutDashboard,
   Sun,
   Moon,
+  Search,
+  Pause,
+  Filter,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 import { playSound, getSoundEnabled, setSoundEnabled, unlockAudio } from '@/lib/sound';
@@ -66,6 +69,30 @@ export interface ApiKeyItem {
   totalRequests: number;
   isActive: boolean;
   createdAt: string;
+}
+
+export interface BotLogItem {
+  id: string;
+  action: string;
+  keyName: string;
+  apiKeySnippet: string;
+  ip: string;
+  botId: string;
+  email: string;
+  otp: string | null;
+  link: string | null;
+  status: 'success' | 'waiting' | 'error' | 'blocked';
+  statusCode: number;
+  message: string;
+  responseTimeMs: number;
+  createdAt: string;
+}
+
+export interface BotLogStats {
+  totalHits24h: number;
+  otpSuccess24h: number;
+  linkSuccess24h: number;
+  blockedOrError24h: number;
 }
 
 type AdminSection =
@@ -97,6 +124,23 @@ export default function AdminPage() {
   // Active Sidebar Section & Mobile Drawer State
   const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Live Terminal Bot Logs State
+  const [botLogs, setBotLogs] = useState<BotLogItem[]>([]);
+  const [botLogStats, setBotLogStats] = useState<BotLogStats>({
+    totalHits24h: 0,
+    otpSuccess24h: 0,
+    linkSuccess24h: 0,
+    blockedOrError24h: 0,
+  });
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [isLiveStreaming, setIsLiveStreaming] = useState(true);
+  const [logsFilter, setLogsFilter] = useState<'all' | 'generate' | 'otp' | 'links' | 'inbox' | 'error'>('all');
+  const [logsSearch, setLogsSearch] = useState('');
+  const [isClearingLogs, setIsClearingLogs] = useState(false);
+  const [autoScrollLogs, setAutoScrollLogs] = useState(true);
+  const [copiedLogId, setCopiedLogId] = useState<string | null>(null);
+  const terminalLogContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Multi API Key & Single-Bot Lock State
   const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([]);
@@ -351,6 +395,7 @@ export default function AdminPage() {
         fetchCleanupStats(basicAuth, sessionTok);
         fetchSettings(basicAuth, sessionTok);
         fetchStats(activeApiKey);
+        fetchBotLogs(basicAuth, sessionTok);
       } else {
         playSound('error');
         showToast(data.error || 'Username atau password salah!', 'error');
@@ -378,6 +423,109 @@ export default function AdminPage() {
     setIsMobileMenuOpen(false);
     showToast('Berhasil logout dari panel admin.', 'info');
   };
+
+  const formatLogTime = (isoString: string) => {
+    try {
+      const d = new Date(isoString);
+      return d.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      });
+    } catch {
+      return '--:--:--';
+    }
+  };
+
+  const fetchBotLogs = async (
+    authOverride?: string,
+    tokenOverride?: string,
+    filterOverride?: string,
+    searchOverride?: string
+  ) => {
+    setIsLoadingLogs(true);
+    try {
+      const activeFilter = filterOverride !== undefined ? filterOverride : logsFilter;
+      const activeSearch = searchOverride !== undefined ? searchOverride : logsSearch;
+      let url = `/api/admin/logs?limit=300`;
+      if (activeFilter && activeFilter !== 'all') {
+        url += `&action=${encodeURIComponent(activeFilter)}`;
+      }
+      if (activeSearch && activeSearch.trim()) {
+        url += `&q=${encodeURIComponent(activeSearch.trim())}`;
+      }
+      const res = await fetch(url, { headers: getAdminHeaders(authOverride, tokenOverride) });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.logs)) {
+        setBotLogs(data.logs);
+        if (data.stats) {
+          setBotLogStats(data.stats);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching bot logs:', err);
+    } finally {
+      setIsLoadingLogs(false);
+    }
+  };
+
+  const handleClearLogs = async () => {
+    if (!confirm('Apakah Anda yakin ingin menghapus semua riwayat logs bot di terminal?')) {
+      return;
+    }
+    setIsClearingLogs(true);
+    try {
+      const res = await fetch('/api/admin/logs', {
+        method: 'DELETE',
+        headers: getAdminHeaders(),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        playSound('success');
+        setBotLogs([]);
+        setBotLogStats({
+          totalHits24h: 0,
+          otpSuccess24h: 0,
+          linkSuccess24h: 0,
+          blockedOrError24h: 0,
+        });
+        showToast(data.message || 'Semua logs berhasil dibersihkan.', 'success');
+      } else {
+        playSound('error');
+        showToast(data.error || 'Gagal membersihkan logs', 'error');
+      }
+    } catch (err) {
+      playSound('error');
+      showToast('Gagal terhubung ke server', 'error');
+    } finally {
+      setIsClearingLogs(false);
+    }
+  };
+
+  const handleCopyLogLine = (log: BotLogItem) => {
+    playSound('success');
+    const textToCopy = `[${formatLogTime(log.createdAt)}] [${log.action.toUpperCase()}] [${log.keyName} | ${log.ip}] -> ${log.message} ${log.otp ? `| OTP: ${log.otp}` : ''} ${log.link ? `| Link: ${log.link}` : ''} (${log.statusCode} - ${log.responseTimeMs}ms)`;
+    navigator.clipboard.writeText(textToCopy);
+    setCopiedLogId(log.id);
+    showToast('Baris log berhasil disalin!', 'success');
+    setTimeout(() => setCopiedLogId(null), 2000);
+  };
+
+  // Auto-polling for live terminal logs on Dashboard
+  useEffect(() => {
+    if (!isLoggedIn || activeSection !== 'dashboard' || !isLiveStreaming) return;
+    const interval = setInterval(() => {
+      fetchBotLogs();
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [isLoggedIn, activeSection, isLiveStreaming, logsFilter, logsSearch]);
+
+  useEffect(() => {
+    if (activeSection === 'dashboard') {
+      fetchBotLogs();
+    }
+  }, [activeSection, logsFilter]);
 
   const fetchApiKeys = async (authOverride?: string, tokenOverride?: string, keyOverride?: string) => {
     setIsLoadingKeys(true);
@@ -1812,6 +1960,410 @@ if (!empty($otpData['found'])) {
                         <div className="text-[11px] font-mono-custom font-black">DB CLEANER</div>
                         <div className="text-[9px] text-[var(--text-muted)]">72 Jam Auto</div>
                       </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* HEYFLATIMO - TERMINAL (Mac Style 3 Color Dots + 1-Line Live Stream) */}
+                <div className="brutal-card bg-[#0b0f19] border-[3px] border-[var(--border-color)] overflow-hidden shadow-[6px_6px_0px_var(--shadow-color)]">
+                  {/* TERMINAL HEADER (Mac Style 3 Color Dots + Title) */}
+                  <div className="bg-[#151c2e] border-b-[2.5px] border-[var(--border-color)] px-3 sm:px-4 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2 select-none">
+                    {/* Left: 3 Color Icons + Title */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playSound('click');
+                            handleClearLogs();
+                          }}
+                          className="w-3 h-3 rounded-full bg-[#ef4444] border border-[#dc2626] hover:opacity-80 transition-opacity cursor-pointer flex-shrink-0 shadow-sm"
+                          title="Hapus / Bersihkan Log"
+                          aria-label="Bersihkan Log"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playSound('click');
+                            setAutoScrollLogs(!autoScrollLogs);
+                          }}
+                          className="w-3 h-3 rounded-full bg-[#f59e0b] border border-[#d97706] hover:opacity-80 transition-opacity cursor-pointer flex-shrink-0 shadow-sm"
+                          title={`Auto Scroll: ${autoScrollLogs ? 'AKTIF' : 'NONAKTIF'}`}
+                          aria-label="Toggle Auto Scroll"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playSound('click');
+                            setIsLiveStreaming(!isLiveStreaming);
+                          }}
+                          className="w-3 h-3 rounded-full bg-[#10b981] border border-[#059669] hover:opacity-80 transition-opacity cursor-pointer flex-shrink-0 shadow-sm"
+                          title={`Live Stream: ${isLiveStreaming ? 'AKTIF' : 'PAUSED'}`}
+                          aria-label="Toggle Live Stream"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-heading font-black text-xs sm:text-sm text-white tracking-wider uppercase truncate">
+                          HeyFlatimo - Terminal
+                        </span>
+                        <span className="hidden sm:inline-block text-[10px] font-mono-custom text-zinc-400 bg-[#0b0f19] px-2 py-0.5 border border-zinc-700">
+                          ~/logs/bot-api.log
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Right: Status & Actions */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[#0b0f19] border border-zinc-700 text-[10px] font-mono-custom">
+                        {isLiveStreaming ? (
+                          <>
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 motion-pulse-dot flex-shrink-0" />
+                            <span className="text-emerald-400 font-bold">LIVE (2.5s)</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+                            <span className="text-amber-400 font-bold">PAUSED</span>
+                          </>
+                        )}
+                      </div>
+
+                      <span className="hidden md:inline-block text-[10px] font-mono-custom text-zinc-400 bg-[#0b0f19] px-2 py-0.5 border border-zinc-700">
+                        Retensi: 24 Jam
+                      </span>
+
+                      {/* Stream Pause/Resume Toggle */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playSound('click');
+                          setIsLiveStreaming(!isLiveStreaming);
+                        }}
+                        className={`px-2 py-1 text-[10px] font-mono-custom font-bold border transition-all cursor-pointer flex items-center gap-1 ${
+                          isLiveStreaming
+                            ? 'bg-zinc-800 text-zinc-300 border-zinc-600 hover:bg-zinc-700'
+                            : 'bg-[var(--color-yellow)] text-black border-black shadow-[1px_1px_0px_#000]'
+                        }`}
+                        title={isLiveStreaming ? 'Jeda Stream Realtime' : 'Lanjutkan Stream Realtime'}
+                      >
+                        {isLiveStreaming ? (
+                          <>
+                            <Pause className="w-3 h-3" />
+                            <span>JEDA</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-3 h-3 fill-current" />
+                            <span>LANJUTKAN</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Manual Refresh */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playSound('click');
+                          fetchBotLogs();
+                        }}
+                        disabled={isLoadingLogs}
+                        className="px-2 py-1 text-[10px] font-mono-custom font-bold bg-[#0b0f19] hover:bg-zinc-800 text-zinc-300 border border-zinc-700 transition-all cursor-pointer flex items-center gap-1"
+                        title="Muat Ulang Log Sekarang"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${isLoadingLogs ? 'animate-spin text-[var(--color-yellow)]' : ''}`} />
+                        <span className="hidden sm:inline">REFRESH</span>
+                      </button>
+
+                      {/* Clear Logs */}
+                      <button
+                        type="button"
+                        onClick={handleClearLogs}
+                        disabled={isClearingLogs}
+                        className="px-2 py-1 text-[10px] font-mono-custom font-black bg-[var(--color-red)] hover:bg-red-600 text-white border border-red-900 transition-all cursor-pointer flex items-center gap-1 shadow-[1.5px_1.5px_0px_#000]"
+                        title="Hapus Semua Riwayat Log di Database"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span className="hidden sm:inline">CLEAR</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 24-HOUR KPI SUMMARY CARDS */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-[#0e1424] border-b-[2px] border-zinc-800 text-xs font-mono-custom">
+                    <div className="bg-[#151c2e] p-2 border border-zinc-700/70">
+                      <div className="text-[10px] text-zinc-400 font-bold uppercase">TOTAL API HIT (24H)</div>
+                      <div className="text-base sm:text-lg font-black text-white">{botLogStats.totalHits24h}</div>
+                    </div>
+                    <div className="bg-[#151c2e] p-2 border border-amber-500/30">
+                      <div className="text-[10px] text-amber-400 font-bold uppercase">OTP DITEMUKAN</div>
+                      <div className="text-base sm:text-lg font-black text-amber-300">{botLogStats.otpSuccess24h}</div>
+                    </div>
+                    <div className="bg-[#151c2e] p-2 border border-cyan-500/30">
+                      <div className="text-[10px] text-cyan-400 font-bold uppercase">LINK DITEMUKAN</div>
+                      <div className="text-base sm:text-lg font-black text-cyan-300">{botLogStats.linkSuccess24h}</div>
+                    </div>
+                    <div className="bg-[#151c2e] p-2 border border-rose-500/30">
+                      <div className="text-[10px] text-rose-400 font-bold uppercase">DITOLAK / ERROR</div>
+                      <div className="text-base sm:text-lg font-black text-rose-300">{botLogStats.blockedOrError24h}</div>
+                    </div>
+                  </div>
+
+                  {/* FILTER & SEARCH TOOLBAR */}
+                  <div className="p-2.5 sm:p-3 bg-[#111728] border-b-[2px] border-zinc-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+                    {/* Category Filter Tabs */}
+                    <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                      {[
+                        { id: 'all' as const, label: 'SEMUA' },
+                        { id: 'generate' as const, label: 'GENERATE' },
+                        { id: 'otp' as const, label: 'OTP' },
+                        { id: 'links' as const, label: 'LINK' },
+                        { id: 'inbox' as const, label: 'INBOX' },
+                        { id: 'error' as const, label: 'ERROR/BLOCKED' },
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => {
+                            playSound('click');
+                            setLogsFilter(tab.id);
+                            fetchBotLogs(undefined, undefined, tab.id, logsSearch);
+                          }}
+                          className={`px-2.5 py-1 text-[10px] font-mono-custom font-black uppercase transition-all cursor-pointer whitespace-nowrap border ${
+                            logsFilter === tab.id
+                              ? 'bg-[var(--color-yellow)] text-black border-black shadow-[1.5px_1.5px_0px_#000]'
+                              : 'bg-[#151c2e] text-zinc-300 border-zinc-700 hover:border-zinc-500 hover:text-white'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Instant Search Bar */}
+                    <div className="relative flex-1 max-w-full sm:max-w-xs">
+                      <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={logsSearch}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setLogsSearch(val);
+                          fetchBotLogs(undefined, undefined, logsFilter, val);
+                        }}
+                        placeholder="Cari email, OTP, link, key, IP..."
+                        className="w-full bg-[#0b0f19] border border-zinc-700 text-white placeholder-zinc-500 text-xs font-mono-custom pl-8 pr-7 py-1.5 focus:outline-none focus:border-[var(--color-yellow)]"
+                      />
+                      {logsSearch && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLogsSearch('');
+                            fetchBotLogs(undefined, undefined, logsFilter, '');
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* TERMINAL LOG VIEWPORT (1-BARIS COMPACT FORMAT) */}
+                  <div
+                    ref={terminalLogContainerRef}
+                    className="p-3 bg-[#070a12] text-zinc-200 font-mono text-[11px] sm:text-xs h-[480px] max-h-[65vh] overflow-y-auto overflow-x-auto space-y-1 select-text scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent"
+                  >
+                    {/* Terminal Shell Header Banner */}
+                    <div className="pb-2 mb-2 border-b border-zinc-800/80 text-[10px] text-zinc-500 space-y-0.5">
+                      <div>
+                        <span className="text-emerald-400 font-bold">heyflatimo@gateway</span>:
+                        <span className="text-sky-400 font-bold">~/logs</span>$ tail -n 300 -f bot-api.log
+                      </div>
+                      <div className="text-zinc-600">
+                        [SYS] Live console monitor initialized. Retensi: 24 jam auto-purge. Layout 1-baris aktif.
+                      </div>
+                    </div>
+
+                    {botLogs.length === 0 ? (
+                      <div className="py-16 text-center text-zinc-500 font-mono-custom space-y-2">
+                        <Terminal className="w-8 h-8 mx-auto opacity-30 text-zinc-400" />
+                        <p className="text-xs">
+                          {logsSearch
+                            ? `Tidak ada log yang cocok dengan kata kunci "${logsSearch}".`
+                            : 'Belum ada aktivitas request bot / script dalam 24 jam terakhir.'}
+                        </p>
+                        <p className="text-[10px] text-zinc-600">
+                          Log akan otomatis muncul di sini setiap kali bot/SC meminta email, OTP, atau link melalui API v1.
+                        </p>
+                      </div>
+                    ) : (
+                      botLogs.map((log) => {
+                        const isSuccess = log.status === 'success';
+                        const isWaiting = log.status === 'waiting';
+                        const isError = log.status === 'error' || log.status === 'blocked';
+                        const isCopied = copiedLogId === log.id;
+
+                        // Action badge color
+                        let badgeBg = 'bg-zinc-800 text-zinc-300 border-zinc-700';
+                        let actionLabel = log.action.toUpperCase();
+
+                        if (log.action === 'generate') {
+                          badgeBg = 'bg-emerald-950/80 text-emerald-400 border-emerald-700/60';
+                          actionLabel = 'GENERATE';
+                        } else if (log.action === 'otp') {
+                          badgeBg = 'bg-amber-950/80 text-amber-400 border-amber-700/60';
+                          actionLabel = 'GET_OTP';
+                        } else if (log.action === 'links') {
+                          badgeBg = 'bg-cyan-950/80 text-cyan-400 border-cyan-700/60';
+                          actionLabel = 'GET_LINK';
+                        } else if (log.action === 'inbox') {
+                          badgeBg = 'bg-purple-950/80 text-purple-400 border-purple-700/60';
+                          actionLabel = 'INBOX';
+                        } else if (log.action === 'delete_inbox') {
+                          badgeBg = 'bg-rose-950/80 text-rose-400 border-rose-700/60';
+                          actionLabel = 'DEL_INBOX';
+                        } else if (log.action === 'message_detail') {
+                          badgeBg = 'bg-indigo-950/80 text-indigo-400 border-indigo-700/60';
+                          actionLabel = 'MSG_DETAIL';
+                        } else if (log.action === 'auth_error' || log.status === 'blocked') {
+                          badgeBg = 'bg-red-950/80 text-red-400 border-red-700/60';
+                          actionLabel = 'BLOCKED';
+                        }
+
+                        return (
+                          <div
+                            key={log.id}
+                            className="group whitespace-nowrap flex items-center gap-2 py-1 px-2 rounded hover:bg-white/[0.06] border border-transparent hover:border-zinc-700/50 transition-colors font-mono leading-tight"
+                          >
+                            {/* 1. Timestamp */}
+                            <span className="text-zinc-500 font-bold flex-shrink-0 text-[10px]">
+                              [{formatLogTime(log.createdAt)}]
+                            </span>
+
+                            {/* 2. Action Tag Badge */}
+                            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded border flex-shrink-0 ${badgeBg}`}>
+                              [{actionLabel}]
+                            </span>
+
+                            {/* 3. API Key & Client Identifier */}
+                            <span className="text-zinc-400 font-medium flex-shrink-0 text-[10px]">
+                              [{log.keyName || 'Master'} | {log.ip}]
+                            </span>
+
+                            {/* 4. Arrow Separator */}
+                            <span className="text-zinc-600 flex-shrink-0 font-bold">➔</span>
+
+                            {/* 5. Dynamic Payload Highlight (Single Line) */}
+                            <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden text-ellipsis">
+                              {log.action === 'generate' && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-zinc-400">Email Dibuat:</span>
+                                  <span className="text-sky-300 font-bold">{log.email}</span>
+                                </div>
+                              )}
+
+                              {log.action === 'otp' && (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-zinc-400">Target:</span>
+                                  <span className="text-sky-300 font-bold">{log.email}</span>
+                                  <span className="text-zinc-600">|</span>
+                                  {log.otp ? (
+                                    <>
+                                      <span className="bg-[var(--color-yellow)] text-black px-1.5 py-0.2 rounded font-black tracking-wider text-[11px] shadow-sm">
+                                        OTP: {log.otp}
+                                      </span>
+                                      <span className="text-emerald-400 font-bold text-[10px]">[FOUND ✅]</span>
+                                    </>
+                                  ) : (
+                                    <span className="text-zinc-500 italic text-[10px]">[MENUNGGU EMAIL masuk... ⏳]</span>
+                                  )}
+                                </div>
+                              )}
+
+                              {log.action === 'links' && (
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <span className="text-zinc-400">Target:</span>
+                                  <span className="text-sky-300 font-bold">{log.email}</span>
+                                  <span className="text-zinc-600">|</span>
+                                  {log.link ? (
+                                    <>
+                                      <span className="text-cyan-300 underline truncate max-w-xs font-mono" title={log.link}>
+                                        {log.link}
+                                      </span>
+                                      <span className="text-emerald-400 font-bold text-[10px] flex-shrink-0">[FOUND ✅]</span>
+                                    </>
+                                  ) : (
+                                    <span className="text-zinc-500 italic text-[10px]">[MENUNGGU TAUTAN... ⏳]</span>
+                                  )}
+                                </div>
+                              )}
+
+                              {log.action === 'inbox' && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-zinc-300">{log.message}</span>
+                                </div>
+                              )}
+
+                              {log.action === 'delete_inbox' && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-rose-300">{log.message}</span>
+                                </div>
+                              )}
+
+                              {log.action === 'message_detail' && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-indigo-300">{log.message}</span>
+                                </div>
+                              )}
+
+                              {isError && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-red-400 font-bold">{log.message}</span>
+                                  <span className="text-red-500 font-bold text-[10px]">[DITOLAK ❌]</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 6. Response Code & Duration */}
+                            <div className="flex items-center gap-1.5 flex-shrink-0 text-[10px]">
+                              <span
+                                className={`font-bold ${
+                                  log.statusCode >= 400 ? 'text-rose-400' : 'text-emerald-400'
+                                }`}
+                              >
+                                ({log.statusCode})
+                              </span>
+                              <span className="text-zinc-500 font-mono">{log.responseTimeMs}ms</span>
+                            </div>
+
+                            {/* 7. Hover Copy Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleCopyLogLine(log)}
+                              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded transition-opacity cursor-pointer flex-shrink-0"
+                              title="Salin baris log ini"
+                            >
+                              {isCopied ? (
+                                <Check className="w-3 h-3 text-emerald-400" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Terminal Footer Bar */}
+                  <div className="bg-[#151c2e] border-t-[2px] border-zinc-800 px-3 py-1.5 flex items-center justify-between text-[10px] font-mono-custom text-zinc-400">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                      <span>{botLogs.length} Baris Log (Max 300)</span>
+                    </div>
+                    <div>
+                      <span>Tekan baris untuk melihat & salin data payload</span>
                     </div>
                   </div>
                 </div>

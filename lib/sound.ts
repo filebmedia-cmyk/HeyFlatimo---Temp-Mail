@@ -1,20 +1,78 @@
 /**
- * Web Audio API synthesizer for clean, zero-latency interactive sound FX.
- * Includes user-interaction audio context unlocking, crisp mobile frequency tuning,
- * and dedicated sound profiles for clicks, success/copy, new messages, deletes, and modals.
+ * Pro-Grade Universal Audio Engine (HTML5 Audio Pool + Web Audio API Backup)
+ * Uses high-fidelity, CD-quality 44.1kHz audio files (/sounds/*.wav) for 100% cross-browser reliability.
+ * Supports zero-latency interactive clicks, loud crystal notification bells, mobile haptics, and auto-unlock.
  */
 
-let audioCtx: AudioContext | null = null;
-let isAudioUnlocked = false;
+export type SoundEffectType = 'click' | 'success' | 'notification' | 'delete' | 'pop' | 'error';
+export const SOUND_STORAGE_KEY = 'tmail_sound_enabled';
 
-function getAudioContext(): AudioContext | null {
+const soundFiles: Record<SoundEffectType, string> = {
+  notification: '/sounds/notification.wav',
+  success: '/sounds/success.wav',
+  click: '/sounds/click.wav',
+  pop: '/sounds/pop.wav',
+  delete: '/sounds/delete.wav',
+  error: '/sounds/error.wav',
+};
+
+// Audio element pool for instantaneous, multi-channel concurrent playback
+const audioPool: Partial<Record<SoundEffectType, HTMLAudioElement[]>> = {};
+
+function getPooledAudio(type: SoundEffectType): HTMLAudioElement | null {
   if (typeof window === 'undefined') return null;
   try {
-    if (!audioCtx || audioCtx.state === 'closed') {
-      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (AudioCtxClass) {
-        audioCtx = new AudioCtxClass();
+    const pool = audioPool[type] || [];
+    // Find an available (idle or finished) audio element
+    for (const item of pool) {
+      if (item.paused || item.ended) {
+        item.currentTime = 0;
+        return item;
       }
+    }
+    // If all are busy, create a new instance (up to 4 per sound type)
+    if (pool.length < 4) {
+      const newAudio = new Audio(soundFiles[type]);
+      newAudio.preload = 'auto';
+      pool.push(newAudio);
+      audioPool[type] = pool;
+      return newAudio;
+    }
+    // Reuse the first element if max pool reached
+    const fallback = pool[0];
+    fallback.currentTime = 0;
+    return fallback;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Preload all sound assets in memory on first user interaction or mount.
+ */
+export function preloadSounds(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    (Object.keys(soundFiles) as SoundEffectType[]).forEach((type) => {
+      const audio = getPooledAudio(type);
+      if (audio) {
+        audio.load();
+      }
+    });
+  } catch (e) {
+    // Ignore preload error
+  }
+}
+
+let audioCtx: AudioContext | null = null;
+
+export function getAudioContext(): AudioContext | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtxClass) return null;
+    if (!audioCtx || audioCtx.state === 'closed') {
+      audioCtx = new AudioCtxClass();
     }
     return audioCtx;
   } catch (e) {
@@ -23,234 +81,131 @@ function getAudioContext(): AudioContext | null {
 }
 
 /**
- * Explicitly unlock Web Audio stack on iOS Safari & Android mobile browsers.
- * Must be triggered by a user gesture (touch, click, pointerdown).
+ * Unlocks mobile browser autoplay policies across iOS Safari & Android Chrome.
  */
 export function unlockAudio(): void {
   if (typeof window === 'undefined') return;
   try {
+    preloadSounds();
+
     const ctx = getAudioContext();
-    if (!ctx) return;
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(() => {
-        isAudioUnlocked = true;
-      }).catch(() => {});
-    } else if (ctx.state === 'running') {
-      isAudioUnlocked = true;
+    if (ctx && ctx.state !== 'running') {
+      ctx.resume().catch(() => {});
     }
-
-    // Play an inaudible 1-sample buffer to satisfy iOS WebKit autoplay policy
-    const buffer = ctx.createBuffer(1, 1, 22050);
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(ctx.destination);
-    source.start(0);
   } catch (e) {
     // Ignore unlock errors
   }
 }
 
-// Auto-register touch/click interaction listeners to unlock audio on first mobile interaction
+// Auto-register touch/click interaction listeners
 if (typeof window !== 'undefined') {
   const unlockEvents = ['touchstart', 'touchend', 'click', 'pointerdown', 'keydown'];
-  const handleFirstInteraction = () => {
+  const handleUserInteraction = () => {
     unlockAudio();
-    if (isAudioUnlocked) {
-      unlockEvents.forEach((evt) => {
-        window.removeEventListener(evt, handleFirstInteraction, true);
-      });
-    }
   };
 
   unlockEvents.forEach((evt) => {
-    window.addEventListener(evt, handleFirstInteraction, { passive: true, capture: true });
+    window.addEventListener(evt, handleUserInteraction, { passive: true, capture: true, once: false });
   });
 }
 
-function executeSound(ctx: AudioContext, type: SoundEffectType): void {
-  try {
-    const now = ctx.currentTime;
-
-    switch (type) {
-      case 'click': {
-        // Soft, crisp tactile mechanical tick (750 Hz -> 260 Hz)
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(750, now);
-        osc.frequency.exponentialRampToValueAtTime(260, now + 0.045);
-
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.22, now + 0.005);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + 0.045);
-        break;
-      }
-
-      case 'success': {
-        // Uplifting two-tone harmonic chime (C6: 1046.5 Hz -> G6: 1567.98 Hz)
-        const osc1 = ctx.createOscillator();
-        const gain1 = ctx.createGain();
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(1046.5, now);
-        gain1.gain.setValueAtTime(0.001, now);
-        gain1.gain.linearRampToValueAtTime(0.28, now + 0.015);
-        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
-        osc1.connect(gain1);
-        gain1.connect(ctx.destination);
-        osc1.start(now);
-        osc1.stop(now + 0.14);
-
-        const osc2 = ctx.createOscillator();
-        const gain2 = ctx.createGain();
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(1567.98, now + 0.06);
-        gain2.gain.setValueAtTime(0.001, now + 0.06);
-        gain2.gain.linearRampToValueAtTime(0.35, now + 0.08);
-        gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
-        osc2.connect(gain2);
-        gain2.connect(ctx.destination);
-        osc2.start(now + 0.06);
-        osc2.stop(now + 0.35);
-        break;
-      }
-
-      case 'notification': {
-        // 1. Haptic vibration feedback for mobile devices
-        try {
-          if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-            navigator.vibrate([100, 50, 150]);
-          }
-        } catch (e) {
-          // Vibration ignored if unsupported
-        }
-
-        // 2. Crystal Bell Chime (A5: 880 Hz -> E6: 1318.51 Hz)
-        const osc1 = ctx.createOscillator();
-        const gain1 = ctx.createGain();
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(880, now);
-        gain1.gain.setValueAtTime(0.001, now);
-        gain1.gain.linearRampToValueAtTime(0.38, now + 0.02);
-        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-        osc1.connect(gain1);
-        gain1.connect(ctx.destination);
-        osc1.start(now);
-        osc1.stop(now + 0.25);
-
-        const osc2 = ctx.createOscillator();
-        const gain2 = ctx.createGain();
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(1318.51, now + 0.09);
-        gain2.gain.setValueAtTime(0.001, now + 0.09);
-        gain2.gain.linearRampToValueAtTime(0.42, now + 0.11);
-        gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.70);
-        osc2.connect(gain2);
-        gain2.connect(ctx.destination);
-        osc2.start(now + 0.09);
-        osc2.stop(now + 0.70);
-        break;
-      }
-
-      case 'delete': {
-        // Low swoosh drop indicating disposal/clearing (520 Hz -> 140 Hz)
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(520, now);
-        osc.frequency.exponentialRampToValueAtTime(140, now + 0.10);
-
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.28, now + 0.015);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.10);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + 0.10);
-        break;
-      }
-
-      case 'pop': {
-        // Soft upward frequency bubble pop (350 Hz -> 880 Hz)
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(350, now);
-        osc.frequency.exponentialRampToValueAtTime(880, now + 0.05);
-
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.25, now + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + 0.05);
-        break;
-      }
-
-      case 'error': {
-        // Low pitch boop for validation error or invalid CDK
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(220, now);
-        osc.frequency.setValueAtTime(140, now + 0.06);
-
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.22, now + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + 0.14);
-        break;
-      }
-    }
-  } catch (err) {
-    // Ignore playback error
-  }
-}
-
-export type SoundEffectType = 'click' | 'success' | 'notification' | 'delete' | 'pop' | 'error';
-
 /**
- * Unified Sound Dispatcher - automatically checks if sound is enabled and handles AudioContext resumption before playing.
+ * Web Audio synthesizer fallback for edge cases.
  */
-export function playSound(type: SoundEffectType = 'click'): void {
-  if (!getSoundEnabled()) return;
-
+function playWebAudioFallback(type: SoundEffectType): void {
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
 
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(() => {
-        executeSound(ctx, type);
-      }).catch(() => {
-        executeSound(ctx, type);
-      });
+    if (ctx.state !== 'running') {
+      ctx.resume().then(() => renderTone(ctx, type)).catch(() => {});
     } else {
-      executeSound(ctx, type);
+      renderTone(ctx, type);
+    }
+  } catch (e) {}
+}
+
+function renderTone(ctx: AudioContext, type: SoundEffectType): void {
+  try {
+    const t0 = ctx.currentTime + 0.01;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    if (type === 'notification') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, t0);
+      osc.frequency.setValueAtTime(1318.5, t0 + 0.12);
+      gain.gain.setValueAtTime(0.7, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.8);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.85);
+    } else if (type === 'success') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, t0);
+      osc.frequency.setValueAtTime(659.25, t0 + 0.08);
+      osc.frequency.setValueAtTime(1046.5, t0 + 0.16);
+      gain.gain.setValueAtTime(0.6, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.6);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.65);
+    } else {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(600, t0);
+      osc.frequency.exponentialRampToValueAtTime(200, t0 + 0.05);
+      gain.gain.setValueAtTime(0.4, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.055);
+    }
+  } catch (e) {}
+}
+
+/**
+ * Universal Sound Player.
+ * Plays crisp WAV audio files with instant zero-latency feedback.
+ * Pass `force = true` to bypass mute (e.g. testing / toggle ON confirmation).
+ */
+export function playSound(type: SoundEffectType = 'click', force: boolean = false): void {
+  if (!force && !getSoundEnabled()) return;
+  if (typeof window === 'undefined') return;
+
+  // 1. Haptic feedback on mobile for important alerts
+  if (type === 'notification') {
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+        navigator.vibrate([100, 50, 150]);
+      }
+    } catch (e) {}
+  }
+
+  // 2. Primary High-Fidelity Audio Pool
+  try {
+    const audio = getPooledAudio(type);
+    if (audio) {
+      audio.currentTime = 0;
+      audio.volume = 1.0;
+      const promise = audio.play();
+      if (promise !== undefined) {
+        promise.catch(() => {
+          // Autoplay was blocked, try Web Audio fallback
+          playWebAudioFallback(type);
+        });
+      }
+      return;
     }
   } catch (err) {
-    // Ignore playback error
+    // If HTML5 audio fails, use Web Audio API fallback
+    playWebAudioFallback(type);
+    return;
   }
+
+  playWebAudioFallback(type);
 }
 
 export function playClickSound(): void {
@@ -277,10 +232,8 @@ export function playErrorSound(): void {
   playSound('error');
 }
 
-export const SOUND_STORAGE_KEY = 'tmail_sound_enabled';
-
 /**
- * Check if sound FX is enabled.
+ * Check if sound FX is enabled in localStorage.
  * Defaults to TRUE (Sound ON) unless explicitly muted by the user.
  */
 export function getSoundEnabled(): boolean {
@@ -302,4 +255,3 @@ export function setSoundEnabled(enabled: boolean): void {
     // Ignore storage error
   }
 }
-

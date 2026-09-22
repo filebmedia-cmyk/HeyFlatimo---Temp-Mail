@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKeyDetailed } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/mongodb';
 import { Message } from '@/lib/models/Message';
+import { recordBotLog } from '@/lib/botLogger';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,8 +11,19 @@ function escapeRegex(str: string): string {
 }
 
 export async function GET(req: NextRequest) {
+  const startTime = Date.now();
   const auth = await validateApiKeyDetailed(req);
   if (!auth.valid) {
+    recordBotLog({
+      action: 'inbox',
+      req,
+      auth,
+      status: auth.status === 403 ? 'blocked' : 'error',
+      statusCode: auth.status || 401,
+      message: auth.error || 'Ditolak: API Key tidak valid / terikat',
+      responseTimeMs: Date.now() - startTime,
+    });
+
     return NextResponse.json(
       { error: auth.error || 'Unauthorized: Invalid or missing API Key' },
       { status: auth.status || 401 }
@@ -22,6 +34,16 @@ export async function GET(req: NextRequest) {
   const emailRaw = searchParams.get('email')?.trim().toLowerCase();
 
   if (!emailRaw) {
+    recordBotLog({
+      action: 'inbox',
+      req,
+      auth,
+      status: 'error',
+      statusCode: 400,
+      message: 'Parameter "email" kosong',
+      responseTimeMs: Date.now() - startTime,
+    });
+
     return NextResponse.json(
       { error: 'Parameter "email" is required' },
       { status: 400 }
@@ -60,6 +82,18 @@ export async function GET(req: NextRequest) {
       attachmentsCount: (m.attachments || []).length,
     }));
 
+    const responseTimeMs = Date.now() - startTime;
+    recordBotLog({
+      action: 'inbox',
+      req,
+      auth,
+      email,
+      status: 'success',
+      statusCode: 200,
+      message: `Membaca ${formatted.length} pesan inbox untuk ${email}`,
+      responseTimeMs,
+    });
+
     return NextResponse.json({
       success: true,
       email: email,
@@ -67,6 +101,18 @@ export async function GET(req: NextRequest) {
       messages: formatted,
     });
   } catch (err: any) {
+    const responseTimeMs = Date.now() - startTime;
+    recordBotLog({
+      action: 'inbox',
+      req,
+      auth,
+      email,
+      status: 'error',
+      statusCode: 500,
+      message: `Error query database: ${err.message}`,
+      responseTimeMs,
+    });
+
     return NextResponse.json({
       success: true,
       email: email,
@@ -78,8 +124,19 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const startTime = Date.now();
   const auth = await validateApiKeyDetailed(req);
   if (!auth.valid) {
+    recordBotLog({
+      action: 'delete_inbox',
+      req,
+      auth,
+      status: auth.status === 403 ? 'blocked' : 'error',
+      statusCode: auth.status || 401,
+      message: auth.error || 'Ditolak: API Key tidak valid / terikat',
+      responseTimeMs: Date.now() - startTime,
+    });
+
     return NextResponse.json(
       { error: auth.error || 'Unauthorized: Invalid or missing API Key' },
       { status: auth.status || 401 }
@@ -90,6 +147,16 @@ export async function DELETE(req: NextRequest) {
   const emailRaw = searchParams.get('email')?.trim().toLowerCase();
 
   if (!emailRaw) {
+    recordBotLog({
+      action: 'delete_inbox',
+      req,
+      auth,
+      status: 'error',
+      statusCode: 400,
+      message: 'Parameter "email" kosong',
+      responseTimeMs: Date.now() - startTime,
+    });
+
     return NextResponse.json(
       { error: 'Parameter "email" is required' },
       { status: 400 }
@@ -115,6 +182,18 @@ export async function DELETE(req: NextRequest) {
       await recordDeletedEmails(deletedCount).catch(() => null);
     }
 
+    const responseTimeMs = Date.now() - startTime;
+    recordBotLog({
+      action: 'delete_inbox',
+      req,
+      auth,
+      email,
+      status: 'success',
+      statusCode: 200,
+      message: `Menghapus ${deletedCount} pesan inbox untuk ${email}`,
+      responseTimeMs,
+    });
+
     return NextResponse.json({
       success: true,
       email: email,
@@ -122,6 +201,18 @@ export async function DELETE(req: NextRequest) {
       message: `Berhasil menghapus ${deletedCount} pesan`,
     });
   } catch (err: any) {
+    const responseTimeMs = Date.now() - startTime;
+    recordBotLog({
+      action: 'delete_inbox',
+      req,
+      auth,
+      email,
+      status: 'error',
+      statusCode: 500,
+      message: `Error delete database: ${err.message}`,
+      responseTimeMs,
+    });
+
     return NextResponse.json(
       { error: 'Gagal menghapus pesan', details: err.message },
       { status: 500 }
