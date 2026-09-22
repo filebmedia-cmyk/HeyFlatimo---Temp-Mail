@@ -2220,6 +2220,12 @@ if (!empty($otpData['found'])) {
                         } else if (log.action === 'inbox') {
                           badgeBg = 'bg-purple-950/80 text-purple-400 border-purple-700/60';
                           actionLabel = 'INBOX';
+                        } else if (log.action === 'email_in') {
+                          badgeBg = 'bg-blue-950/80 text-blue-400 border-blue-700/60';
+                          actionLabel = 'EMAIL_IN';
+                        } else if (log.action === 'domains') {
+                          badgeBg = 'bg-teal-950/80 text-teal-400 border-teal-700/60';
+                          actionLabel = 'DOMAINS';
                         } else if (log.action === 'delete_inbox') {
                           badgeBg = 'bg-rose-950/80 text-rose-400 border-rose-700/60';
                           actionLabel = 'DEL_INBOX';
@@ -2262,6 +2268,32 @@ if (!empty($otpData['found'])) {
                                   <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
                                     {log.email}
                                   </span>
+                                </div>
+                              )}
+
+                              {log.action === 'email_in' && (
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <span className="text-zinc-400">Email Masuk:</span>
+                                  <span className="text-white font-bold font-mono bg-zinc-800/90 px-1.5 py-0.2 rounded border border-zinc-700/70">
+                                    {log.email}
+                                  </span>
+                                  <span className="text-zinc-600">|</span>
+                                  <span className="text-zinc-300 truncate max-w-xs">{log.message}</span>
+                                  {log.otp && (
+                                    <>
+                                      <span className="bg-emerald-400 text-black px-1.5 py-0.2 rounded font-black tracking-widest text-[11px] shadow-sm font-mono flex-shrink-0">
+                                        OTP: {log.otp}
+                                      </span>
+                                      <span className="text-emerald-400 font-bold text-[10px] flex-shrink-0">[FOUND ✅]</span>
+                                    </>
+                                  )}
+                                  {log.link && (
+                                    <>
+                                      <span className="text-blue-400 font-bold underline truncate max-w-xs font-mono" title={log.link}>
+                                        {log.link}
+                                      </span>
+                                    </>
+                                  )}
                                 </div>
                               )}
 
@@ -2313,6 +2345,12 @@ if (!empty($otpData['found'])) {
                                   </span>
                                   <span className="text-zinc-600">|</span>
                                   <span className="text-zinc-300">{log.message}</span>
+                                </div>
+                              )}
+
+                              {log.action === 'domains' && (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-teal-300 font-bold">{log.message}</span>
                                 </div>
                               )}
 

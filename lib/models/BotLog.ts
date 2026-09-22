@@ -8,6 +8,7 @@ export type BotActionType =
   | 'message_detail'
   | 'delete_inbox'
   | 'domains'
+  | 'email_in'
   | 'auth_error';
 
 export type BotLogStatus = 'success' | 'waiting' | 'error' | 'blocked';

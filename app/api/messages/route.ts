@@ -120,6 +120,29 @@ export async function GET(req: NextRequest) {
       attachments: m.attachments || [],
     }));
 
+    // Record to BotLog for terminal console visibility
+    try {
+      const { recordBotLog } = await import('@/lib/botLogger');
+      const latestMsg = formattedMessages[0];
+      let foundOtp: string | null = null;
+      if (latestMsg) {
+        const { extractOtp } = await import('@/lib/otpParser');
+        const otpRes = extractOtp(latestMsg.bodyText || '', latestMsg.bodyHtml || '', latestMsg.subject || '');
+        if (otpRes.found) foundOtp = otpRes.otp;
+      }
+
+      recordBotLog({
+        action: 'inbox',
+        req,
+        email,
+        otp: foundOtp,
+        keyName: 'Public Web / Script',
+        status: 'success',
+        statusCode: 200,
+        message: `Mengecek inbox (${formattedMessages.length} pesan) ${foundOtp ? `| OTP: ${foundOtp}` : ''}`,
+      });
+    } catch {}
+
     return NextResponse.json({
       success: true,
       count: formattedMessages.length,
