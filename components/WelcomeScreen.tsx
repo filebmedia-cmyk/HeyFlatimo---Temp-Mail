@@ -328,6 +328,120 @@ export default function WelcomeScreen({
       {/* Main Neo-Brutalist Arcade Box (Intrinsic Responsive Mobile Fit) */}
       <div className="relative z-30 brutal-card my-auto bg-white dark:bg-[#0e121b] border-[3px] xs:border-[3.5px] sm:border-[4.5px] border-black p-3.5 xs:p-5 sm:p-7 max-w-[460px] w-full text-center shadow-[4px_4px_0px_#000] sm:shadow-[6px_6px_0px_#000] dark:shadow-[0_0_35px_rgba(0,200,255,0.14),4px_4px_0px_#000000] flex flex-col items-center transition-all duration-300">
         
+        {/* ======================================================== */}
+        {/* SQUAD DIORAMA SITTING OVER TOP BORDER (GIYU + NEKO + SHIBA) */}
+        {/* ======================================================== */}
+        <div className="absolute -top-[48px] xs:-top-[54px] sm:-top-[60px] left-0 right-0 w-full flex items-end justify-between px-2 xs:px-4 sm:px-6 pointer-events-none z-40 select-none">
+          {/* Left: Pixel Neko Gamer */}
+          <div className="flex flex-col items-center anim-char-bob">
+            <div className="bg-[#ff007f] text-white font-pixel text-[5.5px] xs:text-[6px] px-1 py-0.2 border border-black shadow-[1px_1px_0px_#000] -mb-1 z-10">
+              MEOW! 🎧
+            </div>
+            <svg width="42" height="42" viewBox="0 0 32 32" className="xs:w-[46px] xs:h-[46px] drop-shadow-[2px_2px_0px_#000]">
+              <g className="anim-tail">
+                <rect x="23" y="16" width="3" height="3" fill="#ff9900" stroke="#000" strokeWidth="0.75" />
+                <rect x="25" y="13" width="3" height="4" fill="#ffffff" stroke="#000" strokeWidth="0.75" />
+              </g>
+              <polygon points="7,4 12,4 7,10" fill="#ff9900" stroke="#000" strokeWidth="0.8" />
+              <polygon points="25,4 20,4 25,10" fill="#ff9900" stroke="#000" strokeWidth="0.8" />
+              <path d="M7,10 Q16,4 25,10" fill="none" stroke="#00ffff" strokeWidth="2.2" />
+              <rect x="5" y="9" width="3" height="5" rx="1" fill="#00ffff" stroke="#000" strokeWidth="0.7" />
+              <rect x="24" y="9" width="3" height="5" rx="1" fill="#00ffff" stroke="#000" strokeWidth="0.7" />
+              <rect x="8" y="8" width="16" height="11" rx="2" fill="#ff9900" stroke="#000" strokeWidth="1" />
+              <rect x="12" y="13" width="8" height="5" fill="#ffffff" />
+              <rect x="10" y="11" width="3" height="3" fill="#000000" />
+              <rect x="10" y="11" width="1.5" height="1.5" fill="#ffffff" />
+              <rect x="19" y="11" width="3" height="3" fill="#000000" />
+              <rect x="19" y="11" width="1.5" height="1.5" fill="#ffffff" />
+              <polygon points="15,14 17,14 16,15.5" fill="#ff007f" />
+              <rect x="10" y="18" width="12" height="9" fill="#ff9900" stroke="#000" strokeWidth="0.9" />
+              <rect x="12" y="18" width="8" height="6" fill="#ffffff" />
+              <rect x="11" y="26" width="4" height="4" rx="1.5" fill="#ffffff" stroke="#000" strokeWidth="0.8" />
+              <rect x="17" y="26" width="4" height="4" rx="1.5" fill="#ffffff" stroke="#000" strokeWidth="0.8" />
+            </svg>
+          </div>
+
+          {/* Center: GIYU TOMIOKA (Hashira Air) */}
+          <div className="flex flex-col items-center anim-char-bob relative -mb-0.5">
+            <div className="bg-cyan-500 text-black font-pixel text-[6px] xs:text-[6.5px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] -mb-1 z-10 flex items-center gap-1 font-bold">
+              <span>🌊</span> <span>GIYU TOMIOKA</span>
+            </div>
+            <div className="relative">
+              <div className="absolute -inset-1 bg-cyan-400/20 blur-sm rounded-full anim-water"></div>
+              <svg width="60" height="60" viewBox="0 0 36 36" className="xs:w-[68px] xs:h-[68px] relative z-10 drop-shadow-[3px_3px_0px_#000]">
+                {/* Ponytail Hair */}
+                <polygon points="8,10 3,16 6,24 10,21 10,14" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
+                <rect x="7" y="13" width="3" height="2" fill="#38bdf8" />
+                {/* Spiky Black Hair */}
+                <polygon points="10,5 18,3 26,5 28,11 26,13 10,13 8,10" fill="#0f172a" stroke="#000" strokeWidth="0.9" />
+                <polygon points="7,8 4,11 9,11" fill="#0f172a" />
+                <polygon points="27,8 30,11 25,11" fill="#0f172a" />
+                {/* Face */}
+                <rect x="10" y="8" width="16" height="11" fill="#fde68a" stroke="#000" strokeWidth="1" />
+                <polygon points="10,8 14,13 16,9 20,13 22,8" fill="#0f172a" />
+                {/* Eyes */}
+                <rect x="12" y="12" width="3" height="2.5" fill="#0284c7" stroke="#000" strokeWidth="0.5" />
+                <rect x="13" y="12" width="1" height="1" fill="#ffffff" />
+                <rect x="21" y="12" width="3" height="2.5" fill="#0284c7" stroke="#000" strokeWidth="0.5" />
+                <rect x="22" y="12" width="1" height="1" fill="#ffffff" />
+                <line x1="16" y1="16" x2="20" y2="16" stroke="#000" strokeWidth="0.75" />
+                {/* Split Haori */}
+                <path d="M10,19 L18,19 L18,29 L8,29 L8,22 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.9" />
+                <path d="M18,19 L26,19 L28,22 L28,29 L18,29 Z" fill="#15803d" stroke="#000" strokeWidth="0.9" />
+                <rect x="19" y="20" width="3" height="3" fill="#eab308" />
+                <rect x="23" y="20" width="3" height="3" fill="#ea580c" />
+                <rect x="21" y="23" width="3" height="3" fill="#eab308" />
+                <polygon points="15,19 21,19 18,25" fill="#0f172a" />
+                <line x1="18" y1="19" x2="18" y2="24" stroke="#ffffff" strokeWidth="0.8" />
+                <rect x="13" y="25" width="10" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.6" />
+                {/* Nichirin Blade */}
+                <line x1="5" y1="28" x2="14" y2="23" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" />
+                <line x1="5" y1="28" x2="14" y2="23" stroke="#0284c7" strokeWidth="1.2" strokeLinecap="round" />
+                {/* Legs dangling */}
+                <rect x="12" y="29" width="4" height="4" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
+                <line x1="12" y1="31" x2="16" y2="31" stroke="#ffffff" strokeWidth="0.75" />
+                <rect x="11.5" y="32" width="5" height="2" fill="#d97706" rx="0.5" />
+                <rect x="20" y="29" width="4" height="4" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
+                <line x1="20" y1="31" x2="24" y2="31" stroke="#ffffff" strokeWidth="0.75" />
+                <rect x="19.5" y="32" width="5" height="2" fill="#d97706" rx="0.5" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Right: Shiba Mail Courier & Mini Ghost */}
+          <div className="flex items-end gap-1 anim-char-bob" style={{ animationDelay: '-1.2s' }}>
+            <div className="flex flex-col items-center">
+              <div className="bg-[#ffe600] text-black font-pixel text-[5.5px] xs:text-[6px] px-1 py-0.2 border border-black shadow-[1px_1px_0px_#000] -mb-1 z-10 font-bold">
+                MAIL! 💌
+              </div>
+              <svg width="42" height="42" viewBox="0 0 32 32" className="xs:w-[46px] xs:h-[46px] drop-shadow-[2px_2px_0px_#000]">
+                <polygon points="7,4 12,4 9,10" fill="#d97706" stroke="#000" strokeWidth="0.8" />
+                <polygon points="25,4 20,4 23,10" fill="#d97706" stroke="#000" strokeWidth="0.8" />
+                <rect x="8" y="6" width="16" height="4" fill="#1e3a8a" stroke="#000" strokeWidth="0.7" rx="1" />
+                <circle cx="16" cy="8" r="1.2" fill="#ffe600" />
+                <rect x="8" y="10" width="16" height="11" fill="#d97706" stroke="#000" strokeWidth="0.9" rx="1" />
+                <rect x="10" y="13" width="2.5" height="2.5" fill="#000" />
+                <rect x="19.5" y="13" width="2.5" height="2.5" fill="#000" />
+                <rect x="12" y="15" width="8" height="4" fill="#ffffff" />
+                <polygon points="15,16 17,16 16,17" fill="#000" />
+                <rect x="11" y="19" width="10" height="5" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+                <rect x="14.5" y="20.5" width="3" height="2" fill="#ff0055" />
+                <rect x="9" y="25" width="4" height="4" rx="1" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+                <rect x="19" y="25" width="4" height="4" rx="1" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+              </svg>
+            </div>
+            <div className="hidden xs:block -mb-1 anim-water">
+              <svg width="24" height="24" viewBox="0 0 24 24" className="drop-shadow-[2px_2px_0px_#000]">
+                <path d="M6,10 A6,6 0 0,1 18,10 L18,20 L15,18 L12,20 L9,18 L6,20 Z" fill="#ff007f" stroke="#000" strokeWidth="1" />
+                <rect x="8" y="9" width="3" height="3" fill="#fff" />
+                <rect x="9" y="10" width="1.5" height="2" fill="#00f0ff" />
+                <rect x="13" y="9" width="3" height="3" fill="#fff" />
+                <rect x="14" y="10" width="1.5" height="2" fill="#00f0ff" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
         {/* 1. Status Badge: ARCADE SYSTEM (Clean Single Badge, No Audio Prompt/Keterangan) */}
         <div className="inline-flex items-center gap-1.5 bg-[#ffe600] border-2 border-black px-2.5 py-0.5 sm:px-3 sm:py-1 mb-2 sm:mb-3.5 shadow-[2px_2px_0px_#000]">
           <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-black fill-black" />

@@ -927,6 +927,24 @@ pre {
   animation: buttonGlowPulse 1.4s ease-in-out infinite;
 }
 
+@keyframes tailWagAnim {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(14deg); }
+}
+.anim-tail {
+  transform-origin: bottom left;
+  animation: tailWagAnim 1.4s ease-in-out infinite;
+}
+
+@keyframes waterFlowAnim {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.85; }
+  50% { transform: translateY(-3px) scale(1.06); opacity: 1; }
+}
+.anim-water {
+  animation: waterFlowAnim 2s ease-in-out infinite;
+}
+
+
 
 
 
