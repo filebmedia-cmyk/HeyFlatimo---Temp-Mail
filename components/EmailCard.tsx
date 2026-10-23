@@ -128,7 +128,7 @@ export default function EmailCard({
   };
 
   return (
-    <div className="brutal-card p-4 xs:p-5 sm:p-7 mt-9 xs:mt-11 sm:mt-14 mb-5 sm:mb-7 relative bg-[var(--card-bg)]">
+    <div className="brutal-card p-4 xs:p-5 sm:p-7 mt-14 xs:mt-16 sm:mt-20 mb-5 sm:mb-7 relative bg-[var(--card-bg)]">
       {/* ======================================================== */}
       {/* SQUAD DIORAMA OVER TOP BORDER (GIYU + NEKO + SHIBA)     */}
       {/* ZERO LAYOUT SHIFT: Positioned absolute above top border */}
@@ -193,16 +193,17 @@ export default function EmailCard({
             <span>{giyuState === 'slashing' ? 'WATER SLASH!' : 'GIYU TOMIOKA'}</span>
           </div>
 
-          {/* Water Slash Wave Effect Overlay when slashing */}
+          {/* Water Slash Wave Effect Overlay when slashing (Aligned directly with Nichirin blade trajectory) */}
           {giyuState === 'slashing' && (
-            <div className="absolute -top-10 xs:-top-12 sm:-top-14 left-1/2 -translate-x-1/2 pointer-events-none z-40 w-[200px] xs:w-[240px] sm:w-[280px] anim-water-slash">
-              <svg viewBox="0 0 200 80" className="w-full filter drop-shadow-[0_0_12px_rgba(0,240,255,0.9)]">
-                <path d="M10,70 Q60,10 130,25 T190,5" fill="none" stroke="#00ffff" strokeWidth="7" strokeLinecap="round" />
-                <path d="M15,72 Q65,15 135,28 T195,8" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
-                <circle cx="45" cy="30" r="3.5" fill="#00f0ff" />
-                <circle cx="85" cy="18" r="4.5" fill="#ffffff" />
-                <circle cx="120" cy="15" r="3" fill="#00f0ff" />
-                <circle cx="160" cy="22" r="4" fill="#ffffff" />
+            <div className="absolute top-[-6px] xs:top-[-8px] sm:top-[-10px] left-1/2 -translate-x-1/2 pointer-events-none z-30 w-[180px] xs:w-[210px] sm:w-[250px] anim-water-slash">
+              <svg viewBox="0 0 200 70" className="w-full filter drop-shadow-[0_0_12px_rgba(0,240,255,0.9)]">
+                <path d="M10,55 Q60,8 130,20 T190,5" fill="none" stroke="#00ffff" strokeWidth="6" strokeLinecap="round" />
+                <path d="M15,57 Q65,12 135,22 T195,7" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="45" cy="24" r="3" fill="#00f0ff" />
+                <circle cx="85" cy="14" r="4" fill="#ffffff" />
+                <circle cx="120" cy="12" r="2.5" fill="#00f0ff" />
+                <circle cx="160" cy="16" r="3.5" fill="#ffffff" />
+                <circle cx="180" cy="8" r="2" fill="#00f0ff" />
               </svg>
             </div>
           )}
