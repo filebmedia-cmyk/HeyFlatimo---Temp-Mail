@@ -7,6 +7,8 @@ import {
   playRetroBlipSound,
   playRetroStartSound,
   unlockAudio,
+  getSoundEnabled,
+  getAudioContext,
 } from '@/lib/sound';
 
 interface WelcomeScreenProps {
@@ -22,25 +24,54 @@ export default function WelcomeScreen({
   appName = 'HEYFLATIMO',
   autoDismissDelay = 2800,
   allowSkip = true,
-  isSoundEnabled = true,
+  isSoundEnabled,
 }: WelcomeScreenProps) {
   const [progress, setProgress] = useState(0);
   const [currentLog, setCurrentLog] = useState('> BOOTING ENGINE...');
   const [isExiting, setIsExiting] = useState(false);
   const [countdown, setCountdown] = useState(3);
+  const [isAudioBlocked, setIsAudioBlocked] = useState(false);
   const hasTriggeredCompleteRef = useRef(false);
+
+  // Directly synchronized with mail app audio setting
+  const activeSound = isSoundEnabled !== undefined ? isSoundEnabled : (typeof window !== 'undefined' ? getSoundEnabled() : true);
 
   // Auto-play boot sound respecting the main app sound setting, with user-interaction fallback
   useEffect(() => {
-    if (!isSoundEnabled) return;
-    unlockAudio();
-    playRetroBootSound();
+    if (!activeSound) {
+      setIsAudioBlocked(false);
+      return;
+    }
+
+    // Attempt to unlock and play immediately
+    const attemptPlay = () => {
+      unlockAudio();
+      try {
+        const ctx = getAudioContext();
+        if (ctx && ctx.state === 'suspended') {
+          ctx.resume().then(() => {
+            playRetroBootSound(true);
+            setIsAudioBlocked(false);
+          }).catch(() => {
+            setIsAudioBlocked(true);
+          });
+        } else {
+          playRetroBootSound(true);
+          setIsAudioBlocked(false);
+        }
+      } catch (err) {
+        setIsAudioBlocked(true);
+      }
+    };
+
+    attemptPlay();
 
     // Browser Autoplay Policy Fallback:
     // If the browser suspends initial audio, unlock and play immediately on first interaction
     const handleFirstInteraction = () => {
       unlockAudio();
-      playRetroBootSound();
+      playRetroBootSound(true);
+      setIsAudioBlocked(false);
     };
 
     window.addEventListener('pointerdown', handleFirstInteraction, { once: true });
@@ -52,7 +83,7 @@ export default function WelcomeScreen({
       window.removeEventListener('touchstart', handleFirstInteraction);
       window.removeEventListener('keydown', handleFirstInteraction);
     };
-  }, [isSoundEnabled]);
+  }, [activeSound]);
 
   // Animate progress segments with 8-bit blip sound
   useEffect(() => {
@@ -83,8 +114,8 @@ export default function WelcomeScreen({
       }
 
       // Play 8-bit blip tick sound as progress advances (only when audio enabled)
-      if (isSoundEnabled && step % 2 === 0) {
-        playRetroBlipSound();
+      if (activeSound && step % 2 === 0) {
+        playRetroBlipSound(true);
       }
 
       if (step >= totalSteps) {
@@ -94,7 +125,7 @@ export default function WelcomeScreen({
     }, intervalTime);
 
     return () => clearInterval(timer);
-  }, [autoDismissDelay, isSoundEnabled]);
+  }, [autoDismissDelay, activeSound]);
 
   // Auto countdown to dismiss
   useEffect(() => {
@@ -128,8 +159,8 @@ export default function WelcomeScreen({
   const handleDismiss = () => {
     if (hasTriggeredCompleteRef.current) return;
     hasTriggeredCompleteRef.current = true;
-    if (isSoundEnabled) {
-      playRetroStartSound();
+    if (activeSound) {
+      playRetroStartSound(true);
     }
     setIsExiting(true);
     setTimeout(() => {
@@ -154,6 +185,13 @@ export default function WelcomeScreen({
     <div
       id="welcome-screen-root"
       suppressHydrationWarning
+      onClick={() => {
+        if (activeSound && isAudioBlocked) {
+          unlockAudio();
+          playRetroBootSound(true);
+          setIsAudioBlocked(false);
+        }
+      }}
       className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#f0f4f8]/95 dark:bg-[#07080c]/95 backdrop-blur-md transition-all duration-500 ${
         isExiting ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
       }`}
@@ -240,12 +278,34 @@ export default function WelcomeScreen({
       {/* Main Neo-Brutalist Arcade Box with Subtle Glow in Dark Mode */}
       <div className="relative z-30 brutal-card bg-white dark:bg-[#0e121b] border-[3.5px] sm:border-[4.5px] border-black p-6 sm:p-8 max-w-lg w-full text-center shadow-[6px_6px_0px_#000] dark:shadow-[0_0_35px_rgba(0,200,255,0.14),6px_6px_0px_#000000] flex flex-col items-center transition-all duration-300">
         
-        {/* 1. Single Clean Status Badge */}
-        <div className="inline-flex items-center gap-2 bg-[#ffe600] border-2 border-black px-3 py-1 mb-4 shadow-[2px_2px_0px_#000]">
-          <Zap className="w-3.5 h-3.5 text-black fill-black" />
-          <span className="font-pixel text-[9px] text-black tracking-wider uppercase font-black">
-            ARCADE SYSTEM
-          </span>
+        {/* 1. Status Badges: Arcade System + Dynamic Audio Status */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+          <div className="inline-flex items-center gap-1.5 bg-[#ffe600] border-2 border-black px-2.5 py-1 shadow-[2px_2px_0px_#000]">
+            <Zap className="w-3 h-3 text-black fill-black" />
+            <span className="font-pixel text-[9px] text-black tracking-wider uppercase font-black">
+              ARCADE SYSTEM
+            </span>
+          </div>
+
+          {!activeSound ? (
+            <div className="inline-flex items-center gap-1.5 bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-2 border-black px-2.5 py-1 shadow-[2px_2px_0px_#000]">
+              <span className="font-pixel text-[8px] tracking-wider uppercase font-bold">
+                🔇 AUDIO MUTE (IKUT MAIL)
+              </span>
+            </div>
+          ) : isAudioBlocked ? (
+            <div className="inline-flex items-center gap-1.5 bg-[#ff0055] text-white border-2 border-black px-2.5 py-1 shadow-[2px_2px_0px_#000] animate-bounce">
+              <span className="font-pixel text-[8px] tracking-wider uppercase font-black">
+                ⚡ KLIK LAYAR UNTUK BUNYIKAN AUDIO ⚡
+              </span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 bg-[#00ff66] text-black border-2 border-black px-2.5 py-1 shadow-[2px_2px_0px_#000]">
+              <span className="font-pixel text-[8px] tracking-wider uppercase font-black">
+                🔊 AUDIO 8-BIT AKTIF
+              </span>
+            </div>
+          )}
         </div>
 
         {/* 2. Header Section */}

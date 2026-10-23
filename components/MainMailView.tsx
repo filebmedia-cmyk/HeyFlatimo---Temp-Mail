@@ -20,15 +20,21 @@ const AUTO_SYNC_INTERVAL = 3; // 3 Detik Realtime
 
 interface MainMailViewProps {
   initialSlug?: string;
+  disableWelcome?: boolean;
 }
 
-export default function MainMailView({ initialSlug }: MainMailViewProps) {
+export default function MainMailView({ initialSlug, disableWelcome = false }: MainMailViewProps) {
   const [appName, setAppName] = useState('HeyFlatimo');
   const [isDark, setIsDark] = useState(false);
   const [activeView, setActiveView] = useState<'home' | 'split'>('home');
 
-  // Sound Notification State (Default: ON)
-  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+  // Sound Notification State (Default: ON, immediately synchronized with localStorage)
+  const [isSoundEnabled, setIsSoundEnabled] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return getSoundEnabled();
+    }
+    return true;
+  });
   const isSoundEnabledRef = useRef<boolean>(true);
 
   // QR Code Modal State
@@ -883,7 +889,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       />
 
       {/* Arcade Welcome Screen (First visit per browser session) */}
-      {showWelcome && (
+      {!disableWelcome && showWelcome && (
         <WelcomeScreen
           appName={appName}
           isSoundEnabled={isSoundEnabled}

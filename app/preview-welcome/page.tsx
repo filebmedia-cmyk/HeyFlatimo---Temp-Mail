@@ -1,23 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 import WelcomeScreen from '@/components/WelcomeScreen';
 import MainMailView from '@/components/MainMailView';
+import { getSoundEnabled } from '@/lib/sound';
 
 export default function PreviewWelcomePage() {
   const [showWelcome, setShowWelcome] = useState(true);
+  const [soundActive, setSoundActive] = useState(true);
+
+  useEffect(() => {
+    setSoundActive(getSoundEnabled());
+  }, [showWelcome]);
 
   return (
     <div className="relative min-h-screen">
-      {/* Background/Underlying Web View */}
-      <MainMailView />
+      {/* Background/Underlying Web View with Welcome disabled to avoid duplicate overlay */}
+      <MainMailView disableWelcome={true} />
 
       {/* Floating Welcome Screen Preview */}
       {showWelcome && (
         <WelcomeScreen
           appName="HeyFlatimo"
           autoDismissDelay={3000}
+          isSoundEnabled={soundActive}
           onComplete={() => setShowWelcome(false)}
         />
       )}

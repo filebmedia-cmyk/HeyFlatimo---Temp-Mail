@@ -246,7 +246,7 @@ function renderRetroBoot(ctx: AudioContext): void {
       osc.type = 'square';
       osc.frequency.setValueAtTime(freq, now + idx * 0.08);
 
-      gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+      gain.gain.setValueAtTime(0.35, now + idx * 0.08);
       gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.12);
 
       osc.connect(gain);
@@ -260,6 +260,8 @@ function renderRetroBoot(ctx: AudioContext): void {
 
 export function playRetroBootSound(force: boolean = false): void {
   if (!force && !getSoundEnabled()) return;
+  // Dual engine: High-fidelity notification chime via HTML5 pool + synthesized retro square arpeggio
+  playSound('notification', force);
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
@@ -280,7 +282,7 @@ function renderRetroBlip(ctx: AudioContext): void {
     osc.frequency.setValueAtTime(750, now);
     osc.frequency.exponentialRampToValueAtTime(250, now + 0.04);
 
-    gain.gain.setValueAtTime(0.18, now);
+    gain.gain.setValueAtTime(0.35, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
 
     osc.connect(gain);
@@ -293,20 +295,17 @@ function renderRetroBlip(ctx: AudioContext): void {
 
 export function playRetroBlipSound(force: boolean = false): void {
   if (!force && !getSoundEnabled()) return;
+  // Dual engine: Punchy pop audio + synthesized retro triangle tick
+  playSound('pop', force);
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
     if (ctx.state !== 'running') {
-      ctx.resume().then(() => renderRetroBlip(ctx)).catch(() => {
-        // Fallback to HTML5 audio pool if WebAudio was prevented
-        playSound('pop');
-      });
+      ctx.resume().then(() => renderRetroBlip(ctx)).catch(() => {});
     } else {
       renderRetroBlip(ctx);
     }
-  } catch (e) {
-    playSound('pop');
-  }
+  } catch (e) {}
 }
 
 function renderRetroStart(ctx: AudioContext): void {
@@ -318,7 +317,7 @@ function renderRetroStart(ctx: AudioContext): void {
     osc.frequency.setValueAtTime(987.77, now); // B5
     osc.frequency.setValueAtTime(1318.51, now + 0.09); // E6
 
-    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.setValueAtTime(0.35, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
 
     osc.connect(gain);
@@ -331,19 +330,17 @@ function renderRetroStart(ctx: AudioContext): void {
 
 export function playRetroStartSound(force: boolean = false): void {
   if (!force && !getSoundEnabled()) return;
+  // Dual engine: Triumphant success fanfare + synthesized retro square chords
+  playSound('success', force);
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
     if (ctx.state !== 'running') {
-      ctx.resume().then(() => renderRetroStart(ctx)).catch(() => {
-        playSound('success');
-      });
+      ctx.resume().then(() => renderRetroStart(ctx)).catch(() => {});
     } else {
       renderRetroStart(ctx);
     }
-  } catch (e) {
-    playSound('success');
-  }
+  } catch (e) {}
 }
 
 /**
