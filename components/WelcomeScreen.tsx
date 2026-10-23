@@ -399,10 +399,6 @@ export default function WelcomeScreen({
               <Play className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-black flex-shrink-0" />
               <span>START ARCADE (TAP HERE)</span>
             </button>
-
-            <div className="text-[7.5px] xs:text-[8px] sm:text-[8.5px] font-pixel text-slate-500 dark:text-slate-400 tracking-wide uppercase mt-0.5">
-              ⚡ SENTUH SEKALI UNTUK MEMULAI &amp; ON AUDIO ⚡
-            </div>
           </div>
         )}
 
