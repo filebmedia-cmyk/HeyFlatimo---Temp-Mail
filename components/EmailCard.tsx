@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Copy,
   Check,
@@ -125,6 +125,31 @@ export default function EmailCard({
     setTimeout(() => {
       setShibaState('idle');
     }, 1200);
+  };
+
+  // Interactive Giyu Strip Runner State
+  const [runnerQuote, setRunnerQuote] = useState<string | null>(null);
+  const runnerQuoteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleRunnerClick = () => {
+    const quotes = [
+      'PERNAPASAN AIR!',
+      'PATROLI INBOX!',
+      'JANGAN MENYERAH!',
+      'HASHIRA RUSH!',
+      'SYNC DATA!',
+    ];
+    const picked = quotes[Math.floor(Math.random() * quotes.length)];
+    setRunnerQuote(picked);
+    if (isSoundEnabled) {
+      playKatanaSlashSound(true);
+    }
+    if (runnerQuoteTimeoutRef.current) {
+      clearTimeout(runnerQuoteTimeoutRef.current);
+    }
+    runnerQuoteTimeoutRef.current = setTimeout(() => {
+      setRunnerQuote(null);
+    }, 2200);
   };
 
   return (
@@ -490,23 +515,171 @@ export default function EmailCard({
           </div>
         )}
 
-        {/* Manual Refresh Button */}
-        <button
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          className="col-span-2 sm:col-span-1 brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-3 xs:px-4 py-2 sm:py-2.5 text-[11px] xs:text-xs flex items-center justify-center gap-1.5 sm:gap-2 sm:ml-auto w-full sm:w-auto group shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)]"
-          title="Refresh Inbox Manual"
-        >
-          <RefreshCw
-            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-300 flex-shrink-0 ${
-              isRefreshing ? 'animate-spin-fast' : 'group-hover:rotate-180'
-            }`}
-          />
-          <span className="hidden xs:inline font-mono-custom font-bold">
-            {isRefreshing ? 'MENYINKRONKAN...' : 'REFRESH'}
-          </span>
-          <span className="xs:hidden">SYNC</span>
-        </button>
+        {/* Right Action Container: Giyu Runner on Strip + Manual Refresh Button */}
+        <div className="col-span-2 sm:col-span-1 flex items-end justify-end gap-2.5 sm:gap-3.5 sm:ml-auto w-full sm:w-auto relative">
+          {/* GIYU TOMIOKA RUNNER IN PLACE WITH WIND EFFECTS */}
+          <div
+            onClick={handleRunnerClick}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              handleRunnerClick();
+            }}
+            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+            className="relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-4 sm:-mb-5"
+            title="Giyu Tomioka (Berlari di tempat) - Klik untuk seruan Hashira!"
+          >
+            {/* Speech / Action Bubble */}
+            <div
+              className={`absolute -top-7 left-1/2 -translate-x-1/2 font-pixel text-[5.5px] xs:text-[6px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-opacity duration-200 ${
+                runnerQuote || isRefreshing ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              } ${isRefreshing ? 'bg-cyan-400 text-black font-black animate-pulse' : 'bg-[var(--color-yellow)] text-black font-bold'}`}
+            >
+              {isRefreshing ? '⚡ HASHIRA SYNC!' : runnerQuote || '🌊 PERNAPASAN AIR'}
+            </div>
+
+            {/* Wind Effects (Wind streaks, floating water petals, dust puffs) */}
+            <div className="absolute -inset-x-6 -top-2 bottom-0 pointer-events-none z-10 overflow-visible">
+              <div
+                className={`absolute top-2 right-9 w-8 xs:w-10 h-[1.5px] bg-cyan-300 dark:bg-cyan-400 rounded-full ${
+                  isRefreshing ? 'wind-streak-fast-1' : 'wind-streak-1'
+                }`}
+              />
+              <div
+                className={`absolute top-4.5 right-7 w-10 xs:w-12 h-[2px] bg-white rounded-full ${
+                  isRefreshing ? 'wind-streak-fast-2' : 'wind-streak-2'
+                }`}
+              />
+              <div
+                className={`absolute top-7 right-11 w-7 xs:w-9 h-[1.5px] bg-cyan-200 dark:bg-cyan-300 rounded-full ${
+                  isRefreshing ? 'wind-streak-fast-3' : 'wind-streak-3'
+                }`}
+              />
+              <div
+                className={`absolute top-9 right-6 w-9 xs:w-11 h-[1.5px] bg-sky-300 dark:bg-sky-400 rounded-full ${
+                  isRefreshing ? 'wind-streak-fast-4' : 'wind-streak-4'
+                }`}
+              />
+
+              {/* Floating Petal / Water Droplets */}
+              <div className="absolute top-3.5 right-8 w-1.5 h-1.5 bg-cyan-400 rounded-sm petal-float-1" />
+              <div className="absolute top-6.5 right-11 w-1.5 h-1.5 bg-white rounded-full petal-float-2" />
+
+              {/* Dust Puffs at feet */}
+              <div className="absolute bottom-0 left-1 w-2 h-2 bg-zinc-400/80 rounded-full dust-puff-1" />
+              <div className="absolute bottom-0 left-3 w-1.5 h-1.5 bg-zinc-300/70 rounded-full dust-puff-2" />
+            </div>
+
+            {/* Giyu Runner SVG */}
+            <div className="relative z-20">
+              <svg
+                width="48"
+                height="45"
+                viewBox="0 0 36 34"
+                className="w-[44px] h-[41px] xs:w-[50px] xs:h-[47px] sm:w-[54px] sm:h-[50px] drop-shadow-[2px_2px_0px_#000] overflow-visible group-hover:scale-105 transition-transform"
+              >
+                {/* Back Leg (Running Cycle) */}
+                <g className="anim-leg-back" style={{ transformOrigin: '19px 24px' }}>
+                  <rect x="18" y="24" width="3" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                  <rect x="18" y="27" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
+                  <rect x="19" y="30" width="3.5" height="1.8" fill="#d97706" rx="0.5" />
+                </g>
+
+                {/* Back Arm (Pumping Cycle) */}
+                <g className="anim-arm-back" style={{ transformOrigin: '20px 18px' }}>
+                  <rect x="20" y="18" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
+                  <circle cx="21.5" cy="24.5" r="1.5" fill="#fde68a" />
+                </g>
+
+                {/* Torso & Head Main Container (Bob & Lean Cycle) */}
+                <g
+                  className={isRefreshing ? 'anim-giyu-sprint-body' : 'anim-giyu-runner-body'}
+                  style={{ transformOrigin: '18px 24px' }}
+                >
+                  {/* Ponytail Hair Fluttering in Wind */}
+                  <g
+                    className={isRefreshing ? 'anim-hair-wind-fast' : 'anim-hair-wind'}
+                    style={{ transformOrigin: '10px 11px' }}
+                  >
+                    <polygon points="10,11 2,13 0,20 5,23 9,17" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
+                    <rect x="7" y="14" width="2" height="2" fill="#38bdf8" />
+                    <line x1="1" y1="18" x2="6" y2="17" stroke="#38bdf8" strokeWidth="0.7" />
+                  </g>
+
+                  {/* Spiky Black Hair */}
+                  <polygon points="12,5 20,3 28,5 30,11 28,13 12,13 10,10" fill="#0f172a" stroke="#000" strokeWidth="0.9" />
+                  <polygon points="9,8 6,11 11,11" fill="#0f172a" />
+                  <polygon points="29,8 32,11 27,11" fill="#0f172a" />
+
+                  {/* Face */}
+                  <rect x="12" y="8" width="16" height="10" fill="#fde68a" stroke="#000" strokeWidth="0.9" rx="0.5" />
+                  <polygon points="12,8 16,12 18,9 22,12 24,8" fill="#0f172a" />
+
+                  {/* Eyes */}
+                  <rect x="20" y="11" width="3.5" height="2.5" fill="#0284c7" stroke="#000" strokeWidth="0.5" />
+                  <rect x="22" y="11" width="1.2" height="1" fill="#ffffff" />
+                  <line x1="20" y1="15" x2="24" y2="15" stroke="#000" strokeWidth="0.75" />
+
+                  {/* Haori Fluttering */}
+                  <g className="anim-haori-l" style={{ transformOrigin: '14px 17px' }}>
+                    <path d="M12,17 L18,17 L17,25 L8,26 L6,21 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
+                  </g>
+                  <g className="anim-haori-r" style={{ transformOrigin: '20px 17px' }}>
+                    <path d="M18,17 L26,17 L28,21 L27,26 L18,25 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+                    <rect x="19" y="18" width="2.5" height="2.5" fill="#eab308" />
+                    <rect x="23" y="18" width="2.5" height="2.5" fill="#ea580c" />
+                    <rect x="21" y="21" width="2.5" height="2.5" fill="#eab308" />
+                  </g>
+
+                  {/* Corps Uniform & White Belt */}
+                  <polygon points="16,17 21,17 19,23" fill="#0f172a" />
+                  <line x1="19" y1="17" x2="19" y2="22" stroke="#ffffff" strokeWidth="0.7" />
+                  <rect x="14" y="23" width="9" height="1.8" fill="#ffffff" stroke="#000" strokeWidth="0.6" />
+
+                  {/* Nichirin Blade Scabbard at Hip Swaying */}
+                  <g className="anim-sword-sway" style={{ transformOrigin: '14px 22px' }}>
+                    <line x1="6" y1="28" x2="16" y2="22" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" />
+                    <line x1="6" y1="28" x2="16" y2="22" stroke="#0284c7" strokeWidth="1" strokeLinecap="round" />
+                    <rect x="15" y="21" width="1.8" height="1.8" fill="#000" stroke="#38bdf8" strokeWidth="0.5" />
+                  </g>
+                </g>
+
+                {/* Front Leg (Running Cycle) */}
+                <g className="anim-leg-front" style={{ transformOrigin: '15px 24px' }}>
+                  <rect x="13.5" y="24" width="3" height="6.5" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                  <rect x="13.5" y="27" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
+                  <rect x="14" y="30.5" width="3.8" height="1.8" fill="#d97706" rx="0.5" />
+                </g>
+
+                {/* Front Arm (Pumping Forward) */}
+                <g className="anim-arm-front" style={{ transformOrigin: '17px 18px' }}>
+                  <rect x="16" y="18" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
+                  <circle cx="18" cy="24.5" r="1.5" fill="#fde68a" />
+                </g>
+
+                {/* Ground Contact Shadow */}
+                <ellipse cx="18" cy="33" rx="7" ry="1.2" fill="#000000" opacity="0.5" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Manual Refresh Button */}
+          <button
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-3 xs:px-4 py-2 sm:py-2.5 text-[11px] xs:text-xs flex items-center justify-center gap-1.5 sm:gap-2 group shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] flex-shrink-0"
+            title="Refresh Inbox Manual"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-300 flex-shrink-0 ${
+                isRefreshing ? 'animate-spin-fast' : 'group-hover:rotate-180'
+              }`}
+            />
+            <span className="hidden xs:inline font-mono-custom font-bold">
+              {isRefreshing ? 'MENYINKRONKAN...' : 'REFRESH'}
+            </span>
+            <span className="xs:hidden">SYNC</span>
+          </button>
+        </div>
       </div>
 
       {/* Auto-Sync Live Status Indicator Badge */}
