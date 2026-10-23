@@ -12,6 +12,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Zero-delay instant welcome screen visibility guard */
+html:not(.welcome-pending) #welcome-screen-root {
+  display: none !important;
+}
+
+html.welcome-pending {
+  overflow: hidden;
+}
+
 :root {
   /* LIGHT MODE (Ultra-High Saturation Vibrant Neo-Brutalist Palette) */
   --bg-color: #f6faff;        /* Ultra bright, fresh, high-contrast canvas */

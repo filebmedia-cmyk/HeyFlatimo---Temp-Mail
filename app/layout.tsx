@@ -55,6 +55,12 @@ export default function RootLayout({
                   } else {
                     document.documentElement.classList.remove('dark');
                   }
+
+                  // Instantly check if this session needs the welcome arcade animation
+                  var welcomeSeen = sessionStorage.getItem('tmail_welcome_seen');
+                  if (!welcomeSeen) {
+                    document.documentElement.classList.add('welcome-pending');
+                  }
                 } catch (e) {}
               })();
             `,

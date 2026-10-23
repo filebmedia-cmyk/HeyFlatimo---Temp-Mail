@@ -44,15 +44,27 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   const [isAccessLocked, setIsAccessLocked] = useState(false);
   const [accessMessage, setAccessMessage] = useState('Silakan masukkan kode akses untuk menggunakan layanan email.');
 
-  // Welcome Arcade Animation Screen (1x per session)
-  const [showWelcome, setShowWelcome] = useState<boolean>(false);
+  // Welcome Arcade Animation Screen (Instant zero-delay initialization)
+  const [showWelcome, setShowWelcome] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return !sessionStorage.getItem('tmail_welcome_seen');
+      } catch (e) {
+        return false;
+      }
+    }
+    return true;
+  });
 
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
         const hasSeen = sessionStorage.getItem('tmail_welcome_seen');
-        if (!hasSeen) {
-          setShowWelcome(true);
+        if (hasSeen) {
+          setShowWelcome(false);
+          document.documentElement.classList.remove('welcome-pending');
+        } else {
+          document.documentElement.classList.add('welcome-pending');
         }
       }
     } catch (e) {}
@@ -878,6 +890,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
             try {
               if (typeof window !== 'undefined') {
                 sessionStorage.setItem('tmail_welcome_seen', 'true');
+                document.documentElement.classList.remove('welcome-pending');
               }
             } catch (e) {}
             setShowWelcome(false);

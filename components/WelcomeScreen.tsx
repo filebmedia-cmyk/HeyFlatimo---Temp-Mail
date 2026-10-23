@@ -164,6 +164,8 @@ export default function WelcomeScreen({
 
   return (
     <div
+      id="welcome-screen-root"
+      suppressHydrationWarning
       className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#f0f4f8]/95 dark:bg-[#07080c]/95 backdrop-blur-md transition-all duration-500 ${
         isExiting ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
       }`}
