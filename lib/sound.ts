@@ -89,8 +89,17 @@ export function unlockAudio(): void {
     preloadSounds();
 
     const ctx = getAudioContext();
-    if (ctx && ctx.state !== 'running') {
-      ctx.resume().catch(() => {});
+    if (ctx) {
+      if (ctx.state !== 'running') {
+        ctx.resume().catch(() => {});
+      }
+      try {
+        const buffer = ctx.createBuffer(1, 1, 22050);
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        source.start(0);
+      } catch (err) {}
     }
   } catch (e) {
     // Ignore unlock errors

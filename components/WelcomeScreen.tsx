@@ -30,58 +30,65 @@ export default function WelcomeScreen({
   const [currentLog, setCurrentLog] = useState('> BOOTING ENGINE...');
   const [isExiting, setIsExiting] = useState(false);
   const [countdown, setCountdown] = useState(3);
-  const [isAudioBlocked, setIsAudioBlocked] = useState(false);
   const hasTriggeredCompleteRef = useRef(false);
+  const hasPlayedBootRef = useRef(false);
+  const progressRef = useRef(0);
 
-  // Directly synchronized with mail app audio setting
+  // Directly synchronized with mail app audio setting & localStorage
   const activeSound = isSoundEnabled !== undefined ? isSoundEnabled : (typeof window !== 'undefined' ? getSoundEnabled() : true);
 
-  // Auto-play boot sound respecting the main app sound setting, with user-interaction fallback
+  // Auto-play boot sound respecting the main app sound setting, with silent gesture unlock
   useEffect(() => {
-    if (!activeSound) {
-      setIsAudioBlocked(false);
-      return;
-    }
+    if (!activeSound) return;
 
-    // Attempt to unlock and play immediately
-    const attemptPlay = () => {
+    let isCancelled = false;
+
+    const playBootSound = () => {
+      if (isCancelled || hasPlayedBootRef.current) return;
       unlockAudio();
       try {
         const ctx = getAudioContext();
-        if (ctx && ctx.state === 'suspended') {
-          ctx.resume().then(() => {
+        if (ctx) {
+          if (ctx.state === 'running') {
             playRetroBootSound(true);
-            setIsAudioBlocked(false);
-          }).catch(() => {
-            setIsAudioBlocked(true);
-          });
+            hasPlayedBootRef.current = true;
+          } else {
+            ctx.resume().then(() => {
+              if (!isCancelled && !hasPlayedBootRef.current) {
+                playRetroBootSound(true);
+                hasPlayedBootRef.current = true;
+              }
+            }).catch(() => {
+              // Silently wait for user gesture; no error prompt or banner shown
+            });
+          }
         } else {
           playRetroBootSound(true);
-          setIsAudioBlocked(false);
+          hasPlayedBootRef.current = true;
         }
-      } catch (err) {
-        setIsAudioBlocked(true);
+      } catch (err) {}
+    };
+
+    // Attempt playback immediately on mount
+    playBootSound();
+
+    // Silent background unlock on first touch/interaction (NO UI button or notice)
+    const handleFirstGesture = () => {
+      unlockAudio();
+      if (!hasPlayedBootRef.current && progressRef.current < 70) {
+        playBootSound();
       }
     };
 
-    attemptPlay();
-
-    // Browser Autoplay Policy Fallback:
-    // If the browser suspends initial audio, unlock and play immediately on first interaction
-    const handleFirstInteraction = () => {
-      unlockAudio();
-      playRetroBootSound(true);
-      setIsAudioBlocked(false);
-    };
-
-    window.addEventListener('pointerdown', handleFirstInteraction, { once: true });
-    window.addEventListener('touchstart', handleFirstInteraction, { once: true });
-    window.addEventListener('keydown', handleFirstInteraction, { once: true });
+    window.addEventListener('pointerdown', handleFirstGesture, { passive: true, once: true });
+    window.addEventListener('touchstart', handleFirstGesture, { passive: true, once: true });
+    window.addEventListener('keydown', handleFirstGesture, { passive: true, once: true });
 
     return () => {
-      window.removeEventListener('pointerdown', handleFirstInteraction);
-      window.removeEventListener('touchstart', handleFirstInteraction);
-      window.removeEventListener('keydown', handleFirstInteraction);
+      isCancelled = true;
+      window.removeEventListener('pointerdown', handleFirstGesture);
+      window.removeEventListener('touchstart', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
     };
   }, [activeSound]);
 
@@ -106,6 +113,7 @@ export default function WelcomeScreen({
     const timer = setInterval(() => {
       step++;
       const currentProgress = Math.min(100, Math.round((step / totalSteps) * 100));
+      progressRef.current = currentProgress;
       setProgress(currentProgress);
 
       const msgIndex = Math.floor((step / totalSteps) * logMessages.length);
@@ -186,11 +194,7 @@ export default function WelcomeScreen({
       id="welcome-screen-root"
       suppressHydrationWarning
       onClick={() => {
-        if (activeSound && isAudioBlocked) {
-          unlockAudio();
-          playRetroBootSound(true);
-          setIsAudioBlocked(false);
-        }
+        unlockAudio();
       }}
       className={`fixed inset-0 z-50 h-[100dvh] w-full overflow-y-auto overflow-x-hidden flex flex-col items-center justify-center p-3 xs:p-4 sm:p-6 bg-[#f0f4f8]/95 dark:bg-[#07080c]/95 backdrop-blur-md transition-all duration-500 ${
         isExiting ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
@@ -359,34 +363,12 @@ export default function WelcomeScreen({
       {/* Main Neo-Brutalist Arcade Box (Intrinsic Responsive Mobile Fit) */}
       <div className="relative z-30 brutal-card my-auto bg-white dark:bg-[#0e121b] border-[3px] xs:border-[3.5px] sm:border-[4.5px] border-black p-3.5 xs:p-5 sm:p-7 max-w-[460px] w-full text-center shadow-[4px_4px_0px_#000] sm:shadow-[6px_6px_0px_#000] dark:shadow-[0_0_35px_rgba(0,200,255,0.14),4px_4px_0px_#000000] flex flex-col items-center transition-all duration-300">
         
-        {/* 1. Status Badges: Arcade System + Dynamic Audio Status */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mb-2 sm:mb-3.5">
-          <div className="inline-flex items-center gap-1.5 bg-[#ffe600] border-2 border-black px-2 py-0.5 sm:px-2.5 sm:py-1 shadow-[2px_2px_0px_#000]">
-            <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-black fill-black" />
-            <span className="font-pixel text-[8px] sm:text-[9px] text-black tracking-wider uppercase font-black">
-              ARCADE SYSTEM
-            </span>
-          </div>
-
-          {!activeSound ? (
-            <div className="inline-flex items-center gap-1 bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-2 border-black px-2 py-0.5 sm:px-2.5 sm:py-1 shadow-[2px_2px_0px_#000]">
-              <span className="font-pixel text-[7.5px] sm:text-[8px] tracking-wider uppercase font-bold">
-                🔇 AUDIO MUTE (IKUT MAIL)
-              </span>
-            </div>
-          ) : isAudioBlocked ? (
-            <div className="inline-flex items-center gap-1 bg-[#ff0055] text-white border-2 border-black px-2 py-0.5 sm:px-2.5 sm:py-1 shadow-[2px_2px_0px_#000] animate-bounce">
-              <span className="font-pixel text-[7.5px] sm:text-[8px] tracking-wider uppercase font-black">
-                ⚡ KLIK LAYAR UNTUK BUNYIKAN AUDIO ⚡
-              </span>
-            </div>
-          ) : (
-            <div className="inline-flex items-center gap-1 bg-[#00ff66] text-black border-2 border-black px-2 py-0.5 sm:px-2.5 sm:py-1 shadow-[2px_2px_0px_#000]">
-              <span className="font-pixel text-[7.5px] sm:text-[8px] tracking-wider uppercase font-black">
-                🔊 AUDIO 8-BIT AKTIF
-              </span>
-            </div>
-          )}
+        {/* 1. Status Badge: ARCADE SYSTEM (Clean Single Badge, No Audio Prompt/Keterangan) */}
+        <div className="inline-flex items-center gap-1.5 bg-[#ffe600] border-2 border-black px-2.5 py-0.5 sm:px-3 sm:py-1 mb-2 sm:mb-3.5 shadow-[2px_2px_0px_#000]">
+          <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-black fill-black" />
+          <span className="font-pixel text-[8px] sm:text-[9px] text-black tracking-wider uppercase font-black">
+            ARCADE SYSTEM
+          </span>
         </div>
 
         {/* 2. Header Section */}
