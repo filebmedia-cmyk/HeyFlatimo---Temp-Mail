@@ -128,12 +128,12 @@ export default function EmailCard({
   };
 
   return (
-    <div className="brutal-card p-4 xs:p-5 sm:p-7 mt-14 xs:mt-16 sm:mt-20 mb-5 sm:mb-7 relative bg-[var(--card-bg)]">
+    <div className="brutal-card px-4 pb-4 pt-5 xs:px-5 xs:pb-5 xs:pt-6 sm:p-7 mt-14 xs:mt-16 sm:mt-20 mb-5 sm:mb-7 relative bg-[var(--card-bg)]">
       {/* ======================================================== */}
       {/* SQUAD DIORAMA OVER TOP BORDER (GIYU + NEKO + SHIBA)     */}
-      {/* ZERO LAYOUT SHIFT: Positioned absolute above top border */}
+      {/* CENTERED SQUAD COMPOSITION: Never overlaps corner buttons */}
       {/* ======================================================== */}
-      <div className="absolute -top-[48px] xs:-top-[54px] sm:-top-[58px] left-0 right-0 w-full flex items-end justify-between px-3 xs:px-6 sm:px-10 pointer-events-none z-20 select-none">
+      <div className="absolute -top-[48px] xs:-top-[54px] sm:-top-[58px] left-0 right-0 w-full flex items-end justify-center gap-4 xs:gap-7 sm:gap-12 md:gap-16 px-12 xs:px-14 sm:px-16 pointer-events-none z-20 select-none">
         {/* 1. Left: Pixel Neko Gamer (Interactive) */}
         <div
           onClick={handleNekoClick}
@@ -514,7 +514,7 @@ export default function EmailCard({
         <div className="flex items-center gap-1.5 xs:gap-2">
           <div className="relative flex items-center justify-center w-2.5 h-2.5">
             <span className="motion-radar-ring" />
-            <span className="relative w-2 h-2 rounded-full bg-[var(--color-green)]" />
+            <span className="relative w-1.5 h-1.5 rounded-full bg-[var(--color-green)]" />
           </div>
           <span className="font-bold text-[var(--text-main)]">
             Auto-Sync Aktif (Setiap {countdownSeconds}s)
