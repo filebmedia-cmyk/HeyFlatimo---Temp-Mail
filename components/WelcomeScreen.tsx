@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Zap, Play, FastForward, Terminal, Sparkles } from 'lucide-react';
 import {
+  playRetroCoinSound,
   playRetroBootSound,
   playRetroBlipSound,
   playRetroStartSound,
@@ -26,74 +27,35 @@ export default function WelcomeScreen({
   allowSkip = true,
   isSoundEnabled,
 }: WelcomeScreenProps) {
+  const [isStarted, setIsStarted] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentLog, setCurrentLog] = useState('> BOOTING ENGINE...');
   const [isExiting, setIsExiting] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const hasTriggeredCompleteRef = useRef(false);
-  const hasPlayedBootRef = useRef(false);
+  const isStartedRef = useRef(false);
   const progressRef = useRef(0);
 
   // Directly synchronized with mail app audio setting & localStorage
   const activeSound = isSoundEnabled !== undefined ? isSoundEnabled : (typeof window !== 'undefined' ? getSoundEnabled() : true);
 
-  // Auto-play boot sound respecting the main app sound setting, with silent gesture unlock
+  const handleStartArcade = () => {
+    if (isStartedRef.current) return;
+    isStartedRef.current = true;
+    setIsStarted(true);
+    unlockAudio();
+    if (activeSound) {
+      playRetroCoinSound(true);
+      setTimeout(() => {
+        playRetroBootSound(true);
+      }, 160);
+    }
+  };
+
+  // Animate progress segments with 8-bit blip sound once arcade started
   useEffect(() => {
-    if (!activeSound) return;
+    if (!isStarted) return;
 
-    let isCancelled = false;
-
-    const playBootSound = () => {
-      if (isCancelled || hasPlayedBootRef.current) return;
-      unlockAudio();
-      try {
-        const ctx = getAudioContext();
-        if (ctx) {
-          if (ctx.state === 'running') {
-            playRetroBootSound(true);
-            hasPlayedBootRef.current = true;
-          } else {
-            ctx.resume().then(() => {
-              if (!isCancelled && !hasPlayedBootRef.current) {
-                playRetroBootSound(true);
-                hasPlayedBootRef.current = true;
-              }
-            }).catch(() => {
-              // Silently wait for user gesture; no error prompt or banner shown
-            });
-          }
-        } else {
-          playRetroBootSound(true);
-          hasPlayedBootRef.current = true;
-        }
-      } catch (err) {}
-    };
-
-    // Attempt playback immediately on mount
-    playBootSound();
-
-    // Silent background unlock on first touch/interaction (NO UI button or notice)
-    const handleFirstGesture = () => {
-      unlockAudio();
-      if (!hasPlayedBootRef.current && progressRef.current < 70) {
-        playBootSound();
-      }
-    };
-
-    window.addEventListener('pointerdown', handleFirstGesture, { passive: true, once: true });
-    window.addEventListener('touchstart', handleFirstGesture, { passive: true, once: true });
-    window.addEventListener('keydown', handleFirstGesture, { passive: true, once: true });
-
-    return () => {
-      isCancelled = true;
-      window.removeEventListener('pointerdown', handleFirstGesture);
-      window.removeEventListener('touchstart', handleFirstGesture);
-      window.removeEventListener('keydown', handleFirstGesture);
-    };
-  }, [activeSound]);
-
-  // Animate progress segments with 8-bit blip sound
-  useEffect(() => {
     const totalSteps = 12;
     const intervalTime = (autoDismissDelay * 0.75) / totalSteps;
     let step = 0;
@@ -133,10 +95,12 @@ export default function WelcomeScreen({
     }, intervalTime);
 
     return () => clearInterval(timer);
-  }, [autoDismissDelay, activeSound]);
+  }, [isStarted, autoDismissDelay, activeSound]);
 
-  // Auto countdown to dismiss
+  // Auto countdown to dismiss once progress reaches 100%
   useEffect(() => {
+    if (!isStarted || progress < 100) return;
+
     const countdownTimer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -149,20 +113,24 @@ export default function WelcomeScreen({
     }, 1000);
 
     return () => clearInterval(countdownTimer);
-  }, []);
+  }, [isStarted, progress]);
 
-  // Keyboard shortcut: ESC to skip, ENTER or Space to start
+  // Keyboard shortcut: ESC to skip, ENTER or Space to start / dismiss
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && allowSkip) {
         handleDismiss();
       } else if (e.key === 'Enter' || e.key === ' ') {
-        handleDismiss();
+        if (!isStartedRef.current) {
+          handleStartArcade();
+        } else if (progress >= 100) {
+          handleDismiss();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [allowSkip]);
+  }, [allowSkip, progress]);
 
   const handleDismiss = () => {
     if (hasTriggeredCompleteRef.current) return;
@@ -194,7 +162,11 @@ export default function WelcomeScreen({
       id="welcome-screen-root"
       suppressHydrationWarning
       onClick={() => {
-        unlockAudio();
+        if (!isStartedRef.current) {
+          handleStartArcade();
+        } else {
+          unlockAudio();
+        }
       }}
       className={`fixed inset-0 z-50 h-[100dvh] w-full overflow-y-auto overflow-x-hidden flex flex-col items-center justify-center p-3 xs:p-4 sm:p-6 bg-[#f0f4f8]/95 dark:bg-[#07080c]/95 backdrop-blur-md transition-all duration-500 ${
         isExiting ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
@@ -400,98 +372,137 @@ export default function WelcomeScreen({
           </p>
         </div>
 
-        {/* 5. Pixel Segmented Progress Bar with Animated Runner Character */}
-        <div className="w-full mt-8 sm:mt-9 mb-3 sm:mb-4 bg-slate-100 dark:bg-[#151b27] border-2 border-black p-2 sm:p-2.5 shadow-[2px_2px_0px_#000] sm:shadow-[3px_3px_0px_#000] relative">
-          
-          {/* Dynamic Character Runner (MailBot 88) */}
-          <div
-            className={`absolute -top-8 sm:-top-9 transition-all duration-200 -translate-x-1/2 pointer-events-none z-30 ${
-              progress >= 100 ? 'anim-victory' : ''
-            }`}
-            style={{ left: `${charPosition}%` }}
-          >
-            <div className="anim-char-bob flex flex-col items-center">
-              <div className="relative">
-                {/* Speech Bubble Tag */}
-                <div className="absolute -top-4 sm:-top-5 left-1/2 -translate-x-1/2 bg-[#ffe600] text-black font-pixel text-[6px] xs:text-[7px] px-1 sm:px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap font-bold">
-                  {speechText}
+        {/* VIEW 1: ARCADE READY / INSERT COIN (BEFORE START) */}
+        {!isStarted && (
+          <div className="w-full flex flex-col items-center gap-3 my-2 sm:my-3">
+            {/* Retro Arcade Coin Insertion Slot */}
+            <div className="w-full bg-black border-2 sm:border-3 border-yellow-400 p-3 sm:p-4 shadow-[3px_3px_0px_#000] flex flex-col items-center gap-1.5 sm:gap-2 select-none">
+              <div className="flex items-center gap-2 text-yellow-300 font-pixel text-[8px] xs:text-[9px] sm:text-[10px] anim-blink">
+                <span>🪙</span>
+                <span>INSERT COIN / PRESS START</span>
+                <span>🪙</span>
+              </div>
+              <div className="text-[9px] sm:text-[10px] font-mono text-slate-300">
+                CREDITS: <strong className="text-emerald-400">99</strong> • PLAYER 1 READY
+              </div>
+            </div>
+
+            {/* Big Inviting Arcade Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleStartArcade();
+              }}
+              className="anim-button-pulse w-full bg-[#ffe600] hover:bg-yellow-300 active:scale-95 text-black font-pixel font-black text-xs sm:text-sm py-3.5 xs:py-4 px-4 border-2 sm:border-3 border-black shadow-[4px_4px_0px_#000] flex items-center justify-center gap-2.5 cursor-pointer transition-all"
+            >
+              <Play className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-black flex-shrink-0" />
+              <span>START ARCADE (TAP HERE)</span>
+            </button>
+
+            <div className="text-[7.5px] xs:text-[8px] sm:text-[8.5px] font-pixel text-slate-500 dark:text-slate-400 tracking-wide uppercase mt-0.5">
+              ⚡ SENTUH SEKALI UNTUK MEMULAI &amp; ON AUDIO ⚡
+            </div>
+          </div>
+        )}
+
+        {/* VIEW 2: LOADING PROGRESS RUNNING (AFTER START) */}
+        {isStarted && (
+          <>
+            {/* 5. Pixel Segmented Progress Bar with Animated Runner Character */}
+            <div className="w-full mt-8 sm:mt-9 mb-3 sm:mb-4 bg-slate-100 dark:bg-[#151b27] border-2 border-black p-2 sm:p-2.5 shadow-[2px_2px_0px_#000] sm:shadow-[3px_3px_0px_#000] relative">
+              
+              {/* Dynamic Character Runner (MailBot 88) */}
+              <div
+                className={`absolute -top-8 sm:-top-9 transition-all duration-200 -translate-x-1/2 pointer-events-none z-30 ${
+                  progress >= 100 ? 'anim-victory' : ''
+                }`}
+                style={{ left: `${charPosition}%` }}
+              >
+                <div className="anim-char-bob flex flex-col items-center">
+                  <div className="relative">
+                    {/* Speech Bubble Tag */}
+                    <div className="absolute -top-4 sm:-top-5 left-1/2 -translate-x-1/2 bg-[#ffe600] text-black font-pixel text-[6px] xs:text-[7px] px-1 sm:px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap font-bold">
+                      {speechText}
+                    </div>
+
+                    {/* Pixel Robot Body (SVG) */}
+                    <svg width="28" height="28" viewBox="0 0 32 32" className="sm:w-[34px] sm:h-[34px] drop-shadow-[2px_2px_0px_#000]">
+                      {/* Antenna */}
+                      <rect x="15" y="2" width="2" height="4" fill="#000" />
+                      <rect x="14" y="1" width="4" height="2" fill="#ff0055" />
+                      {/* Robot Head */}
+                      <rect x="6" y="6" width="20" height="12" fill="#ffe600" stroke="#000" strokeWidth="1.5" />
+                      {/* Eyes (Cyan Visor) */}
+                      <rect x="9" y="9" width="4" height="3" fill="#00f0ff" stroke="#000" strokeWidth="0.8" />
+                      <rect x="19" y="9" width="4" height="3" fill="#00f0ff" stroke="#000" strokeWidth="0.8" />
+                      {/* Cute Blush */}
+                      <rect x="7" y="14" width="2" height="1.5" fill="#ff007f" />
+                      <rect x="23" y="14" width="2" height="1.5" fill="#ff007f" />
+                      {/* Mouth line */}
+                      <line x1="12" y1="14" x2="20" y2="14" stroke="#000" strokeWidth="1.5" />
+                      {/* Body / Envelope held in hands */}
+                      <rect x="8" y="18" width="16" height="8" fill="#ffffff" stroke="#000" strokeWidth="1.5" />
+                      <polygon points="8,18 16,23 24,18" fill="#cbd5e1" stroke="#000" strokeWidth="1" />
+                      {/* Stamp */}
+                      <rect x="14" y="22" width="4" height="2.5" fill="#ff0055" />
+                      {/* Hands */}
+                      <rect x="5" y="19" width="3" height="4" fill="#ffe600" stroke="#000" strokeWidth="1" />
+                      <rect x="24" y="19" width="3" height="4" fill="#ffe600" stroke="#000" strokeWidth="1" />
+                    </svg>
+                  </div>
+                  {/* Jetpack Flame particles */}
+                  <div className="anim-flame -mt-1 flex gap-0.5 sm:gap-1">
+                    <div className="w-1 sm:w-1.5 h-1.5 sm:h-2 bg-gradient-to-b from-yellow-400 to-red-600 border border-black" />
+                    <div className="w-1 sm:w-1.5 h-1.5 sm:h-2 bg-gradient-to-b from-yellow-400 to-red-600 border border-black" />
+                  </div>
                 </div>
-
-                {/* Pixel Robot Body (SVG) */}
-                <svg width="28" height="28" viewBox="0 0 32 32" className="sm:w-[34px] sm:h-[34px] drop-shadow-[2px_2px_0px_#000]">
-                  {/* Antenna */}
-                  <rect x="15" y="2" width="2" height="4" fill="#000" />
-                  <rect x="14" y="1" width="4" height="2" fill="#ff0055" />
-                  {/* Robot Head */}
-                  <rect x="6" y="6" width="20" height="12" fill="#ffe600" stroke="#000" strokeWidth="1.5" />
-                  {/* Eyes (Cyan Visor) */}
-                  <rect x="9" y="9" width="4" height="3" fill="#00f0ff" stroke="#000" strokeWidth="0.8" />
-                  <rect x="19" y="9" width="4" height="3" fill="#00f0ff" stroke="#000" strokeWidth="0.8" />
-                  {/* Cute Blush */}
-                  <rect x="7" y="14" width="2" height="1.5" fill="#ff007f" />
-                  <rect x="23" y="14" width="2" height="1.5" fill="#ff007f" />
-                  {/* Mouth line */}
-                  <line x1="12" y1="14" x2="20" y2="14" stroke="#000" strokeWidth="1.5" />
-                  {/* Body / Envelope held in hands */}
-                  <rect x="8" y="18" width="16" height="8" fill="#ffffff" stroke="#000" strokeWidth="1.5" />
-                  <polygon points="8,18 16,23 24,18" fill="#cbd5e1" stroke="#000" strokeWidth="1" />
-                  {/* Stamp */}
-                  <rect x="14" y="22" width="4" height="2.5" fill="#ff0055" />
-                  {/* Hands */}
-                  <rect x="5" y="19" width="3" height="4" fill="#ffe600" stroke="#000" strokeWidth="1" />
-                  <rect x="24" y="19" width="3" height="4" fill="#ffe600" stroke="#000" strokeWidth="1" />
-                </svg>
               </div>
-              {/* Jetpack Flame particles */}
-              <div className="anim-flame -mt-1 flex gap-0.5 sm:gap-1">
-                <div className="w-1 sm:w-1.5 h-1.5 sm:h-2 bg-gradient-to-b from-yellow-400 to-red-600 border border-black" />
-                <div className="w-1 sm:w-1.5 h-1.5 sm:h-2 bg-gradient-to-b from-yellow-400 to-red-600 border border-black" />
+
+              <div className="flex items-center justify-between mb-1.5 sm:mb-2 text-[8px] xs:text-[9px] sm:text-[10px] font-pixel">
+                <div className="flex items-center gap-1.5 truncate">
+                  <Terminal className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 dark:text-cyan-400 flex-shrink-0" />
+                  <span className="truncate font-bold text-blue-700 dark:text-cyan-400">{currentLog}</span>
+                </div>
+                <span className="text-yellow-600 dark:text-yellow-400 font-bold ml-2">{progress}%</span>
+              </div>
+
+              {/* 12 Segments */}
+              <div className="grid grid-cols-12 gap-0.5 sm:gap-1 h-3 sm:h-3.5 bg-black p-0.5 border border-slate-700">
+                {Array.from({ length: 12 }).map((_, idx) => {
+                  const isFilled = progress >= ((idx + 1) / 12) * 100;
+                  return (
+                    <div
+                      key={idx}
+                      className={`transition-colors duration-150 ${
+                        isFilled ? segmentColors[idx] : 'bg-slate-700 dark:bg-slate-800'
+                      }`}
+                    />
+                  );
+                })}
               </div>
             </div>
-          </div>
 
-          <div className="flex items-center justify-between mb-1.5 sm:mb-2 text-[8px] xs:text-[9px] sm:text-[10px] font-pixel">
-            <div className="flex items-center gap-1.5 truncate">
-              <Terminal className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 dark:text-cyan-400 flex-shrink-0" />
-              <span className="truncate font-bold text-blue-700 dark:text-cyan-400">{currentLog}</span>
+            {/* 6. Action Button: MASUK KE INBOX */}
+            <div className="w-full flex flex-col items-center gap-1.5 sm:gap-2 mt-1">
+              <button
+                type="button"
+                onClick={handleDismiss}
+                className="brutal-btn w-full bg-[#ffe600] hover:bg-yellow-300 text-black font-pixel font-black text-xs sm:text-sm py-2.5 xs:py-3 px-4 sm:px-6 border-2 sm:border-3 border-black shadow-[3px_3px_0px_#000] sm:shadow-[4px_4px_0px_#000] dark:shadow-[0_0_20px_rgba(255,230,0,0.3),3px_3px_0px_#000] flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-black" />
+                <span>MASUK KE INBOX</span>
+              </button>
+
+              <div className="flex items-center gap-2 text-[9px] sm:text-[10px] font-pixel text-slate-600 dark:text-slate-400 font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>
+                  Masuk otomatis dalam <strong className="text-yellow-600 dark:text-yellow-400">{countdown}</strong> detik
+                </span>
+              </div>
             </div>
-            <span className="text-yellow-600 dark:text-yellow-400 font-bold ml-2">{progress}%</span>
-          </div>
-
-          {/* 12 Segments */}
-          <div className="grid grid-cols-12 gap-0.5 sm:gap-1 h-3 sm:h-3.5 bg-black p-0.5 border border-slate-700">
-            {Array.from({ length: 12 }).map((_, idx) => {
-              const isFilled = progress >= ((idx + 1) / 12) * 100;
-              return (
-                <div
-                  key={idx}
-                  className={`transition-colors duration-150 ${
-                    isFilled ? segmentColors[idx] : 'bg-slate-700 dark:bg-slate-800'
-                  }`}
-                />
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 6. Action Button: MASUK KE INBOX */}
-        <div className="w-full flex flex-col items-center gap-1.5 sm:gap-2 mt-1">
-          <button
-            type="button"
-            onClick={handleDismiss}
-            className="brutal-btn w-full bg-[#ffe600] hover:bg-yellow-300 text-black font-pixel font-black text-xs sm:text-sm py-2.5 xs:py-3 px-4 sm:px-6 border-2 sm:border-3 border-black shadow-[3px_3px_0px_#000] sm:shadow-[4px_4px_0px_#000] dark:shadow-[0_0_20px_rgba(255,230,0,0.3),3px_3px_0px_#000] flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-black" />
-            <span>MASUK KE INBOX</span>
-          </button>
-
-          <div className="flex items-center gap-2 text-[9px] sm:text-[10px] font-pixel text-slate-600 dark:text-slate-400 font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>
-              Masuk otomatis dalam <strong className="text-yellow-600 dark:text-yellow-400">{countdown}</strong> detik
-            </span>
-          </div>
-        </div>
+          </>
+        )}
 
         {/* Footer info (Clean, No Parentheses) */}
         <div className="mt-2.5 sm:mt-4 text-center font-pixel text-[7px] sm:text-[8px] text-slate-500 uppercase tracking-widest">

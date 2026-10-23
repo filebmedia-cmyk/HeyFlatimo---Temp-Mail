@@ -242,6 +242,33 @@ export function playErrorSound(): void {
 }
 
 /**
+ * 8-Bit Classic Arcade Coin Chime (B5 -> E6)
+ * Iconic chime instantly played upon arcade coin insert / start.
+ */
+export function playRetroCoinSound(force: boolean = false): void {
+  if (!force && !getSoundEnabled()) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state !== 'running') {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(987.77, now); // B5
+    osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.36);
+  } catch (e) {}
+}
+
+/**
  * 8-Bit Retro Arcade Sound Engine (Square / Triangle Web Audio Synthesizer)
  * Works universally across desktop and mobile browsers by awaiting AudioContext.resume().
  */
