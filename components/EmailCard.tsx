@@ -310,7 +310,7 @@ export default function EmailCard({
 
       {/* Top-Left Action Control: Dark/Light Mode Toggle */}
       {onToggleTheme && (
-        <div className="absolute top-2.5 left-2.5 xs:top-3 xs:left-3 sm:top-4 sm:left-4 z-10">
+        <div className="absolute top-2.5 left-2.5 xs:top-3 xs:left-3 sm:top-4 sm:left-4 z-30">
           <button
             type="button"
             onClick={onToggleTheme}
@@ -328,7 +328,7 @@ export default function EmailCard({
       )}
 
       {/* Top-Right Action Control: VIP Crown Button */}
-      <div className="absolute top-2.5 right-2.5 xs:top-3 xs:right-3 sm:top-4 sm:right-4 z-10">
+      <div className="absolute top-2.5 right-2.5 xs:top-3 xs:right-3 sm:top-4 sm:right-4 z-30">
         {isVipUnlocked ? (
           <div
             className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] text-black border-2 sm:border-[2.5px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)]"
