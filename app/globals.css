@@ -915,16 +915,18 @@ pre {
 
 @keyframes buttonGlowPulse {
   0%, 100% {
-    box-shadow: 3px 3px 0px #000, 0 0 15px rgba(255, 230, 0, 0.4);
-    transform: translateY(0);
+    box-shadow: 4px 4px 0px #000, 0 0 16px rgba(255, 230, 0, 0.45);
+    filter: brightness(1);
   }
   50% {
-    box-shadow: 3px 3px 0px #000, 0 0 28px rgba(255, 230, 0, 0.85);
-    transform: translateY(-2px);
+    box-shadow: 4px 4px 0px #000, 0 0 30px rgba(255, 230, 0, 0.95);
+    filter: brightness(1.08);
   }
 }
 .anim-button-pulse {
   animation: buttonGlowPulse 1.4s ease-in-out infinite;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 @keyframes tailWagAnim {

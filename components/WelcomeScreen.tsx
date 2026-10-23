@@ -169,6 +169,8 @@ export default function WelcomeScreen({
         paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
         paddingLeft: 'max(0.75rem, env(safe-area-inset-left))',
         paddingRight: 'max(0.75rem, env(safe-area-inset-right))',
+        touchAction: 'pan-y',
+        WebkitOverflowScrolling: 'touch',
       }}
     >
       {/* Retro CRT Scanlines */}
@@ -316,7 +318,12 @@ export default function WelcomeScreen({
           <button
             type="button"
             onClick={handleDismiss}
-            className="brutal-btn bg-white dark:bg-[#151b27] text-black dark:text-white font-pixel text-[8px] xs:text-[9px] sm:text-xs px-2.5 py-1 sm:px-3 sm:py-1.5 border-2 border-black flex items-center gap-1.5 sm:gap-2 shadow-[2px_2px_0px_#000] cursor-pointer"
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              handleDismiss();
+            }}
+            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+            className="brutal-btn bg-white dark:bg-[#151b27] text-black dark:text-white font-pixel text-[8px] xs:text-[9px] sm:text-xs px-2.5 py-1 sm:px-3 sm:py-1.5 border-2 border-black flex items-center gap-1.5 sm:gap-2 shadow-[2px_2px_0px_#000] cursor-pointer active:scale-95"
           >
             <FastForward className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             <span>LEWATI</span>
@@ -482,8 +489,18 @@ export default function WelcomeScreen({
         {/* VIEW 1: ARCADE READY / INSERT COIN (BEFORE START) */}
         {!isStarted && (
           <div className="w-full flex flex-col items-center gap-3 my-2 sm:my-3">
-            {/* Retro Arcade Coin Insertion Slot */}
-            <div className="w-full bg-black border-2 sm:border-3 border-yellow-400 p-3 sm:p-4 shadow-[3px_3px_0px_#000] flex flex-col items-center gap-1.5 sm:gap-2 select-none">
+            {/* Retro Arcade Coin Insertion Slot (Interactive on click & touch) */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={handleStartArcade}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                handleStartArcade();
+              }}
+              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+              className="w-full bg-black hover:bg-neutral-900 active:scale-[0.98] border-2 sm:border-3 border-yellow-400 p-3 sm:p-4 shadow-[3px_3px_0px_#000] flex flex-col items-center gap-1.5 sm:gap-2 select-none cursor-pointer transition-all"
+            >
               <div className="flex items-center gap-2 text-yellow-300 font-pixel text-[8px] xs:text-[9px] sm:text-[10px] anim-blink">
                 <span>🪙</span>
                 <span>INSERT COIN / PRESS START</span>
@@ -497,10 +514,12 @@ export default function WelcomeScreen({
             {/* Big Inviting Arcade Button */}
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={handleStartArcade}
+              onTouchEnd={(e) => {
+                e.preventDefault();
                 handleStartArcade();
               }}
+              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
               className="anim-button-pulse w-full bg-[#ffe600] hover:bg-yellow-300 active:scale-95 text-black font-pixel font-black text-xs sm:text-sm py-3.5 xs:py-4 px-4 border-2 sm:border-3 border-black shadow-[4px_4px_0px_#000] flex items-center justify-center gap-2.5 cursor-pointer transition-all"
             >
               <Play className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-black flex-shrink-0" />
@@ -591,7 +610,12 @@ export default function WelcomeScreen({
               <button
                 type="button"
                 onClick={handleDismiss}
-                className="brutal-btn w-full bg-[#ffe600] hover:bg-yellow-300 text-black font-pixel font-black text-xs sm:text-sm py-2.5 xs:py-3 px-4 sm:px-6 border-2 sm:border-3 border-black shadow-[3px_3px_0px_#000] sm:shadow-[4px_4px_0px_#000] dark:shadow-[0_0_20px_rgba(255,230,0,0.3),3px_3px_0px_#000] flex items-center justify-center gap-2 cursor-pointer"
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  handleDismiss();
+                }}
+                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                className="brutal-btn w-full bg-[#ffe600] hover:bg-yellow-300 active:scale-95 text-black font-pixel font-black text-xs sm:text-sm py-2.5 xs:py-3 px-4 sm:px-6 border-2 sm:border-3 border-black shadow-[3px_3px_0px_#000] sm:shadow-[4px_4px_0px_#000] dark:shadow-[0_0_20px_rgba(255,230,0,0.3),3px_3px_0px_#000] flex items-center justify-center gap-2 cursor-pointer transition-all"
               >
                 <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-black" />
                 <span>MASUK KE INBOX</span>

@@ -80,14 +80,14 @@ export function getAudioContext(): AudioContext | null {
   }
 }
 
+let isAudioUnlocked = false;
+
 /**
  * Unlocks mobile browser autoplay policies across iOS Safari & Android Chrome.
  */
 export function unlockAudio(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || isAudioUnlocked) return;
   try {
-    preloadSounds();
-
     const ctx = getAudioContext();
     if (ctx) {
       if (ctx.state !== 'running') {
@@ -101,20 +101,27 @@ export function unlockAudio(): void {
         source.start(0);
       } catch (err) {}
     }
+    preloadSounds();
+    isAudioUnlocked = true;
   } catch (e) {
     // Ignore unlock errors
   }
 }
 
-// Auto-register touch/click interaction listeners
+// Auto-register touch/click interaction listeners with one-time cleanup
 if (typeof window !== 'undefined') {
-  const unlockEvents = ['touchstart', 'touchend', 'click', 'pointerdown', 'keydown'];
+  const unlockEvents = ['touchstart', 'touchend', 'click', 'pointerdown'];
   const handleUserInteraction = () => {
     unlockAudio();
+    if (isAudioUnlocked) {
+      unlockEvents.forEach((evt) => {
+        window.removeEventListener(evt, handleUserInteraction, true);
+      });
+    }
   };
 
   unlockEvents.forEach((evt) => {
-    window.addEventListener(evt, handleUserInteraction, { passive: true, capture: true, once: false });
+    window.addEventListener(evt, handleUserInteraction, { passive: true, capture: true });
   });
 }
 

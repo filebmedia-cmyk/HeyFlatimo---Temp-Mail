@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import CustomEmailModal from './CustomEmailModal';
 import DomainDropdown, { DomainOption } from './DomainDropdown';
-import { playSound } from '@/lib/sound';
+import { playSound, playKatanaSlashSound, playNekoSound, playShibaSound } from '@/lib/sound';
 
 interface EmailCardProps {
   currentEmail: string;
@@ -77,6 +77,11 @@ export default function EmailCard({
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Interactive Squad Character States
+  const [giyuState, setGiyuState] = useState<'idle' | 'slashing'>('idle');
+  const [nekoState, setNekoState] = useState<'idle' | 'meow'>('idle');
+  const [shibaState, setShibaState] = useState<'idle' | 'bark'>('idle');
+
   const badgeText = heroHeader?.badgeText !== undefined ? heroHeader.badgeText : 'DISPOSABLE INBOX SYSTEM';
   const titlePrefix = heroHeader?.titlePrefix !== undefined ? heroHeader.titlePrefix : 'TEMPORARY';
   const titleHighlight = heroHeader?.titleHighlight !== undefined ? heroHeader.titleHighlight : 'INBOX';
@@ -89,8 +94,220 @@ export default function EmailCard({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleGiyuClick = () => {
+    if (giyuState === 'slashing') return;
+    setGiyuState('slashing');
+    if (isSoundEnabled) {
+      playKatanaSlashSound(true);
+    }
+    setTimeout(() => {
+      setGiyuState('idle');
+    }, 1400);
+  };
+
+  const handleNekoClick = () => {
+    if (nekoState === 'meow') return;
+    setNekoState('meow');
+    if (isSoundEnabled) {
+      playNekoSound(true);
+    }
+    setTimeout(() => {
+      setNekoState('idle');
+    }, 1200);
+  };
+
+  const handleShibaClick = () => {
+    if (shibaState === 'bark') return;
+    setShibaState('bark');
+    if (isSoundEnabled) {
+      playShibaSound(true);
+    }
+    setTimeout(() => {
+      setShibaState('idle');
+    }, 1200);
+  };
+
   return (
-    <div className="brutal-card p-4 xs:p-5 sm:p-7 mb-5 sm:mb-7 relative bg-[var(--card-bg)]">
+    <div className="brutal-card p-4 xs:p-5 sm:p-7 mt-9 xs:mt-11 sm:mt-14 mb-5 sm:mb-7 relative bg-[var(--card-bg)]">
+      {/* ======================================================== */}
+      {/* SQUAD DIORAMA OVER TOP BORDER (GIYU + NEKO + SHIBA)     */}
+      {/* ZERO LAYOUT SHIFT: Positioned absolute above top border */}
+      {/* ======================================================== */}
+      <div className="absolute -top-[48px] xs:-top-[54px] sm:-top-[58px] left-0 right-0 w-full flex items-end justify-between px-3 xs:px-6 sm:px-10 pointer-events-none z-20 select-none">
+        {/* 1. Left: Pixel Neko Gamer (Interactive) */}
+        <div
+          onClick={handleNekoClick}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            handleNekoClick();
+          }}
+          style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+          className={`flex flex-col items-center anim-char-bob pointer-events-auto cursor-pointer group transition-transform ${
+            nekoState === 'meow' ? '-translate-y-2' : ''
+          }`}
+          title="Neko Gamer"
+        >
+          <div className="bg-[#ff007f] text-white font-pixel text-[5.5px] xs:text-[6px] px-1 py-0.2 border border-black shadow-[1px_1px_0px_#000] -mb-1 z-10 font-bold group-hover:scale-105 transition-transform">
+            {nekoState === 'meow' ? 'PURR! 🐱' : 'MEOW! 🎧'}
+          </div>
+          <svg width="42" height="42" viewBox="0 0 32 32" className="xs:w-[46px] xs:h-[46px] drop-shadow-[2px_2px_0px_#000] group-hover:scale-105 transition-transform">
+            <g className="anim-tail">
+              <rect x="23" y="16" width="3" height="3" fill="#ff9900" stroke="#000" strokeWidth="0.75" />
+              <rect x="25" y="13" width="3" height="4" fill="#ffffff" stroke="#000" strokeWidth="0.75" />
+            </g>
+            <polygon points="7,4 12,4 7,10" fill="#ff9900" stroke="#000" strokeWidth="0.8" />
+            <polygon points="25,4 20,4 25,10" fill="#ff9900" stroke="#000" strokeWidth="0.8" />
+            <path d="M7,10 Q16,4 25,10" fill="none" stroke="#00ffff" strokeWidth="2.2" />
+            <rect x="5" y="9" width="3" height="5" rx="1" fill="#00ffff" stroke="#000" strokeWidth="0.7" />
+            <rect x="24" y="9" width="3" height="5" rx="1" fill="#00ffff" stroke="#000" strokeWidth="0.7" />
+            <rect x="8" y="8" width="16" height="11" rx="2" fill="#ff9900" stroke="#000" strokeWidth="1" />
+            <rect x="12" y="13" width="8" height="5" fill="#ffffff" />
+            <rect x="10" y="11" width="3" height="3" fill="#000000" />
+            <rect x="10" y="11" width="1.5" height="1.5" fill="#ffffff" />
+            <rect x="19" y="11" width="3" height="3" fill="#000000" />
+            <rect x="19" y="11" width="1.5" height="1.5" fill="#ffffff" />
+            <polygon points="15,14 17,14 16,15.5" fill="#ff007f" />
+            <rect x="10" y="18" width="12" height="9" fill="#ff9900" stroke="#000" strokeWidth="0.9" />
+            <rect x="12" y="18" width="8" height="6" fill="#ffffff" />
+            <rect x="11" y="26" width="4" height="4" rx="1.5" fill="#ffffff" stroke="#000" strokeWidth="0.8" />
+            <rect x="17" y="26" width="4" height="4" rx="1.5" fill="#ffffff" stroke="#000" strokeWidth="0.8" />
+          </svg>
+        </div>
+
+        {/* 2. Center: GIYU TOMIOKA (Hashira Air) - Interactive Katana Slash Action */}
+        <div
+          onClick={handleGiyuClick}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            handleGiyuClick();
+          }}
+          style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+          className={`flex flex-col items-center relative -mb-0.5 pointer-events-auto cursor-pointer group ${
+            giyuState === 'slashing' ? 'anim-action-slash' : 'anim-char-bob'
+          }`}
+          title="Giyu Tomioka (Klik untuk tebasan air!)"
+        >
+          {/* Action Tag: Pure Name in Idle, Water Slash during action */}
+          <div className="bg-cyan-500 text-black font-pixel text-[6px] xs:text-[6.5px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] -mb-1 z-30 flex items-center gap-1 font-bold group-hover:scale-105 transition-transform">
+            <span>{giyuState === 'slashing' ? '⚔️' : '🌊'}</span>
+            <span>{giyuState === 'slashing' ? 'WATER SLASH!' : 'GIYU TOMIOKA'}</span>
+          </div>
+
+          {/* Water Slash Wave Effect Overlay when slashing */}
+          {giyuState === 'slashing' && (
+            <div className="absolute -top-10 xs:-top-12 sm:-top-14 left-1/2 -translate-x-1/2 pointer-events-none z-40 w-[200px] xs:w-[240px] sm:w-[280px] anim-water-slash">
+              <svg viewBox="0 0 200 80" className="w-full filter drop-shadow-[0_0_12px_rgba(0,240,255,0.9)]">
+                <path d="M10,70 Q60,10 130,25 T190,5" fill="none" stroke="#00ffff" strokeWidth="7" strokeLinecap="round" />
+                <path d="M15,72 Q65,15 135,28 T195,8" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+                <circle cx="45" cy="30" r="3.5" fill="#00f0ff" />
+                <circle cx="85" cy="18" r="4.5" fill="#ffffff" />
+                <circle cx="120" cy="15" r="3" fill="#00f0ff" />
+                <circle cx="160" cy="22" r="4" fill="#ffffff" />
+              </svg>
+            </div>
+          )}
+
+          <div className="relative">
+            <div className="absolute -inset-1 bg-cyan-400/20 blur-sm rounded-full anim-water"></div>
+            <svg width="60" height="60" viewBox="0 0 36 36" className="xs:w-[68px] xs:h-[68px] relative z-10 drop-shadow-[3px_3px_0px_#000] group-hover:scale-105 transition-transform">
+              {/* Ponytail Hair */}
+              <polygon points="8,10 3,16 6,24 10,21 10,14" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
+              <rect x="7" y="13" width="3" height="2" fill="#38bdf8" />
+              {/* Spiky Black Hair */}
+              <polygon points="10,5 18,3 26,5 28,11 26,13 10,13 8,10" fill="#0f172a" stroke="#000" strokeWidth="0.9" />
+              <polygon points="7,8 4,11 9,11" fill="#0f172a" />
+              <polygon points="27,8 30,11 25,11" fill="#0f172a" />
+              {/* Face */}
+              <rect x="10" y="8" width="16" height="11" fill="#fde68a" stroke="#000" strokeWidth="1" />
+              <polygon points="10,8 14,13 16,9 20,13 22,8" fill="#0f172a" />
+              {/* Eyes */}
+              <rect x="12" y="12" width="3" height="2.5" fill="#0284c7" stroke="#000" strokeWidth="0.5" />
+              <rect x="13" y="12" width="1" height="1" fill="#ffffff" />
+              <rect x="21" y="12" width="3" height="2.5" fill="#0284c7" stroke="#000" strokeWidth="0.5" />
+              <rect x="22" y="12" width="1" height="1" fill="#ffffff" />
+              <line x1="16" y1="16" x2="20" y2="16" stroke="#000" strokeWidth="0.75" />
+              {/* Split Haori */}
+              <path d="M10,19 L18,19 L18,29 L8,29 L8,22 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.9" />
+              <path d="M18,19 L26,19 L28,22 L28,29 L18,29 Z" fill="#15803d" stroke="#000" strokeWidth="0.9" />
+              <rect x="19" y="20" width="3" height="3" fill="#eab308" />
+              <rect x="23" y="20" width="3" height="3" fill="#ea580c" />
+              <rect x="21" y="23" width="3" height="3" fill="#eab308" />
+              <polygon points="15,19 21,19 18,25" fill="#0f172a" />
+              <line x1="18" y1="19" x2="18" y2="24" stroke="#ffffff" strokeWidth="0.8" />
+              <rect x="13" y="25" width="10" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.6" />
+
+              {/* Nichirin Blade: Sheathed in idle, Drawn in action */}
+              {giyuState === 'idle' ? (
+                <g>
+                  <line x1="5" y1="28" x2="14" y2="23" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" />
+                  <line x1="5" y1="28" x2="14" y2="23" stroke="#0284c7" strokeWidth="1.2" strokeLinecap="round" />
+                  <rect x="13.5" y="21.5" width="2" height="2" fill="#000" stroke="#38bdf8" strokeWidth="0.5" />
+                  <line x1="14" y1="22" x2="18" y2="20" stroke="#ffffff" strokeWidth="1.8" />
+                </g>
+              ) : (
+                <g>
+                  <line x1="18" y1="20" x2="34" y2="9" stroke="#00f0ff" strokeWidth="3" strokeLinecap="round" />
+                  <line x1="18" y1="20" x2="34" y2="9" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx="18" cy="20" r="2" fill="#000" stroke="#00f0ff" strokeWidth="0.8" />
+                </g>
+              )}
+
+              {/* Legs dangling */}
+              <rect x="12" y="29" width="4" height="4" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
+              <line x1="12" y1="31" x2="16" y2="31" stroke="#ffffff" strokeWidth="0.75" />
+              <rect x="11.5" y="32" width="5" height="2" fill="#d97706" rx="0.5" />
+              <rect x="20" y="29" width="4" height="4" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
+              <line x1="20" y1="31" x2="24" y2="31" stroke="#ffffff" strokeWidth="0.75" />
+              <rect x="19.5" y="32" width="5" height="2" fill="#d97706" rx="0.5" />
+            </svg>
+          </div>
+        </div>
+
+        {/* 3. Right: Shiba Mail Courier & Mini Ghost (Interactive) */}
+        <div
+          onClick={handleShibaClick}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            handleShibaClick();
+          }}
+          style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', animationDelay: '-1.2s' }}
+          className={`flex items-end gap-1 anim-char-bob pointer-events-auto cursor-pointer group transition-transform ${
+            shibaState === 'bark' ? '-translate-y-2' : ''
+          }`}
+          title="Shiba Courier"
+        >
+          <div className="flex flex-col items-center">
+            <div className="bg-[#ffe600] text-black font-pixel text-[5.5px] xs:text-[6px] px-1 py-0.2 border border-black shadow-[1px_1px_0px_#000] -mb-1 z-10 font-bold group-hover:scale-105 transition-transform">
+              {shibaState === 'bark' ? 'WOOF! 🐶' : 'MAIL! 💌'}
+            </div>
+            <svg width="42" height="42" viewBox="0 0 32 32" className="xs:w-[46px] xs:h-[46px] drop-shadow-[2px_2px_0px_#000] group-hover:scale-105 transition-transform">
+              <polygon points="7,4 12,4 9,10" fill="#d97706" stroke="#000" strokeWidth="0.8" />
+              <polygon points="25,4 20,4 23,10" fill="#d97706" stroke="#000" strokeWidth="0.8" />
+              <rect x="8" y="6" width="16" height="4" fill="#1e3a8a" stroke="#000" strokeWidth="0.7" rx="1" />
+              <circle cx="16" cy="8" r="1.2" fill="#ffe600" />
+              <rect x="8" y="10" width="16" height="11" fill="#d97706" stroke="#000" strokeWidth="0.9" rx="1" />
+              <rect x="10" y="13" width="2.5" height="2.5" fill="#000" />
+              <rect x="19.5" y="13" width="2.5" height="2.5" fill="#000" />
+              <rect x="12" y="15" width="8" height="4" fill="#ffffff" />
+              <polygon points="15,16 17,16 16,17" fill="#000" />
+              <rect x="11" y="19" width="10" height="5" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+              <rect x="14.5" y="20.5" width="3" height="2" fill="#ff0055" />
+              <rect x="9" y="25" width="4" height="4" rx="1" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+              <rect x="19" y="25" width="4" height="4" rx="1" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+            </svg>
+          </div>
+          <div className="hidden xs:block -mb-1 anim-water">
+            <svg width="24" height="24" viewBox="0 0 24 24" className="drop-shadow-[2px_2px_0px_#000]">
+              <path d="M6,10 A6,6 0 0,1 18,10 L18,20 L15,18 L12,20 L9,18 L6,20 Z" fill="#ff007f" stroke="#000" strokeWidth="1" />
+              <rect x="8" y="9" width="3" height="3" fill="#fff" />
+              <rect x="9" y="10" width="1.5" height="2" fill="#00f0ff" />
+              <rect x="13" y="9" width="3" height="3" fill="#fff" />
+              <rect x="14" y="10" width="1.5" height="2" fill="#00f0ff" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
       {/* Top-Left Action Control: Dark/Light Mode Toggle */}
       {onToggleTheme && (
         <div className="absolute top-2.5 left-2.5 xs:top-3 xs:left-3 sm:top-4 sm:left-4 z-10">
