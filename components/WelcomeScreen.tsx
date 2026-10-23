@@ -155,6 +155,13 @@ export default function WelcomeScreen({
     'bg-[#00f0ff]', 'bg-[#00f0ff]', 'bg-[#00c853]', 'bg-[#00c853]'
   ];
 
+  // Dynamic Character Runner calculation
+  const charPosition = 4 + (progress * 0.92);
+  let speechText = 'RUN!';
+  if (progress >= 35 && progress < 70) speechText = 'FETCHING!';
+  else if (progress >= 70 && progress < 100) speechText = 'LOCKING!';
+  else if (progress >= 100) speechText = 'DELIVERED!';
+
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#f0f4f8]/95 dark:bg-[#07080c]/95 backdrop-blur-md transition-all duration-500 ${
@@ -282,8 +289,56 @@ export default function WelcomeScreen({
           </p>
         </div>
 
-        {/* 5. Pixel Segmented Progress Bar */}
-        <div className="w-full my-4 bg-slate-100 dark:bg-[#151b27] border-2 border-black p-2.5 shadow-[3px_3px_0px_#000]">
+        {/* 5. Pixel Segmented Progress Bar with Animated Runner Character */}
+        <div className="w-full mt-7 mb-4 bg-slate-100 dark:bg-[#151b27] border-2 border-black p-2.5 shadow-[3px_3px_0px_#000] relative">
+          
+          {/* Dynamic Character Runner (MailBot 88) */}
+          <div
+            className={`absolute -top-9 transition-all duration-200 -translate-x-1/2 pointer-events-none z-30 ${
+              progress >= 100 ? 'anim-victory' : ''
+            }`}
+            style={{ left: `${charPosition}%` }}
+          >
+            <div className="anim-char-bob flex flex-col items-center">
+              <div className="relative">
+                {/* Speech Bubble Tag */}
+                <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-[#ffe600] text-black font-pixel text-[7px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap font-bold">
+                  {speechText}
+                </div>
+
+                {/* Pixel Robot Body (SVG) */}
+                <svg width="34" height="34" viewBox="0 0 32 32" className="drop-shadow-[2px_2px_0px_#000]">
+                  {/* Antenna */}
+                  <rect x="15" y="2" width="2" height="4" fill="#000" />
+                  <rect x="14" y="1" width="4" height="2" fill="#ff0055" />
+                  {/* Robot Head */}
+                  <rect x="6" y="6" width="20" height="12" fill="#ffe600" stroke="#000" strokeWidth="1.5" />
+                  {/* Eyes (Cyan Visor) */}
+                  <rect x="9" y="9" width="4" height="3" fill="#00f0ff" stroke="#000" strokeWidth="0.8" />
+                  <rect x="19" y="9" width="4" height="3" fill="#00f0ff" stroke="#000" strokeWidth="0.8" />
+                  {/* Cute Blush */}
+                  <rect x="7" y="14" width="2" height="1.5" fill="#ff007f" />
+                  <rect x="23" y="14" width="2" height="1.5" fill="#ff007f" />
+                  {/* Mouth line */}
+                  <line x1="12" y1="14" x2="20" y2="14" stroke="#000" strokeWidth="1.5" />
+                  {/* Body / Envelope held in hands */}
+                  <rect x="8" y="18" width="16" height="8" fill="#ffffff" stroke="#000" strokeWidth="1.5" />
+                  <polygon points="8,18 16,23 24,18" fill="#cbd5e1" stroke="#000" strokeWidth="1" />
+                  {/* Stamp */}
+                  <rect x="14" y="22" width="4" height="2.5" fill="#ff0055" />
+                  {/* Hands */}
+                  <rect x="5" y="19" width="3" height="4" fill="#ffe600" stroke="#000" strokeWidth="1" />
+                  <rect x="24" y="19" width="3" height="4" fill="#ffe600" stroke="#000" strokeWidth="1" />
+                </svg>
+              </div>
+              {/* Jetpack Flame particles */}
+              <div className="anim-flame -mt-1 flex gap-1">
+                <div className="w-1.5 h-2 bg-gradient-to-b from-yellow-400 to-red-600 border border-black" />
+                <div className="w-1.5 h-2 bg-gradient-to-b from-yellow-400 to-red-600 border border-black" />
+              </div>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between mb-2 text-[10px] font-pixel">
             <div className="flex items-center gap-1.5 truncate">
               <Terminal className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400 flex-shrink-0" />
