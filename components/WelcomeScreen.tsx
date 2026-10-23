@@ -161,54 +161,64 @@ export default function WelcomeScreen({
       {/* Retro CRT Scanlines */}
       <div className="absolute inset-0 pointer-events-none z-20 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.18)_50%)] bg-[length:100%_4px] opacity-65" />
 
-      {/* Dynamic Retro Grid Background & Game Particles */}
+      {/* Dynamic Retro Grid Background & Moving Animated Game Particles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
         
-        {/* Dynamic Retro Grid Lines */}
-        <div className="absolute inset-0 opacity-20 dark:opacity-15 bg-[linear-gradient(to_right,rgba(0,0,0,0.12)_2px,transparent_2px),linear-gradient(to_bottom,rgba(0,0,0,0.12)_2px,transparent_2px)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.1)_2px,transparent_2px),linear-gradient(to_bottom,rgba(255,255,255,0.1)_2px,transparent_2px)] bg-[size:32px_32px]" />
+        {/* Prominent High-Contrast Retro Grid Lines (Light & Dark) */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.16)_2px,transparent_2px),linear-gradient(to_bottom,rgba(0,0,0,0.16)_2px,transparent_2px)] dark:bg-[linear-gradient(to_right,rgba(0,200,255,0.18)_2px,transparent_2px),linear-gradient(to_bottom,rgba(0,200,255,0.18)_2px,transparent_2px)] bg-[size:32px_32px]" />
 
-        {/* 1. PlayStation Triangle (Emerald Green) */}
-        <div className="absolute top-[8%] left-[7%] animate-pulse">
-          <svg width="56" height="56" viewBox="0 0 100 100">
+        {/* 1. PlayStation Triangle (Emerald Green) - Floating & Rotating */}
+        <div className="absolute top-[8%] left-[7%] anim-token-float-1">
+          <svg width="58" height="58" viewBox="0 0 100 100" className="drop-shadow-[3px_3px_0px_#000] dark:drop-shadow-[0_0_12px_rgba(0,255,102,0.4)]">
             <polygon points="50,15 90,85 10,85" fill="#00ff66" stroke="#000000" strokeWidth="8" />
           </svg>
         </div>
 
-        {/* 2. PlayStation Circle (Crimson Red) */}
-        <div className="absolute top-[16%] right-[8%]">
-          <svg width="52" height="52" viewBox="0 0 100 100">
+        {/* 2. PlayStation Circle (Crimson Red) - Pulsing & Breathing */}
+        <div className="absolute top-[16%] right-[8%] anim-token-pulse">
+          <svg width="54" height="54" viewBox="0 0 100 100" className="drop-shadow-[3px_3px_0px_#000] dark:drop-shadow-[0_0_12px_rgba(255,0,85,0.4)]">
             <circle cx="50" cy="50" r="40" fill="#ff0055" stroke="#000000" strokeWidth="8" />
           </svg>
         </div>
 
-        {/* 3. PlayStation Cross (Electric Cyan) */}
-        <div className="absolute bottom-[18%] left-[10%]">
-          <svg width="48" height="48" viewBox="0 0 100 100">
+        {/* 3. PlayStation Cross (Electric Cyan) - Smooth 360 Spin */}
+        <div className="absolute bottom-[18%] left-[9%] anim-token-spin">
+          <svg width="50" height="50" viewBox="0 0 100 100" className="drop-shadow-[3px_3px_0px_#000] dark:drop-shadow-[0_0_12px_rgba(0,200,255,0.4)]">
             <line x1="20" y1="20" x2="80" y2="80" stroke="#00c8ff" strokeWidth="18" strokeLinecap="square" />
             <line x1="80" y1="20" x2="20" y2="80" stroke="#00c8ff" strokeWidth="18" strokeLinecap="square" />
           </svg>
         </div>
 
-        {/* 4. PlayStation Square (Hot Pink) */}
-        <div className="absolute bottom-[14%] right-[10%]">
-          <svg width="50" height="50" viewBox="0 0 100 100">
+        {/* 4. PlayStation Square (Hot Pink) - Floating Drift */}
+        <div className="absolute bottom-[14%] right-[10%] anim-token-float-2">
+          <svg width="52" height="52" viewBox="0 0 100 100" className="drop-shadow-[3px_3px_0px_#000] dark:drop-shadow-[0_0_12px_rgba(255,0,127,0.4)]">
             <rect x="15" y="15" width="70" height="70" fill="#ff007f" stroke="#000000" strokeWidth="8" />
           </svg>
         </div>
 
-        {/* 5. 8-Bit Pixel Sparkle Star 1 (Cyber Yellow) */}
-        <div className="absolute top-[12%] left-[46%] text-[#ffe600] animate-bounce">
+        {/* 5. 8-Bit Pixel Sparkle Star 1 (Cyber Yellow) - Twinkling */}
+        <div className="absolute top-[12%] left-[46%] text-[#ffe600] anim-pixel-twinkle drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_8px_rgba(255,230,0,0.6)]">
+          <Sparkles className="w-6 h-6 fill-current" />
+        </div>
+
+        {/* 6. 8-Bit Pixel Sparkle Star 2 (Laser Mint) - Twinkling */}
+        <div className="absolute top-[48%] right-[5%] text-[#00ff66] anim-pixel-twinkle drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_8px_rgba(0,255,102,0.6)]" style={{ animationDelay: '-1.4s' }}>
           <Sparkles className="w-5 h-5 fill-current" />
         </div>
 
-        {/* 6. 8-Bit Pixel Sparkle Star 2 (Laser Mint) */}
-        <div className="absolute top-[48%] right-[5%] text-[#00ff66] animate-pulse">
-          <Sparkles className="w-4 h-4 fill-current" />
+        {/* 7. 8-Bit Pixel Sparkle Star 3 (Laser Orange) - Twinkling */}
+        <div className="absolute bottom-[10%] left-[32%] text-[#ff5500] anim-pixel-twinkle drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_8px_rgba(255,85,0,0.6)]" style={{ animationDelay: '-0.7s' }}>
+          <Sparkles className="w-5 h-5 fill-current" />
         </div>
 
-        {/* 7. Floating Retro D-pad Pixel */}
-        <div className="absolute top-[42%] left-[4%]">
-          <div className="w-6 h-6 bg-yellow-400 border-2 border-black rotate-45 shadow-[2px_2px_0px_#000]" />
+        {/* 8. Floating Retro D-pad Pixel - Orbital Drift */}
+        <div className="absolute top-[42%] left-[4%] anim-token-orbit">
+          <div className="w-7 h-7 bg-yellow-400 border-2 border-black rotate-45 shadow-[3px_3px_0px_#000] dark:shadow-[0_0_10px_rgba(255,230,0,0.4)]" />
+        </div>
+
+        {/* 9. Floating Retro Arcade Joystick / Joystick Stick (Royal Violet) */}
+        <div className="absolute bottom-[35%] left-[8%] anim-token-float-1" style={{ animationDelay: '-3.5s' }}>
+          <div className="w-5 h-5 bg-[#b026ff] rounded-full border-2 border-black shadow-[2px_2px_0px_#000] dark:shadow-[0_0_8px_rgba(176,38,255,0.5)]" />
         </div>
       </div>
 
