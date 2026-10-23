@@ -397,7 +397,7 @@ export default function WelcomeScreen({
               className="anim-button-pulse w-full bg-[#ffe600] hover:bg-yellow-300 active:scale-95 text-black font-pixel font-black text-xs sm:text-sm py-3.5 xs:py-4 px-4 border-2 sm:border-3 border-black shadow-[4px_4px_0px_#000] flex items-center justify-center gap-2.5 cursor-pointer transition-all"
             >
               <Play className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-black flex-shrink-0" />
-              <span>START ARCADE (TAP HERE)</span>
+              <span>START ARCADE</span>
             </button>
           </div>
         )}
