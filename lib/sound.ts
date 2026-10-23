@@ -269,6 +269,99 @@ export function playRetroCoinSound(force: boolean = false): void {
 }
 
 /**
+ * Katana Unsheathe & Metallic Water Slice (Demon Slayer Giyu Action)
+ */
+export function playKatanaSlashSound(force: boolean = false): void {
+  if (!force && !getSoundEnabled()) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state !== 'running') {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+
+    // 1. Metallic Ring
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(2400, now);
+    osc.frequency.exponentialRampToValueAtTime(320, now + 0.25);
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.32);
+
+    // 2. Water Splash Wave
+    const oscWater = ctx.createOscillator();
+    const gainWater = ctx.createGain();
+    oscWater.type = 'triangle';
+    oscWater.frequency.setValueAtTime(800, now + 0.05);
+    oscWater.frequency.exponentialRampToValueAtTime(160, now + 0.4);
+    gainWater.gain.setValueAtTime(0.3, now + 0.05);
+    gainWater.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    oscWater.connect(gainWater);
+    gainWater.connect(ctx.destination);
+    oscWater.start(now + 0.05);
+    oscWater.stop(now + 0.46);
+  } catch (e) {}
+}
+
+/**
+ * Neko Purr / Meow Chime
+ */
+export function playNekoSound(force: boolean = false): void {
+  if (!force && !getSoundEnabled()) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state !== 'running') {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.exponentialRampToValueAtTime(1400, now + 0.12);
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.22);
+  } catch (e) {}
+}
+
+/**
+ * Shiba Bark / Mail Ding
+ */
+export function playShibaSound(force: boolean = false): void {
+  if (!force && !getSoundEnabled()) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state !== 'running') {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(659.25, now);
+    osc.frequency.setValueAtTime(987.77, now + 0.08);
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.32);
+  } catch (e) {}
+}
+
+/**
  * 8-Bit Retro Arcade Sound Engine (Square / Triangle Web Audio Synthesizer)
  * Works universally across desktop and mobile browsers by awaiting AudioContext.resume().
  */

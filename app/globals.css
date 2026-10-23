@@ -944,6 +944,39 @@ pre {
   animation: waterFlowAnim 2s ease-in-out infinite;
 }
 
+@keyframes waterSlashExpand {
+  0% { transform: scale(0.3) rotate(-20deg); opacity: 0; }
+  30% { transform: scale(1.1) rotate(0deg); opacity: 1; }
+  70% { transform: scale(1.25) rotate(10deg); opacity: 0.9; }
+  100% { transform: scale(1.4) rotate(20deg); opacity: 0; }
+}
+.anim-water-slash {
+  animation: waterSlashExpand 1.4s ease-out forwards;
+}
+
+@keyframes giyuSlashAction {
+  0% { transform: translateY(0) scale(1); }
+  20% { transform: translateY(-8px) scale(1.12); }
+  40% { transform: translateY(-4px) scale(1.08); }
+  80% { transform: translateY(-2px) scale(1.02); }
+  100% { transform: translateY(0) scale(1); }
+}
+.anim-action-slash {
+  animation: giyuSlashAction 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slashShake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3px, 2px); }
+  40% { transform: translate(3px, -2px); }
+  60% { transform: translate(-2px, 1px); }
+  80% { transform: translate(2px, -1px); }
+}
+.anim-shake {
+  animation: slashShake 0.4s ease-in-out;
+}
+
+
 
 
 
