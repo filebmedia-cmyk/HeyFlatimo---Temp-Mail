@@ -234,17 +234,11 @@ export function playErrorSound(): void {
 
 /**
  * 8-Bit Retro Arcade Sound Engine (Square / Triangle Web Audio Synthesizer)
- * Works universally across desktop and mobile browsers.
+ * Works universally across desktop and mobile browsers by awaiting AudioContext.resume().
  */
-export function playRetroBootSound(force: boolean = false): void {
-  if (!force && !getSoundEnabled()) return;
+function renderRetroBoot(ctx: AudioContext): void {
   try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-    const now = ctx.currentTime + 0.01;
+    const now = ctx.currentTime + 0.02;
     const notes = [659.25, 830.61, 987.77, 1318.51]; // E5, G#5, B5, E6
     notes.forEach((freq, idx) => {
       const osc = ctx.createOscillator();
@@ -264,14 +258,21 @@ export function playRetroBootSound(force: boolean = false): void {
   } catch (e) {}
 }
 
-export function playRetroBlipSound(force: boolean = false): void {
+export function playRetroBootSound(force: boolean = false): void {
   if (!force && !getSoundEnabled()) return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
+    if (ctx.state !== 'running') {
+      ctx.resume().then(() => renderRetroBoot(ctx)).catch(() => {});
+    } else {
+      renderRetroBoot(ctx);
     }
+  } catch (e) {}
+}
+
+function renderRetroBlip(ctx: AudioContext): void {
+  try {
     const now = ctx.currentTime + 0.005;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -279,7 +280,7 @@ export function playRetroBlipSound(force: boolean = false): void {
     osc.frequency.setValueAtTime(750, now);
     osc.frequency.exponentialRampToValueAtTime(250, now + 0.04);
 
-    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.setValueAtTime(0.18, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
 
     osc.connect(gain);
@@ -290,14 +291,26 @@ export function playRetroBlipSound(force: boolean = false): void {
   } catch (e) {}
 }
 
-export function playRetroStartSound(force: boolean = false): void {
+export function playRetroBlipSound(force: boolean = false): void {
   if (!force && !getSoundEnabled()) return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
+    if (ctx.state !== 'running') {
+      ctx.resume().then(() => renderRetroBlip(ctx)).catch(() => {
+        // Fallback to HTML5 audio pool if WebAudio was prevented
+        playSound('pop');
+      });
+    } else {
+      renderRetroBlip(ctx);
     }
+  } catch (e) {
+    playSound('pop');
+  }
+}
+
+function renderRetroStart(ctx: AudioContext): void {
+  try {
     const now = ctx.currentTime + 0.005;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -314,6 +327,23 @@ export function playRetroStartSound(force: boolean = false): void {
     osc.start(now);
     osc.stop(now + 0.5);
   } catch (e) {}
+}
+
+export function playRetroStartSound(force: boolean = false): void {
+  if (!force && !getSoundEnabled()) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state !== 'running') {
+      ctx.resume().then(() => renderRetroStart(ctx)).catch(() => {
+        playSound('success');
+      });
+    } else {
+      renderRetroStart(ctx);
+    }
+  } catch (e) {
+    playSound('success');
+  }
 }
 
 /**

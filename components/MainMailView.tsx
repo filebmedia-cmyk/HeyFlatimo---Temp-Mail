@@ -886,6 +886,7 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
       {showWelcome && (
         <WelcomeScreen
           appName={appName}
+          isSoundEnabled={isSoundEnabled}
           onComplete={() => {
             try {
               if (typeof window !== 'undefined') {

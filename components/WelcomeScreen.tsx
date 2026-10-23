@@ -14,6 +14,7 @@ interface WelcomeScreenProps {
   appName?: string;
   autoDismissDelay?: number;
   allowSkip?: boolean;
+  isSoundEnabled?: boolean;
 }
 
 export default function WelcomeScreen({
@@ -21,6 +22,7 @@ export default function WelcomeScreen({
   appName = 'HEYFLATIMO',
   autoDismissDelay = 2800,
   allowSkip = true,
+  isSoundEnabled = true,
 }: WelcomeScreenProps) {
   const [progress, setProgress] = useState(0);
   const [currentLog, setCurrentLog] = useState('> BOOTING ENGINE...');
@@ -30,6 +32,7 @@ export default function WelcomeScreen({
 
   // Auto-play boot sound respecting the main app sound setting, with user-interaction fallback
   useEffect(() => {
+    if (!isSoundEnabled) return;
     unlockAudio();
     playRetroBootSound();
 
@@ -49,7 +52,7 @@ export default function WelcomeScreen({
       window.removeEventListener('touchstart', handleFirstInteraction);
       window.removeEventListener('keydown', handleFirstInteraction);
     };
-  }, []);
+  }, [isSoundEnabled]);
 
   // Animate progress segments with 8-bit blip sound
   useEffect(() => {
@@ -79,8 +82,8 @@ export default function WelcomeScreen({
         setCurrentLog(logMessages[msgIndex]);
       }
 
-      // Play 8-bit blip tick sound as progress advances
-      if (step % 2 === 0) {
+      // Play 8-bit blip tick sound as progress advances (only when audio enabled)
+      if (isSoundEnabled && step % 2 === 0) {
         playRetroBlipSound();
       }
 
@@ -91,7 +94,7 @@ export default function WelcomeScreen({
     }, intervalTime);
 
     return () => clearInterval(timer);
-  }, [autoDismissDelay]);
+  }, [autoDismissDelay, isSoundEnabled]);
 
   // Auto countdown to dismiss
   useEffect(() => {
@@ -125,7 +128,9 @@ export default function WelcomeScreen({
   const handleDismiss = () => {
     if (hasTriggeredCompleteRef.current) return;
     hasTriggeredCompleteRef.current = true;
-    playRetroStartSound();
+    if (isSoundEnabled) {
+      playRetroStartSound();
+    }
     setIsExiting(true);
     setTimeout(() => {
       onComplete();
