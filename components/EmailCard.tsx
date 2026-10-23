@@ -525,16 +525,18 @@ export default function EmailCard({
               handleRunnerClick();
             }}
             style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-            className="relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-4 sm:-mb-5"
+            className={`relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-3 sm:-mb-4 min-w-[46px] min-h-[40px] ${
+              isRefreshing ? 'anim-giyu-sprint-bob' : 'anim-giyu-runner-bob'
+            }`}
             title="Giyu Tomioka (Berlari di tempat) - Klik untuk seruan Hashira!"
           >
             {/* Speech / Action Bubble */}
             <div
-              className={`absolute -top-7 left-1/2 -translate-x-1/2 font-pixel text-[5.5px] xs:text-[6px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-opacity duration-200 ${
-                runnerQuote || isRefreshing ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              className={`absolute -top-6 left-1/2 -translate-x-1/2 font-pixel text-[5px] xs:text-[6px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
+                runnerQuote || isRefreshing ? 'opacity-100 scale-100' : 'opacity-85 group-hover:opacity-100 scale-95'
               } ${isRefreshing ? 'bg-cyan-400 text-black font-black animate-pulse' : 'bg-[var(--color-yellow)] text-black font-bold'}`}
             >
-              {isRefreshing ? '⚡ HASHIRA SYNC!' : runnerQuote || '🌊 PERNAPASAN AIR'}
+              {isRefreshing ? '⚡ HASHIRA SYNC!' : runnerQuote || '🌊 GIYU RUNNER'}
             </div>
 
             {/* Wind Effects (Wind streaks, floating water petals, dust puffs) */}
@@ -569,41 +571,34 @@ export default function EmailCard({
               <div className="absolute bottom-0 left-3 w-1.5 h-1.5 bg-zinc-300/70 rounded-full dust-puff-2" />
             </div>
 
-            {/* Giyu Runner SVG */}
+            {/* Dual-Frame Pixel Runner SVG (Frame A & Frame B alternate via CSS) */}
             <div className="relative z-20">
               <svg
-                width="48"
-                height="45"
-                viewBox="0 0 36 34"
-                className="w-[44px] h-[41px] xs:w-[50px] xs:h-[47px] sm:w-[54px] sm:h-[50px] drop-shadow-[2px_2px_0px_#000] overflow-visible group-hover:scale-105 transition-transform"
+                width="52"
+                height="46"
+                viewBox="0 0 38 34"
+                className="w-[46px] h-[40px] xs:w-[52px] xs:h-[46px] sm:w-[58px] sm:h-[51px] drop-shadow-[2px_2px_0px_#000] overflow-visible group-hover:scale-105 transition-transform"
               >
-                {/* Back Leg (Running Cycle) */}
-                <g className="anim-leg-back" style={{ transformOrigin: '19px 24px' }}>
-                  <rect x="18" y="24" width="3" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
-                  <rect x="18" y="27" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
-                  <rect x="19" y="30" width="3.5" height="1.8" fill="#d97706" rx="0.5" />
-                </g>
+                {/* Ground Contact Shadow (Shared) */}
+                <ellipse cx="19" cy="33" rx="8" ry="1.4" fill="#000000" opacity="0.45" />
 
-                {/* Back Arm (Pumping Cycle) */}
-                <g className="anim-arm-back" style={{ transformOrigin: '20px 18px' }}>
-                  <rect x="20" y="18" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
-                  <circle cx="21.5" cy="24.5" r="1.5" fill="#fde68a" />
-                </g>
+                {/* ============================================== */}
+                {/* FRAME A: STEP 1 (Left Leg Forward, Haori Mid) */}
+                {/* ============================================== */}
+                <g className="anim-giyu-frame-a">
+                  {/* Ponytail Hair */}
+                  <polygon points="11,11 3,13 0,19 5,22 9,17" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
+                  <rect x="7" y="13.5" width="2.2" height="2" fill="#38bdf8" />
+                  <line x1="2" y1="17" x2="6" y2="16" stroke="#38bdf8" strokeWidth="0.7" />
 
-                {/* Torso & Head Main Container (Bob & Lean Cycle) */}
-                <g
-                  className={isRefreshing ? 'anim-giyu-sprint-body' : 'anim-giyu-runner-body'}
-                  style={{ transformOrigin: '18px 24px' }}
-                >
-                  {/* Ponytail Hair Fluttering in Wind */}
-                  <g
-                    className={isRefreshing ? 'anim-hair-wind-fast' : 'anim-hair-wind'}
-                    style={{ transformOrigin: '10px 11px' }}
-                  >
-                    <polygon points="10,11 2,13 0,20 5,23 9,17" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
-                    <rect x="7" y="14" width="2" height="2" fill="#38bdf8" />
-                    <line x1="1" y1="18" x2="6" y2="17" stroke="#38bdf8" strokeWidth="0.7" />
-                  </g>
+                  {/* Back Leg (Right) - Pushing Off */}
+                  <rect x="8" y="24" width="3" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                  <rect x="8" y="27" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
+                  <rect x="7.5" y="29.5" width="3.5" height="1.8" fill="#d97706" rx="0.5" />
+
+                  {/* Back Arm (Right) */}
+                  <rect x="22" y="17" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
+                  <circle cx="23.5" cy="23.5" r="1.5" fill="#fde68a" />
 
                   {/* Spiky Black Hair */}
                   <polygon points="12,5 20,3 28,5 30,11 28,13 12,13 10,10" fill="#0f172a" stroke="#000" strokeWidth="0.9" />
@@ -613,51 +608,93 @@ export default function EmailCard({
                   {/* Face */}
                   <rect x="12" y="8" width="16" height="10" fill="#fde68a" stroke="#000" strokeWidth="0.9" rx="0.5" />
                   <polygon points="12,8 16,12 18,9 22,12 24,8" fill="#0f172a" />
-
-                  {/* Eyes */}
                   <rect x="20" y="11" width="3.5" height="2.5" fill="#0284c7" stroke="#000" strokeWidth="0.5" />
                   <rect x="22" y="11" width="1.2" height="1" fill="#ffffff" />
                   <line x1="20" y1="15" x2="24" y2="15" stroke="#000" strokeWidth="0.75" />
 
-                  {/* Haori Fluttering */}
-                  <g className="anim-haori-l" style={{ transformOrigin: '14px 17px' }}>
-                    <path d="M12,17 L18,17 L17,25 L8,26 L6,21 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
-                  </g>
-                  <g className="anim-haori-r" style={{ transformOrigin: '20px 17px' }}>
-                    <path d="M18,17 L26,17 L28,21 L27,26 L18,25 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
-                    <rect x="19" y="18" width="2.5" height="2.5" fill="#eab308" />
-                    <rect x="23" y="18" width="2.5" height="2.5" fill="#ea580c" />
-                    <rect x="21" y="21" width="2.5" height="2.5" fill="#eab308" />
-                  </g>
+                  {/* Split Haori - Frame A Wave */}
+                  <path d="M12,17 L18,17 L17,25 L7,25 L6,20 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
+                  <path d="M18,17 L26,17 L28,21 L27,26 L18,25 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+                  <rect x="19" y="18" width="2.5" height="2.5" fill="#eab308" />
+                  <rect x="23" y="18" width="2.5" height="2.5" fill="#ea580c" />
+                  <rect x="21" y="21" width="2.5" height="2.5" fill="#eab308" />
 
-                  {/* Corps Uniform & White Belt */}
+                  {/* Uniform & Belt */}
                   <polygon points="16,17 21,17 19,23" fill="#0f172a" />
                   <line x1="19" y1="17" x2="19" y2="22" stroke="#ffffff" strokeWidth="0.7" />
                   <rect x="14" y="23" width="9" height="1.8" fill="#ffffff" stroke="#000" strokeWidth="0.6" />
 
-                  {/* Nichirin Blade Scabbard at Hip Swaying */}
-                  <g className="anim-sword-sway" style={{ transformOrigin: '14px 22px' }}>
-                    <line x1="6" y1="28" x2="16" y2="22" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" />
-                    <line x1="6" y1="28" x2="16" y2="22" stroke="#0284c7" strokeWidth="1" strokeLinecap="round" />
-                    <rect x="15" y="21" width="1.8" height="1.8" fill="#000" stroke="#38bdf8" strokeWidth="0.5" />
-                  </g>
+                  {/* Katana */}
+                  <line x1="5" y1="27" x2="15" y2="22" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" />
+                  <line x1="5" y1="27" x2="15" y2="22" stroke="#0284c7" strokeWidth="1" strokeLinecap="round" />
+                  <rect x="14" y="21" width="1.8" height="1.8" fill="#000" stroke="#38bdf8" strokeWidth="0.5" />
+
+                  {/* Front Leg (Left) - Forward Step */}
+                  <rect x="15" y="24" width="3" height="7" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                  <rect x="15" y="27.5" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
+                  <rect x="15.5" y="31" width="3.8" height="1.8" fill="#d97706" rx="0.5" />
+
+                  {/* Front Arm (Left) */}
+                  <rect x="16" y="17" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
+                  <circle cx="18" cy="23.5" r="1.5" fill="#fde68a" />
                 </g>
 
-                {/* Front Leg (Running Cycle) */}
-                <g className="anim-leg-front" style={{ transformOrigin: '15px 24px' }}>
-                  <rect x="13.5" y="24" width="3" height="6.5" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
-                  <rect x="13.5" y="27" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
-                  <rect x="14" y="30.5" width="3.8" height="1.8" fill="#d97706" rx="0.5" />
-                </g>
+                {/* ============================================== */}
+                {/* FRAME B: STEP 2 (Right Leg Forward, Haori High)*/}
+                {/* ============================================== */}
+                <g className="anim-giyu-frame-b">
+                  {/* Ponytail Hair - Fluttering Higher */}
+                  <polygon points="11,10 2,11 0,16 6,19 9,15" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
+                  <rect x="7" y="12.5" width="2.2" height="2" fill="#38bdf8" />
+                  <line x1="1" y1="15" x2="5" y2="14" stroke="#38bdf8" strokeWidth="0.7" />
 
-                {/* Front Arm (Pumping Forward) */}
-                <g className="anim-arm-front" style={{ transformOrigin: '17px 18px' }}>
-                  <rect x="16" y="18" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
-                  <circle cx="18" cy="24.5" r="1.5" fill="#fde68a" />
-                </g>
+                  {/* Back Leg (Left) - Extended Back */}
+                  <rect x="7" y="24" width="3" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                  <rect x="7" y="27" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
+                  <rect x="6.5" y="29.5" width="3.5" height="1.8" fill="#d97706" rx="0.5" />
 
-                {/* Ground Contact Shadow */}
-                <ellipse cx="18" cy="33" rx="7" ry="1.2" fill="#000000" opacity="0.5" />
+                  {/* Front Arm (Right) - Pumping Forward */}
+                  <rect x="19" y="17" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
+                  <circle cx="21" cy="23.5" r="1.5" fill="#fde68a" />
+
+                  {/* Spiky Black Hair */}
+                  <polygon points="12,5 20,3 28,5 30,11 28,13 12,13 10,10" fill="#0f172a" stroke="#000" strokeWidth="0.9" />
+                  <polygon points="9,8 6,11 11,11" fill="#0f172a" />
+                  <polygon points="29,8 32,11 27,11" fill="#0f172a" />
+
+                  {/* Face */}
+                  <rect x="12" y="8" width="16" height="10" fill="#fde68a" stroke="#000" strokeWidth="0.9" rx="0.5" />
+                  <polygon points="12,8 16,12 18,9 22,12 24,8" fill="#0f172a" />
+                  <rect x="20" y="11" width="3.5" height="2.5" fill="#0284c7" stroke="#000" strokeWidth="0.5" />
+                  <rect x="22" y="11" width="1.2" height="1" fill="#ffffff" />
+                  <line x1="20" y1="15" x2="24" y2="15" stroke="#000" strokeWidth="0.75" />
+
+                  {/* Split Haori - Frame B Wave (Higher Billow) */}
+                  <path d="M12,17 L18,17 L16,24 L5,24 L4,19 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
+                  <path d="M18,17 L26,17 L29,19 L28,24 L18,24 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+                  <rect x="19" y="17.5" width="2.5" height="2.5" fill="#eab308" />
+                  <rect x="23" y="17.5" width="2.5" height="2.5" fill="#ea580c" />
+                  <rect x="21" y="20.5" width="2.5" height="2.5" fill="#eab308" />
+
+                  {/* Uniform & Belt */}
+                  <polygon points="16,17 21,17 19,23" fill="#0f172a" />
+                  <line x1="19" y1="17" x2="19" y2="22" stroke="#ffffff" strokeWidth="0.7" />
+                  <rect x="14" y="23" width="9" height="1.8" fill="#ffffff" stroke="#000" strokeWidth="0.6" />
+
+                  {/* Katana - Slightly Swayed */}
+                  <line x1="5" y1="26" x2="15" y2="22" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" />
+                  <line x1="5" y1="26" x2="15" y2="22" stroke="#0284c7" strokeWidth="1" strokeLinecap="round" />
+                  <rect x="14" y="21" width="1.8" height="1.8" fill="#000" stroke="#38bdf8" strokeWidth="0.5" />
+
+                  {/* Front Leg (Right) - Forward Step */}
+                  <rect x="14" y="24" width="3" height="7" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                  <rect x="14" y="27.5" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
+                  <rect x="14.5" y="31" width="3.8" height="1.8" fill="#d97706" rx="0.5" />
+
+                  {/* Back Arm (Left) - Pumping Back */}
+                  <rect x="15" y="17" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
+                  <circle cx="16.5" cy="23.5" r="1.5" fill="#fde68a" />
+                </g>
               </svg>
             </div>
           </div>
