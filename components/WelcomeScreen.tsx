@@ -161,13 +161,6 @@ export default function WelcomeScreen({
     <div
       id="welcome-screen-root"
       suppressHydrationWarning
-      onClick={() => {
-        if (!isStartedRef.current) {
-          handleStartArcade();
-        } else {
-          unlockAudio();
-        }
-      }}
       className={`fixed inset-0 z-50 h-[100dvh] w-full overflow-y-auto overflow-x-hidden flex flex-col items-center justify-center p-3 xs:p-4 sm:p-6 bg-[#f0f4f8]/95 dark:bg-[#07080c]/95 backdrop-blur-md transition-all duration-500 ${
         isExiting ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
       }`}
