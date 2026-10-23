@@ -21,6 +21,7 @@ module.exports = {
         }
       },
       fontFamily: {
+        pixel: ['"Press Start 2P"', 'monospace'],
         mono: ['Space Mono', 'JetBrains Mono', 'monospace'],
         sans: ['Work Sans', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
       },

@@ -10,6 +10,7 @@ import AccessGateModal from '@/components/AccessGateModal';
 import AnnouncementModal from '@/components/AnnouncementModal';
 import VipCdkModal from '@/components/VipCdkModal';
 import QrCodeModal from '@/components/QrCodeModal';
+import WelcomeScreen from '@/components/WelcomeScreen';
 import { EmailMessage } from '@/components/MessageReader';
 import { generateRandomPrefix } from '@/lib/generator';
 import { playSound, unlockAudio, getSoundEnabled, setSoundEnabled } from '@/lib/sound';
@@ -42,6 +43,20 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
   // Access Gate State
   const [isAccessLocked, setIsAccessLocked] = useState(false);
   const [accessMessage, setAccessMessage] = useState('Silakan masukkan kode akses untuk menggunakan layanan email.');
+
+  // Welcome Arcade Animation Screen (1x per session)
+  const [showWelcome, setShowWelcome] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const hasSeen = sessionStorage.getItem('tmail_welcome_seen');
+        if (!hasSeen) {
+          setShowWelcome(true);
+        }
+      }
+    } catch (e) {}
+  }, []);
 
   // Announcement State
   const [announcementData, setAnnouncementData] = useState<{
@@ -854,6 +869,21 @@ export default function MainMailView({ initialSlug }: MainMailViewProps) {
           }
         }}
       />
+
+      {/* Arcade Welcome Screen (First visit per browser session) */}
+      {showWelcome && (
+        <WelcomeScreen
+          appName={appName}
+          onComplete={() => {
+            try {
+              if (typeof window !== 'undefined') {
+                sessionStorage.setItem('tmail_welcome_seen', 'true');
+              }
+            } catch (e) {}
+            setShowWelcome(false);
+          }}
+        />
+      )}
     </div>
   );
 }
