@@ -515,9 +515,27 @@ export default function EmailCard({
           </div>
         )}
 
-        {/* Right Action Container: Giyu Runner on Strip + Manual Refresh Button */}
-        <div className="col-span-2 sm:col-span-1 flex items-end justify-end gap-2.5 sm:gap-3.5 sm:ml-auto w-full sm:w-auto relative">
-          {/* GIYU TOMIOKA RUNNER IN PLACE WITH WIND EFFECTS */}
+        {/* Right Action Container: Manual Refresh Button + Giyu Runner on Strip */}
+        <div className="col-span-2 sm:col-span-1 flex items-end justify-end gap-3 xs:gap-3.5 sm:gap-4.5 sm:ml-auto w-full sm:w-auto relative">
+          {/* Manual Refresh Button */}
+          <button
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-3 xs:px-4 py-2 sm:py-2.5 text-[11px] xs:text-xs flex items-center justify-center gap-1.5 sm:gap-2 group shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] flex-shrink-0"
+            title="Refresh Inbox Manual"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-300 flex-shrink-0 ${
+                isRefreshing ? 'animate-spin-fast' : 'group-hover:rotate-180'
+              }`}
+            />
+            <span className="hidden xs:inline font-mono-custom font-bold">
+              {isRefreshing ? 'MENYINKRONKAN...' : 'REFRESH'}
+            </span>
+            <span className="xs:hidden">SYNC</span>
+          </button>
+
+          {/* GIYU TOMIOKA RUNNER IN PLACE WITH WIND EFFECTS (RIGHT SIDE POSITION) */}
           <div
             onClick={handleRunnerClick}
             onTouchEnd={(e) => {
@@ -525,12 +543,12 @@ export default function EmailCard({
               handleRunnerClick();
             }}
             style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-            className={`relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-3 sm:-mb-4 min-w-[46px] min-h-[40px] ${
+            className={`relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-3 sm:-mb-4 min-w-[46px] min-h-[40px] flex-shrink-0 ${
               isRefreshing ? 'anim-giyu-sprint-bob' : 'anim-giyu-runner-bob'
             }`}
             title="Giyu Tomioka (Berlari di tempat) - Klik untuk seruan Hashira!"
           >
-            {/* Speech / Action Bubble */}
+            {/* Speech / Action Bubble (Upright & Readable) */}
             <div
               className={`absolute -top-6 left-1/2 -translate-x-1/2 font-pixel text-[5px] xs:text-[6px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
                 runnerQuote || isRefreshing ? 'opacity-100 scale-100' : 'opacity-85 group-hover:opacity-100 scale-95'
@@ -538,6 +556,9 @@ export default function EmailCard({
             >
               {isRefreshing ? '⚡ HASHIRA SYNC!' : runnerQuote || '🌊 GIYU RUNNER'}
             </div>
+
+            {/* Inward Facing Graphic: Giyu faces left toward the Refresh button & Inbox */}
+            <div className="relative scale-x-[-1]">
 
             {/* Wind Effects (Wind streaks, floating water petals, dust puffs) */}
             <div className="absolute -inset-x-6 -top-2 bottom-0 pointer-events-none z-10 overflow-visible">
@@ -697,27 +718,11 @@ export default function EmailCard({
                 </g>
               </svg>
             </div>
+            {/* End of scale-x-[-1] container */}
           </div>
-
-          {/* Manual Refresh Button */}
-          <button
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="brutal-btn bg-[var(--color-green)] text-white hover:bg-emerald-600 px-3 xs:px-4 py-2 sm:py-2.5 text-[11px] xs:text-xs flex items-center justify-center gap-1.5 sm:gap-2 group shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)] flex-shrink-0"
-            title="Refresh Inbox Manual"
-          >
-            <RefreshCw
-              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-300 flex-shrink-0 ${
-                isRefreshing ? 'animate-spin-fast' : 'group-hover:rotate-180'
-              }`}
-            />
-            <span className="hidden xs:inline font-mono-custom font-bold">
-              {isRefreshing ? 'MENYINKRONKAN...' : 'REFRESH'}
-            </span>
-            <span className="xs:hidden">SYNC</span>
-          </button>
         </div>
       </div>
+    </div>
 
       {/* Auto-Sync Live Status Indicator Badge */}
       <div className="mt-3.5 sm:mt-4 flex flex-wrap items-center justify-between gap-2 text-[10px] xs:text-[11px] font-mono-custom text-[var(--text-muted)]">
