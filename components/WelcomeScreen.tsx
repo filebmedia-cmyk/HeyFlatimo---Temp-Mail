@@ -203,111 +203,129 @@ export default function WelcomeScreen({
       }}
     >
       {/* Retro CRT Scanlines */}
-      <div className="absolute inset-0 pointer-events-none z-20 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.18)_50%)] bg-[length:100%_4px] opacity-65" />
+      <div className="absolute inset-0 pointer-events-none z-20 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.18)_50%)] bg-[length:100%_4px] opacity-45" />
 
-      {/* Dynamic Animated Retro Cyber Grid Background & Upgraded Arcade Particles */}
+      {/* Aesthetic Synthwave & Cyberpunk Particle Field */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
         
-        {/* Animated Infinite Moving Cyber Grid Lines (Light & Dark) */}
-        <div className="absolute inset-0 anim-grid-drift bg-[linear-gradient(to_right,rgba(0,0,0,0.18)_2px,transparent_2px),linear-gradient(to_bottom,rgba(0,0,0,0.18)_2px,transparent_2px)] dark:bg-[linear-gradient(to_right,rgba(0,210,255,0.2)_2px,transparent_2px),linear-gradient(to_bottom,rgba(0,210,255,0.2)_2px,transparent_2px)] bg-[size:36px_36px]" />
+        {/* 1. Ambient Cyberpunk Aurora Lighting (Breathing Neon Bloom) */}
+        <div className="absolute -top-[15%] -left-[10%] w-[380px] sm:w-[600px] h-[380px] sm:h-[600px] bg-cyan-500/15 dark:bg-cyan-400/20 rounded-full blur-[100px] pointer-events-none anim-aura-breathe" />
+        <div className="absolute -bottom-[15%] -right-[10%] w-[380px] sm:w-[600px] h-[380px] sm:h-[600px] bg-fuchsia-600/15 dark:bg-fuchsia-500/20 rounded-full blur-[100px] pointer-events-none anim-aura-breathe" style={{ animationDelay: '-4.5s' }} />
+        <div className="absolute top-[40%] right-[30%] w-[240px] h-[240px] bg-indigo-500/10 dark:bg-indigo-400/15 rounded-full blur-[80px] pointer-events-none" />
 
-        {/* Ambient Neon Cyber Glow Orbs (Soft Arcade Atmosphere) */}
-        <div className="absolute top-[10%] left-[12%] w-48 h-48 sm:w-80 sm:h-80 bg-cyan-500/10 dark:bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-[10%] right-[12%] w-48 h-48 sm:w-80 sm:h-80 bg-fuchsia-500/10 dark:bg-fuchsia-500/15 rounded-full blur-3xl pointer-events-none" />
+        {/* 2. Top Cyber Coordinate Matrix Grid (Subtle Aesthetic Points) */}
+        <div className="absolute inset-0 opacity-15 dark:opacity-20 bg-[radial-gradient(#00f0ff_1px,transparent_1px)] [background-size:28px_28px]" />
 
-        {/* 1. Golden 8-Bit Arcade Coin (3D Spin & Drift) */}
-        <div className="absolute top-[6%] left-[5%] sm:left-[10%] anim-coin-spin scale-75 sm:scale-100">
-          <svg width="44" height="44" viewBox="0 0 16 16" className="drop-shadow-[3px_3px_0px_#000] dark:drop-shadow-[0_0_14px_rgba(255,230,0,0.7)]">
-            <rect x="5" y="1" width="6" height="1" fill="#ffe600" />
-            <rect x="3" y="2" width="10" height="1" fill="#ffe600" />
-            <rect x="2" y="3" width="12" height="2" fill="#ffe600" />
-            <rect x="1" y="5" width="14" height="6" fill="#ffe600" />
-            <rect x="2" y="11" width="12" height="2" fill="#ffe600" />
-            <rect x="3" y="13" width="10" height="1" fill="#ffe600" />
-            <rect x="5" y="14" width="6" height="1" fill="#ffe600" />
-            <rect x="3" y="3" width="10" height="10" fill="#ffd000" stroke="#000" strokeWidth="0.8" />
-            <rect x="7" y="5" width="2" height="6" fill="#ffffff" />
-            <rect x="5" y="7" width="6" height="2" fill="#ffffff" />
+        {/* 3. 3D Synthwave Horizon Wireframe Floor (Cinematic Receding Horizon) */}
+        <div className="absolute bottom-0 left-[-40%] w-[180%] h-[38%] pointer-events-none opacity-45 dark:opacity-55 [transform:perspective(260px)_rotateX(68deg)] [transform-origin:bottom_center] [mask-image:linear-gradient(to_top,black_40%,transparent_100%)]">
+          <div className="w-full h-full anim-horizon-grid bg-[linear-gradient(to_right,rgba(0,0,0,0.2)_1.5px,transparent_1.5px),linear-gradient(to_bottom,rgba(0,0,0,0.2)_1.5px,transparent_1.5px)] dark:bg-[linear-gradient(to_right,rgba(0,240,255,0.4)_1.5px,transparent_1.5px),linear-gradient(to_bottom,rgba(0,240,255,0.4)_1.5px,transparent_1.5px)] bg-[size:36px_36px]" />
+        </div>
+        {/* Luminous Horizon Laser Line */}
+        <div className="absolute bottom-[38%] left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent dark:via-cyan-300/80 shadow-[0_0_12px_rgba(0,240,255,0.8)]" />
+
+        {/* 4. Sleek Wireframe Holographic 3D Isometric Cube (Top-Left) */}
+        <div className="absolute top-[8%] left-[4%] sm:left-[8%] anim-token-float-1 scale-75 sm:scale-100 opacity-80 sm:opacity-100">
+          <svg width="56" height="56" viewBox="0 0 64 64" className="drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_16px_rgba(0,240,255,0.7)]">
+            {/* Isometric Wireframe Cube */}
+            <polygon points="32,6 58,21 32,36 6,21" fill="none" stroke="#00f0ff" strokeWidth="2" strokeLinejoin="round" />
+            <polygon points="6,21 32,36 32,60 6,45" fill="none" stroke="#00f0ff" strokeWidth="2" strokeLinejoin="round" />
+            <polygon points="58,21 32,36 32,60 58,45" fill="none" stroke="#00f0ff" strokeWidth="2" strokeLinejoin="round" />
+            {/* Luminous Core Vertices */}
+            <circle cx="32" cy="6" r="2.5" fill="#ffe600" />
+            <circle cx="58" cy="21" r="2.5" fill="#ffe600" />
+            <circle cx="6" cy="21" r="2.5" fill="#ffe600" />
+            <circle cx="32" cy="36" r="3" fill="#ff007f" />
+            <circle cx="32" cy="60" r="2.5" fill="#ffe600" />
           </svg>
         </div>
 
-        {/* 2. 8-Bit Retro Pixel Heart / 1-UP (Heartbeat Pulse) */}
-        <div className="absolute top-[12%] right-[5%] sm:right-[10%] anim-heart-pulse scale-75 sm:scale-100">
-          <svg width="42" height="42" viewBox="0 0 16 16" className="drop-shadow-[3px_3px_0px_#000] dark:drop-shadow-[0_0_16px_rgba(255,0,85,0.8)]">
-            <path d="M2,4 h3 v-2 h2 v2 h2 v-2 h2 v2 h3 v3 h-1 v2 h-2 v2 h-2 v2 h-2 v-2 h-2 v-2 h-2 v-2 h-1 v-3 z" fill="#ff0055" stroke="#000000" strokeWidth="1" />
-            <rect x="3" y="4" width="2" height="2" fill="#ffffff" />
+        {/* 5. Holographic Crystal Diamond Prism (Top-Right) */}
+        <div className="absolute top-[10%] right-[4%] sm:right-[8%] anim-gem-float scale-75 sm:scale-100 opacity-80 sm:opacity-100">
+          <svg width="52" height="52" viewBox="0 0 64 64" className="drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_18px_rgba(255,0,127,0.75)]">
+            <polygon points="32,4 58,22 32,60 6,22" fill="none" stroke="#ff007f" strokeWidth="2" strokeLinejoin="round" />
+            <polygon points="18,22 32,4 46,22 32,60" fill="none" stroke="#ff007f" strokeWidth="1.2" strokeLinejoin="round" />
+            <line x1="6" y1="22" x2="58" y2="22" stroke="#ff007f" strokeWidth="1.8" />
+            {/* Shimmer Highlight */}
+            <polygon points="32,4 46,22 32,28" fill="#ffffff" opacity="0.3" />
           </svg>
         </div>
 
-        {/* 3. 8-Bit Cyber Diamond Gem (Shimmer & Floating) */}
-        <div className="absolute bottom-[18%] left-[5%] sm:left-[8%] anim-gem-float scale-75 sm:scale-100">
-          <svg width="40" height="40" viewBox="0 0 16 16" className="drop-shadow-[3px_3px_0px_#000] dark:drop-shadow-[0_0_16px_rgba(0,240,255,0.8)]">
-            <polygon points="5,2 11,2 15,6 8,14 1,6" fill="#00f0ff" stroke="#000000" strokeWidth="1" />
-            <polygon points="5,2 11,2 9,6 7,6" fill="#ffffff" opacity="0.85" />
-            <polygon points="1,6 15,6 8,14" fill="#00b4d8" stroke="#000000" strokeWidth="0.8" />
+        {/* 6. Concentric Cyber Radar Reticle (Bottom-Left) */}
+        <div className="absolute bottom-[16%] left-[4%] sm:left-[8%] scale-70 sm:scale-95 opacity-70 sm:opacity-90">
+          <div className="relative w-16 h-16 sm:w-20 sm:h-20">
+            {/* Outer Spinning Dashed Ring */}
+            <svg viewBox="0 0 100 100" className="w-full h-full anim-reticle-spin drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_12px_rgba(0,240,255,0.6)]">
+              <circle cx="50" cy="50" r="44" fill="none" stroke="#00f0ff" strokeWidth="2" strokeDasharray="8 6" />
+              <circle cx="50" cy="50" r="32" fill="none" stroke="#00f0ff" strokeWidth="1.2" strokeDasharray="16 10" />
+            </svg>
+            {/* Center Target Cross */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-3 h-3 border-2 border-emerald-400 rotate-45 dark:shadow-[0_0_8px_#00ff9f]" />
+            </div>
+          </div>
+        </div>
+
+        {/* 7. PlayStation Wireframe Neon Glyphs (Sleek Outline Aesthetics) */}
+        {/* Emerald Triangle (▲) */}
+        <div className="absolute top-[28%] left-[2%] sm:left-[5%] anim-token-float-1 scale-70 sm:scale-90 opacity-75 sm:opacity-95">
+          <svg width="44" height="44" viewBox="0 0 100 100" className="drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_14px_rgba(0,255,102,0.7)]">
+            <polygon points="50,16 88,84 12,84" fill="none" stroke="#00ff66" strokeWidth="6" strokeLinejoin="round" />
+            <circle cx="50" cy="16" r="4" fill="#00ff66" />
+            <circle cx="88" cy="84" r="3" fill="#00ff66" />
+            <circle cx="12" cy="84" r="3" fill="#00ff66" />
           </svg>
         </div>
 
-        {/* 4. 8-Bit Retro Arcade Gamepad / Controller (Orbital Drift) */}
-        <div className="absolute bottom-[12%] right-[5%] sm:right-[9%] anim-token-orbit scale-75 sm:scale-100">
-          <svg width="48" height="32" viewBox="0 0 24 16" className="drop-shadow-[3px_3px_0px_#000] dark:drop-shadow-[0_0_14px_rgba(176,38,255,0.7)]">
-            <rect x="1" y="2" width="22" height="12" rx="3" fill="#1e293b" stroke="#000" strokeWidth="1.5" />
-            <rect x="4" y="7" width="5" height="2" fill="#00f0ff" />
-            <rect x="5.5" y="5.5" width="2" height="5" fill="#00f0ff" />
-            <circle cx="15.5" cy="7" r="1.5" fill="#ff0055" />
-            <circle cx="18.5" cy="9" r="1.5" fill="#ffe600" />
+        {/* Crimson Circle (●) */}
+        <div className="absolute bottom-[28%] right-[3%] sm:right-[6%] anim-token-pulse scale-70 sm:scale-90 opacity-75 sm:opacity-95">
+          <svg width="42" height="42" viewBox="0 0 100 100" className="drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_14px_rgba(255,0,85,0.7)]">
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#ff0055" strokeWidth="6" />
+            <circle cx="50" cy="50" r="18" fill="none" stroke="#ff0055" strokeWidth="2" strokeDasharray="6 4" />
+            <circle cx="50" cy="12" r="3.5" fill="#ff0055" />
           </svg>
         </div>
 
-        {/* 5. PlayStation Emerald Triangle (▲) - Float & Tilt */}
-        <div className="absolute top-[26%] left-[2%] sm:left-[5%] anim-token-float-1 scale-70 sm:scale-95">
-          <svg width="48" height="48" viewBox="0 0 100 100" className="drop-shadow-[3px_3px_0px_#000] dark:drop-shadow-[0_0_14px_rgba(0,255,102,0.6)]">
-            <polygon points="50,15 90,85 10,85" fill="#00ff66" stroke="#000000" strokeWidth="9" />
+        {/* Electric Cyan Cross (✖) */}
+        <div className="absolute top-[48%] right-[3%] sm:right-[6%] anim-token-spin scale-70 sm:scale-90 opacity-75 sm:opacity-95">
+          <svg width="40" height="40" viewBox="0 0 100 100" className="drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_14px_rgba(0,210,255,0.7)]">
+            <line x1="22" y1="22" x2="78" y2="78" stroke="#00d2ff" strokeWidth="9" strokeLinecap="round" />
+            <line x1="78" y1="22" x2="22" y2="78" stroke="#00d2ff" strokeWidth="9" strokeLinecap="round" />
           </svg>
         </div>
 
-        {/* 6. PlayStation Hot Pink Square (■) - Float & Tilt */}
-        <div className="absolute top-[30%] right-[2%] sm:right-[5%] anim-token-float-2 scale-70 sm:scale-95">
-          <svg width="44" height="44" viewBox="0 0 100 100" className="drop-shadow-[3px_3px_0px_#000] dark:drop-shadow-[0_0_14px_rgba(255,0,127,0.6)]">
-            <rect x="15" y="15" width="70" height="70" fill="#ff007f" stroke="#000000" strokeWidth="9" />
+        {/* Hot Pink Cyber Square (■) */}
+        <div className="absolute bottom-[10%] right-[7%] sm:right-[11%] anim-token-float-2 scale-70 sm:scale-90 opacity-75 sm:opacity-95">
+          <svg width="42" height="42" viewBox="0 0 100 100" className="drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_14px_rgba(255,0,127,0.7)]">
+            <rect x="18" y="18" width="64" height="64" fill="none" stroke="#ff007f" strokeWidth="6" rx="4" />
+            <rect x="36" y="36" width="28" height="28" fill="#ffe600" opacity="0.8" />
           </svg>
         </div>
 
-        {/* 7. PlayStation Electric Cyan Cross (✖) - 360 Spin */}
-        <div className="absolute bottom-[34%] left-[2%] sm:left-[5%] anim-token-spin scale-70 sm:scale-95">
-          <svg width="42" height="42" viewBox="0 0 100 100" className="drop-shadow-[3px_3px_0px_#000] dark:drop-shadow-[0_0_14px_rgba(0,200,255,0.6)]">
-            <line x1="20" y1="20" x2="80" y2="80" stroke="#00c8ff" strokeWidth="18" strokeLinecap="square" />
-            <line x1="80" y1="20" x2="20" y2="80" stroke="#00c8ff" strokeWidth="18" strokeLinecap="square" />
-          </svg>
-        </div>
+        {/* 8. Floating Digital Stardust Embers (Ambient Rising Fireflies) */}
+        <div className="absolute top-[20%] left-[30%] w-2 h-2 rounded-full bg-cyan-400 dark:bg-cyan-300 dark:shadow-[0_0_10px_#00f0ff] anim-stardust-1" />
+        <div className="absolute top-[65%] left-[22%] w-2.5 h-2.5 rounded-full bg-yellow-400 dark:shadow-[0_0_10px_#ffe600] anim-stardust-2" style={{ animationDelay: '-2s' }} />
+        <div className="absolute top-[35%] right-[25%] w-2 h-2 rounded-full bg-pink-500 dark:shadow-[0_0_10px_#ff007f] anim-stardust-1" style={{ animationDelay: '-3.5s' }} />
+        <div className="absolute bottom-[30%] left-[45%] w-1.5 h-1.5 rounded-full bg-emerald-400 dark:shadow-[0_0_8px_#00ff66] anim-stardust-2" style={{ animationDelay: '-1.5s' }} />
+        <div className="absolute top-[15%] right-[40%] w-2 h-2 rounded-full bg-cyan-300 dark:shadow-[0_0_10px_#00f0ff] anim-stardust-1" style={{ animationDelay: '-4.8s' }} />
+        <div className="absolute bottom-[18%] right-[32%] w-2.5 h-2.5 rounded-full bg-yellow-300 dark:shadow-[0_0_10px_#ffe600] anim-stardust-2" style={{ animationDelay: '-5.2s' }} />
 
-        {/* 8. PlayStation Crimson Circle (●) - Pulse */}
-        <div className="absolute bottom-[36%] right-[2%] sm:right-[5%] anim-token-pulse scale-70 sm:scale-95">
-          <svg width="42" height="42" viewBox="0 0 100 100" className="drop-shadow-[3px_3px_0px_#000] dark:drop-shadow-[0_0_14px_rgba(255,0,85,0.6)]">
-            <circle cx="50" cy="50" r="38" fill="#ff0055" stroke="#000000" strokeWidth="9" />
-          </svg>
-        </div>
-
-        {/* 9. Twinkling 8-Bit Pixel Stars */}
-        <div className="absolute top-[8%] left-[48%] text-[#ffe600] anim-pixel-twinkle drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_10px_rgba(255,230,0,0.8)]">
+        {/* 9. Minimalist Retro Stars */}
+        <div className="absolute top-[8%] left-[48%] text-[#ffe600] anim-pixel-twinkle drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_12px_rgba(255,230,0,0.85)]">
           <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
         </div>
-        <div className="absolute top-[52%] right-[4%] sm:right-[8%] text-[#00ff66] anim-pixel-twinkle drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_10px_rgba(0,255,102,0.8)]" style={{ animationDelay: '-1.3s' }}>
-          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
-        </div>
-        <div className="absolute bottom-[8%] left-[28%] text-[#ff5500] anim-pixel-twinkle drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_10px_rgba(255,85,0,0.8)]" style={{ animationDelay: '-0.7s' }}>
-          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
-        </div>
-        <div className="absolute top-[68%] left-[4%] sm:left-[12%] text-[#00f0ff] anim-pixel-twinkle drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_10px_rgba(0,240,255,0.8)]" style={{ animationDelay: '-1.9s' }}>
+        <div className="absolute bottom-[8%] left-[28%] text-[#ff007f] anim-pixel-twinkle drop-shadow-[2px_2px_0px_#000] dark:drop-shadow-[0_0_12px_rgba(255,0,127,0.85)]" style={{ animationDelay: '-1.2s' }}>
           <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
         </div>
 
-        {/* 10. Floating Arcade Badges (Retro Tags) */}
-        <div className="hidden sm:block absolute top-[20%] left-[20%] bg-black/85 text-[#00ff66] border border-[#00ff66] font-pixel text-[8px] px-2 py-0.5 shadow-[2px_2px_0px_#000] dark:shadow-[0_0_8px_rgba(0,255,102,0.4)] anim-token-float-1">
-          1UP 9999
+        {/* 10. Sci-Fi Micro-HUD Decals (Subtle Aesthetic Tech Inscriptions) */}
+        <div className="hidden sm:block absolute top-4 left-5 text-[8px] font-mono tracking-widest text-slate-500/70 dark:text-cyan-400/50 uppercase select-none">
+          SYS.BOOT // VER_2.6
         </div>
-        <div className="hidden sm:block absolute bottom-[22%] right-[20%] bg-black/85 text-[#ffe600] border border-[#ffe600] font-pixel text-[8px] px-2 py-0.5 shadow-[2px_2px_0px_#000] dark:shadow-[0_0_8px_rgba(255,230,0,0.4)] anim-token-float-2">
-          INSERT COIN
+        <div className="hidden sm:block absolute bottom-4 left-5 text-[8px] font-mono tracking-widest text-slate-500/70 dark:text-cyan-400/50 uppercase select-none">
+          + DISPOSABLE_INBOX // FLATIMO_CORE
+        </div>
+        <div className="hidden sm:block absolute bottom-4 right-5 text-[8px] font-mono tracking-widest text-slate-500/70 dark:text-cyan-400/50 uppercase select-none">
+          AUDIO: SYNC_60HZ • 60 FPS +
         </div>
       </div>
 
