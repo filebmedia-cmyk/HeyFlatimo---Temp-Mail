@@ -1,14 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Zap, Play, FastForward, Terminal, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { Zap, Play, FastForward, Terminal, Sparkles } from 'lucide-react';
 import {
   playRetroBootSound,
   playRetroBlipSound,
   playRetroStartSound,
   unlockAudio,
-  getSoundEnabled,
-  setSoundEnabled,
 } from '@/lib/sound';
 
 interface WelcomeScreenProps {
@@ -28,19 +26,15 @@ export default function WelcomeScreen({
   const [currentLog, setCurrentLog] = useState('> BOOTING ENGINE...');
   const [isExiting, setIsExiting] = useState(false);
   const [countdown, setCountdown] = useState(3);
-  const [isSoundOn, setIsSoundOn] = useState(true);
   const hasTriggeredCompleteRef = useRef(false);
 
-  // Initialize sound state & auto-play boot sound with user-interaction fallback
+  // Auto-play boot sound respecting the main app sound setting, with user-interaction fallback
   useEffect(() => {
-    const enabled = getSoundEnabled();
-    setIsSoundOn(enabled);
-
     unlockAudio();
     playRetroBootSound();
 
     // Browser Autoplay Policy Fallback:
-    // If the browser suspends/blocks initial audio, unlock and play immediately on first interaction
+    // If the browser suspends initial audio, unlock and play immediately on first interaction
     const handleFirstInteraction = () => {
       unlockAudio();
       playRetroBootSound();
@@ -56,17 +50,6 @@ export default function WelcomeScreen({
       window.removeEventListener('keydown', handleFirstInteraction);
     };
   }, []);
-
-  // Toggle Sound function
-  const handleToggleSound = () => {
-    const next = !isSoundOn;
-    setIsSoundOn(next);
-    setSoundEnabled(next);
-    if (next) {
-      unlockAudio();
-      playRetroBootSound(true);
-    }
-  };
 
   // Animate progress segments with 8-bit blip sound
   useEffect(() => {
@@ -224,21 +207,9 @@ export default function WelcomeScreen({
         </div>
       </div>
 
-      {/* Top Action Controls Bar: Sound Toggle & Skip Button */}
-      <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
-        {/* Sound Toggle Button */}
-        <button
-          type="button"
-          onClick={handleToggleSound}
-          className="brutal-btn bg-white dark:bg-[#151b27] text-black dark:text-white font-pixel text-[9px] sm:text-xs px-2.5 sm:px-3 py-1.5 border-2 border-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000] cursor-pointer"
-          title="Toggle Audio"
-        >
-          {isSoundOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-          <span>{isSoundOn ? 'AUDIO ON' : 'AUDIO OFF'}</span>
-        </button>
-
-        {/* Skip Button */}
-        {allowSkip && (
+      {/* Skip Button Top Right */}
+      {allowSkip && (
+        <div className="absolute top-4 right-4 z-40">
           <button
             type="button"
             onClick={handleDismiss}
@@ -248,8 +219,8 @@ export default function WelcomeScreen({
             <span>LEWATI</span>
             <span className="bg-black text-yellow-300 px-1 py-0.2 text-[8px] font-mono border border-slate-700">ESC</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Main Neo-Brutalist Arcade Box with Subtle Glow in Dark Mode */}
       <div className="relative z-30 brutal-card bg-white dark:bg-[#0e121b] border-[3.5px] sm:border-[4.5px] border-black p-6 sm:p-8 max-w-lg w-full text-center shadow-[6px_6px_0px_#000] dark:shadow-[0_0_35px_rgba(0,200,255,0.14),6px_6px_0px_#000000] flex flex-col items-center transition-all duration-300">
