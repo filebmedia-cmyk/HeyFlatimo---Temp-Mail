@@ -542,9 +542,9 @@ export default function EmailCard({
 
         {/* Strip Track Container: Giyu Pursuing Demon on Far-Left & Refresh Button on Far-Right */}
         <div className="col-span-2 w-full flex items-end justify-between pt-1 sm:pt-2 relative">
-          {/* UJUNG KIRI: CHASE DUO (Giyu Runner chasing Demon Target) */}
-          <div className={`flex items-end gap-2.5 xs:gap-3.5 sm:gap-5 relative ${isRefreshing ? 'sprint-active' : ''}`}>
-            {/* 1. Giyu Runner in Place on Strip (Faces naturally toward Demon) */}
+          {/* UJUNG KIRI: CHASE DUO (Giyu Runner chasing Demon Target - Geser Kiri -8px) */}
+          <div className={`flex items-end gap-2.5 xs:gap-3.5 sm:gap-5 relative -ml-2 sm:-ml-2.5 transition-all duration-150 ${isRefreshing ? 'sprint-active' : ''}`}>
+            {/* 1. Giyu Runner in Place on Strip (Fluid Anime Stride) */}
             <div
               onClick={handleRunnerClick}
               onTouchEnd={(e) => {
@@ -554,10 +554,8 @@ export default function EmailCard({
               style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
               className={`relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-3 sm:-mb-4 min-w-[46px] min-h-[40px] flex-shrink-0 ${
                 isRunnerSlashing
-                  ? 'anim-slash-lunge z-30'
-                  : isRefreshing
-                  ? 'anim-giyu-sprint-bob'
-                  : 'anim-giyu-runner-bob'
+                  ? 'anim-smooth-lunge z-30'
+                  : 'anim-giyu-fluid-stride'
               }`}
               title="Giyu Tomioka (Klik untuk tebasan air mengejar iblis!)"
             >
@@ -584,7 +582,7 @@ export default function EmailCard({
 
               {/* Water Slash Arc Effect Overlay (Triggered on click) */}
               {isRunnerSlashing && (
-                <div className="absolute -top-4 -right-14 sm:-right-16 pointer-events-none z-50 w-[120px] sm:w-[140px] anim-slash-arc">
+                <div className="absolute -top-4 -right-14 sm:-right-16 pointer-events-none z-50 w-[120px] sm:w-[140px] anim-smooth-arc">
                   <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(0,240,255,0.95)]">
                     <path d="M10,48 Q50,6 110,18 T155,5" fill="none" stroke="#00ffff" strokeWidth="6" strokeLinecap="round" />
                     <path d="M14,50 Q54,10 114,20 T158,7" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
@@ -595,36 +593,20 @@ export default function EmailCard({
                 </div>
               )}
 
-              {/* Wind Effects (Wind streaks, floating water petals, dust puffs) */}
+              {/* Wind Effects (Fluid Bezier curves, floating water petals, dust puffs) */}
               <div className="absolute -inset-x-6 -top-2 bottom-0 pointer-events-none z-10 overflow-visible">
-                <div
-                  className={`absolute top-2 right-9 w-8 xs:w-10 h-[1.5px] bg-cyan-300 dark:bg-cyan-400 rounded-full ${
-                    isRefreshing ? 'wind-streak-fast-1' : 'wind-streak-1'
-                  }`}
-                />
-                <div
-                  className={`absolute top-4.5 right-7 w-10 xs:w-12 h-[2px] bg-white rounded-full ${
-                    isRefreshing ? 'wind-streak-fast-2' : 'wind-streak-2'
-                  }`}
-                />
-                <div
-                  className={`absolute top-7 right-11 w-7 xs:w-9 h-[1.5px] bg-cyan-200 dark:bg-cyan-300 rounded-full ${
-                    isRefreshing ? 'wind-streak-fast-3' : 'wind-streak-3'
-                  }`}
-                />
-                <div
-                  className={`absolute top-9 right-6 w-9 xs:w-11 h-[1.5px] bg-sky-300 dark:bg-sky-400 rounded-full ${
-                    isRefreshing ? 'wind-streak-fast-4' : 'wind-streak-4'
-                  }`}
-                />
+                <div className="absolute top-2 right-9 w-8 xs:w-10 h-[1.5px] bg-cyan-300 dark:bg-cyan-400 rounded-full fluid-wind-1" />
+                <div className="absolute top-4.5 right-7 w-10 xs:w-12 h-[2px] bg-white rounded-full fluid-wind-2" />
+                <div className="absolute top-7 right-11 w-7 xs:w-9 h-[1.5px] bg-cyan-200 dark:bg-cyan-300 rounded-full fluid-wind-3" />
+                <div className="absolute top-9 right-6 w-9 xs:w-11 h-[1.5px] bg-sky-300 dark:bg-sky-400 rounded-full fluid-wind-4" />
 
                 {/* Floating Petal / Water Droplets */}
                 <div className="absolute top-3.5 right-8 w-1.5 h-1.5 bg-cyan-400 rounded-sm petal-float-1" />
                 <div className="absolute top-6.5 right-11 w-1.5 h-1.5 bg-white rounded-full petal-float-2" />
 
                 {/* Dust Puffs at feet */}
-                <div className="absolute bottom-0 left-1 w-2 h-2 bg-zinc-400/80 rounded-full dust-puff-1" />
-                <div className="absolute bottom-0 left-3 w-1.5 h-1.5 bg-zinc-300/70 rounded-full dust-puff-2" />
+                <div className="absolute bottom-0 left-1 w-2 h-2 bg-zinc-400/80 rounded-full fluid-dust-1" />
+                <div className="absolute bottom-0 left-3 w-1.5 h-1.5 bg-zinc-300/70 rounded-full fluid-dust-2" />
               </div>
 
               {/* Dual-Frame Pixel Runner SVG (Frame A & Frame B alternate via CSS) */}
@@ -641,7 +623,7 @@ export default function EmailCard({
                   {/* ============================================== */}
                   {/* FRAME A: STEP 1 (Left Leg Forward, Haori Mid) */}
                   {/* ============================================== */}
-                  <g className="anim-giyu-frame-a">
+                  <g className="anim-smooth-frame-a">
                     {/* Ponytail Hair */}
                     <polygon points="11,11 3,13 0,19 5,22 9,17" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
                     <rect x="7" y="13.5" width="2.2" height="2" fill="#38bdf8" />
@@ -668,12 +650,14 @@ export default function EmailCard({
                     <rect x="22" y="11" width="1.2" height="1" fill="#ffffff" />
                     <line x1="20" y1="15" x2="24" y2="15" stroke="#000" strokeWidth="0.75" />
 
-                    {/* Split Haori - Frame A Wave */}
-                    <path d="M12,17 L18,17 L17,25 L7,25 L6,20 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
-                    <path d="M18,17 L26,17 L28,21 L27,26 L18,25 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
-                    <rect x="19" y="18" width="2.5" height="2.5" fill="#eab308" />
-                    <rect x="23" y="18" width="2.5" height="2.5" fill="#ea580c" />
-                    <rect x="21" y="21" width="2.5" height="2.5" fill="#eab308" />
+                    {/* Split Haori - Frame A Wave (with Flutter) */}
+                    <g className="anim-haori-flutter">
+                      <path d="M12,17 L18,17 L17,25 L7,25 L6,20 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
+                      <path d="M18,17 L26,17 L28,21 L27,26 L18,25 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+                      <rect x="19" y="18" width="2.5" height="2.5" fill="#eab308" />
+                      <rect x="23" y="18" width="2.5" height="2.5" fill="#ea580c" />
+                      <rect x="21" y="21" width="2.5" height="2.5" fill="#eab308" />
+                    </g>
 
                     {/* Uniform & Belt */}
                     <polygon points="16,17 21,17 19,23" fill="#0f172a" />
@@ -698,7 +682,7 @@ export default function EmailCard({
                   {/* ============================================== */}
                   {/* FRAME B: STEP 2 (Right Leg Forward, Haori High)*/}
                   {/* ============================================== */}
-                  <g className="anim-giyu-frame-b">
+                  <g className="anim-smooth-frame-b">
                     {/* Ponytail Hair - Fluttering Higher */}
                     <polygon points="11,10 2,11 0,16 6,19 9,15" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
                     <rect x="7" y="12.5" width="2.2" height="2" fill="#38bdf8" />
@@ -725,12 +709,14 @@ export default function EmailCard({
                     <rect x="22" y="11" width="1.2" height="1" fill="#ffffff" />
                     <line x1="20" y1="15" x2="24" y2="15" stroke="#000" strokeWidth="0.75" />
 
-                    {/* Split Haori - Frame B Wave (Higher Billow) */}
-                    <path d="M12,17 L18,17 L16,24 L5,24 L4,19 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
-                    <path d="M18,17 L26,17 L29,19 L28,24 L18,24 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
-                    <rect x="19" y="17.5" width="2.5" height="2.5" fill="#eab308" />
-                    <rect x="23" y="17.5" width="2.5" height="2.5" fill="#ea580c" />
-                    <rect x="21" y="20.5" width="2.5" height="2.5" fill="#eab308" />
+                    {/* Split Haori - Frame B Wave (with Flutter) */}
+                    <g className="anim-haori-flutter">
+                      <path d="M12,17 L18,17 L16,24 L5,24 L4,19 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
+                      <path d="M18,17 L26,17 L29,19 L28,24 L18,24 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+                      <rect x="19" y="17.5" width="2.5" height="2.5" fill="#eab308" />
+                      <rect x="23" y="17.5" width="2.5" height="2.5" fill="#ea580c" />
+                      <rect x="21" y="20.5" width="2.5" height="2.5" fill="#eab308" />
+                    </g>
 
                     {/* Uniform & Belt */}
                     <polygon points="16,17 21,17 19,23" fill="#0f172a" />
@@ -764,7 +750,7 @@ export default function EmailCard({
               }}
               style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
               className={`relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-3 sm:-mb-4 min-w-[40px] min-h-[38px] flex-shrink-0 ${
-                isDemonHit ? 'anim-demon-hit z-30' : 'anim-demon-bob'
+                isDemonHit ? 'anim-smooth-demon-hit z-30' : 'anim-demon-fluid-stride'
               }`}
               title="Target Iblis (Dikejar oleh Giyu) - Klik untuk reaksi panik!"
             >
@@ -780,7 +766,7 @@ export default function EmailCard({
               </div>
 
               {/* Panic Sweat Drop */}
-              <div className="absolute -top-3.5 right-1 pointer-events-none z-30 anim-sweat">
+              <div className="absolute -top-3.5 right-1 pointer-events-none z-30 anim-fluid-sweat">
                 <svg width="10" height="10" viewBox="0 0 10 10">
                   <path d="M5,1 C5,1 2,5 2,7 C2,8.5 3.5,9.5 5,9.5 C6.5,9.5 8,8.5 8,7 C8,5 5,1 5,1 Z" fill="#38bdf8" stroke="#000" strokeWidth="0.6" />
                   <circle cx="4" cy="6" r="0.7" fill="#fff" />
@@ -798,7 +784,7 @@ export default function EmailCard({
                   <ellipse cx="18" cy="32" rx="7" ry="1.2" fill="#000000" opacity="0.4" />
 
                   {/* DEMON FRAME A: STEP 1 */}
-                  <g className="anim-demon-frame-a">
+                  <g className="anim-demon-smooth-a">
                     {/* Red Sharp Horns on Head */}
                     <polygon points="12,3 9,7 13,8" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
                     <polygon points="24,3 27,7 23,8" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
@@ -840,7 +826,7 @@ export default function EmailCard({
                   </g>
 
                   {/* DEMON FRAME B: STEP 2 (Panic Kick) */}
-                  <g className="anim-demon-frame-b">
+                  <g className="anim-demon-smooth-b">
                     {/* Red Sharp Horns on Head */}
                     <polygon points="12,2 9,6 13,7" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
                     <polygon points="24,2 27,6 23,7" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
