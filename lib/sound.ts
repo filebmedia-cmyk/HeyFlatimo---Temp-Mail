@@ -514,6 +514,31 @@ export function playArcadeKOSound(force: boolean = false): void {
   } catch (e) {}
 }
 
+export function playSpideyThwipSound(force: boolean = false): void {
+  if (!force && !getSoundEnabled()) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state !== 'running') {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(820, now);
+    osc.frequency.exponentialRampToValueAtTime(180, now + 0.12);
+
+    gain.gain.setValueAtTime(0.28, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.14);
+  } catch (e) {}
+}
+
 /**
  * Check if sound FX is enabled in localStorage.
  * Defaults to TRUE (Sound ON) unless explicitly muted by the user.

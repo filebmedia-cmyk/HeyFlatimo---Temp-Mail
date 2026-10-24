@@ -30,7 +30,17 @@ import {
   playNekoSound,
   playShibaSound,
   playArcadeKOSound,
+  playSpideyThwipSound,
 } from '@/lib/sound';
+
+export const SPIDEY_QUOTES = [
+  'SPIDEY ON DUTY!',
+  'VIP SECURED!',
+  'THWIP! WEB READY!',
+  'FRIENDLY HERO!',
+  'GREAT POWER!',
+  'INBOX PROTECTED!',
+];
 
 export type HeroId = 'giyu' | 'tanjiro' | 'nezuko' | 'inosuke' | 'zenitsu' | 'shinobu';
 
@@ -239,6 +249,34 @@ export default function EmailCard({
   const bossHurtTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const bossRespawnTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const ultTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Spiderman Hanging on VIP Crown States
+  const [spideyQuoteIdx, setSpideyQuoteIdx] = useState<number>(0);
+  const [isSpideyFlipping, setIsSpideyFlipping] = useState<boolean>(false);
+  const [isThwipActive, setIsThwipActive] = useState<boolean>(false);
+  const spideyFlipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const spideyThwipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSpideyClick = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    if (isSoundEnabled) {
+      playSpideyThwipSound(true);
+    }
+    setIsThwipActive(true);
+    setIsSpideyFlipping(true);
+
+    if (spideyThwipTimeoutRef.current) clearTimeout(spideyThwipTimeoutRef.current);
+    spideyThwipTimeoutRef.current = setTimeout(() => {
+      setIsThwipActive(false);
+    }, 600);
+
+    if (spideyFlipTimeoutRef.current) clearTimeout(spideyFlipTimeoutRef.current);
+    spideyFlipTimeoutRef.current = setTimeout(() => {
+      setIsSpideyFlipping(false);
+    }, 650);
+
+    setSpideyQuoteIdx((prev) => (prev + 1) % SPIDEY_QUOTES.length);
+  };
 
   const damageBoss = (amount: number, isCritical: boolean = false) => {
     if (isBossKO) return;
@@ -564,25 +602,107 @@ export default function EmailCard({
         </div>
       )}
 
-      {/* Top-Right Action Control: VIP Crown Button */}
-      <div className="absolute top-2.5 right-2.5 xs:top-3 xs:right-3 sm:top-4 sm:right-4 z-30">
+      {/* Top-Right Action Control: VIP Crown Button with Hanging Spiderman */}
+      <div className="absolute top-2.5 right-2.5 xs:top-3 xs:right-3 sm:top-4 sm:right-4 z-30 flex flex-col items-center">
         {isVipUnlocked ? (
           <div
-            className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] text-black border-2 sm:border-[2.5px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)]"
+            className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 bg-[var(--color-yellow)] text-black border-2 sm:border-[2.5px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] relative"
             title="Domain VIP Aktif (Mode Eksklusif)"
           >
             <Crown className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-4.5 sm:h-4.5 fill-black text-black animate-pulse" />
+            {/* Spiderweb Anchor Knot at Bottom */}
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-1 bg-white dark:bg-zinc-200 border border-black rounded-full pointer-events-none z-10" />
           </div>
         ) : (
           <button
             type="button"
             onClick={onOpenVipModal}
-            className="brutal-btn w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 bg-white dark:bg-zinc-800 hover:bg-[var(--color-yellow)] dark:hover:bg-[var(--color-yellow)] text-amber-500 hover:text-black dark:hover:text-black border-2 sm:border-[2.5px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] group cursor-pointer transition-colors p-0"
+            className="brutal-btn w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 bg-white dark:bg-zinc-800 hover:bg-[var(--color-yellow)] dark:hover:bg-[var(--color-yellow)] text-amber-500 hover:text-black dark:hover:text-black border-2 sm:border-[2.5px] border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_var(--shadow-color)] group cursor-pointer transition-colors p-0 relative"
             title="Klik untuk membuka Domain VIP (Masukkan CDK)"
           >
             <Crown className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-4.5 sm:h-4.5 fill-amber-400 group-hover:fill-black group-hover:rotate-12 transition-all duration-200" />
+            {/* Spiderweb Anchor Knot at Bottom */}
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-1 bg-white dark:bg-zinc-200 border border-black rounded-full pointer-events-none z-10" />
           </button>
         )}
+
+        {/* ======================================================== */}
+        {/* SPIDERMAN HANGING UNDER CROWN BOX RIG                    */}
+        {/* ======================================================== */}
+        <div
+          onClick={handleSpideyClick}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            handleSpideyClick(e);
+          }}
+          style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+          className="relative pt-0 anim-spidey-swing select-none pointer-events-auto cursor-pointer group"
+          title="Spiderman di Kotak Mahkota! (Klik untuk aksi THWIP!)"
+        >
+          {/* Tali Benang Jaring Putih (Spiderweb Thread) */}
+          <div className="w-[1.5px] xs:w-[2px] h-5 xs:h-6 sm:h-7 bg-gradient-to-b from-white via-zinc-200 to-zinc-300 dark:from-zinc-100 dark:to-zinc-400 mx-auto border-x border-black/40 relative">
+            <div className="absolute top-1.5 -left-[1.5px] w-1 h-1 bg-white border border-black/50 rounded-full" />
+          </div>
+
+          {/* Speech Tag Bubble (Safe Leftward Anchor) */}
+          <div className="absolute -left-16 sm:-left-20 top-4 sm:top-5 bg-red-600 text-white font-pixel text-[4.5px] xs:text-[5px] sm:text-[6px] px-1 xs:px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none animate-pulse">
+            {SPIDEY_QUOTES[spideyQuoteIdx]}
+          </div>
+
+          {/* THWIP Action FX Pop */}
+          {isThwipActive && (
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-yellow-300 text-black font-pixel text-[6px] xs:text-[7px] sm:text-[8px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] font-black whitespace-nowrap z-40 pointer-events-none anim-thwip-pop">
+              THWIP!
+            </div>
+          )}
+
+          {/* Spiderman Sprite Vector SVG */}
+          <div className={`transition-transform duration-200 ${isSpideyFlipping ? 'anim-spidey-flip' : 'group-hover:scale-105'}`}>
+            <svg
+              width="34"
+              height="42"
+              viewBox="0 0 38 46"
+              className="w-[28px] h-[34px] xs:w-[32px] xs:h-[38px] sm:w-[36px] sm:h-[44px] drop-shadow-[1.5px_1.5px_0px_#000] overflow-visible"
+            >
+              {/* KAKI TERBALIK MELILIT JARING */}
+              <g id="spideyLegs">
+                <circle cx="19" cy="2" r="2.5" fill="#ffffff" stroke="#000" strokeWidth="0.8" />
+                <path d="M19,3 Q10,6 9,12 Q12,15 15,16" fill="none" stroke="#1d4ed8" strokeWidth="4" strokeLinecap="round" />
+                <path d="M9,3 L15,4 L13,10 L8,8 Z" fill="#dc2626" stroke="#000" strokeWidth="0.8" />
+                <path d="M19,3 Q28,6 29,12 Q26,15 23,16" fill="none" stroke="#1d4ed8" strokeWidth="4" strokeLinecap="round" />
+                <path d="M29,3 L23,4 L25,10 L30,8 Z" fill="#dc2626" stroke="#000" strokeWidth="0.8" />
+              </g>
+
+              {/* BADAN TERBALIK (TORSO: SPIDER EMBLEM & RED-BLUE SUIT) */}
+              <g id="spideyTorso">
+                <path d="M14,14 L24,14 L26,27 L12,27 Z" fill="#ef4444" stroke="#000" strokeWidth="1" />
+                <polygon points="12,16 14,16 13,27 11,27" fill="#1d4ed8" stroke="#000" strokeWidth="0.6" />
+                <polygon points="26,16 24,16 25,27 27,27" fill="#1d4ed8" stroke="#000" strokeWidth="0.6" />
+                <ellipse cx="19" cy="20" rx="1.8" ry="2.4" fill="#000000" />
+                <path d="M19,19 L15,16 M19,19 L23,16 M19,21 L14,24 M19,21 L24,24" stroke="#000" strokeWidth="0.7" strokeLinecap="round" />
+              </g>
+
+              {/* TANGAN TERBALIK */}
+              <g id="spideyArms">
+                <path d="M13,16 Q8,20 10,26" fill="none" stroke="#dc2626" strokeWidth="2.8" strokeLinecap="round" />
+                <circle cx="10" cy="27" r="2" fill="#ef4444" stroke="#000" strokeWidth="0.7" />
+                <path d="M25,16 Q30,20 28,26" fill="none" stroke="#dc2626" strokeWidth="2.8" strokeLinecap="round" />
+                <circle cx="28" cy="27" r="2" fill="#ef4444" stroke="#000" strokeWidth="0.7" />
+                <rect x="27.5" y="28" width="1.5" height="1.5" fill="#ffffff" stroke="#000" strokeWidth="0.4" />
+              </g>
+
+              {/* KEPALA TERBALIK (MASK & SPIDER EYES) */}
+              <g id="spideyHead">
+                <ellipse cx="19" cy="36" rx="8.5" ry="9.5" fill="#ef4444" stroke="#000" strokeWidth="1.1" />
+                <line x1="19" y1="27" x2="19" y2="45" stroke="#991b1b" strokeWidth="0.6" />
+                <line x1="11" y1="36" x2="27" y2="36" stroke="#991b1b" strokeWidth="0.6" />
+                <ellipse cx="19" cy="36" rx="5" ry="5.5" fill="none" stroke="#991b1b" strokeWidth="0.5" />
+                <polygon points="13,33 18,33 15,40" fill="#ffffff" stroke="#000000" strokeWidth="1.2" strokeLinejoin="round" />
+                <polygon points="25,33 20,33 23,40" fill="#ffffff" stroke="#000000" strokeWidth="1.2" strokeLinejoin="round" />
+              </g>
+            </svg>
+          </div>
+        </div>
       </div>
 
       {/* Title Header: Symmetrically Balanced, Protected from Overlap */}
