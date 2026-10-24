@@ -1191,6 +1191,58 @@ pre {
   animation: waterArcMinamo 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* 11. Arcade Universe: Boss HP & Ultimate Manga Slash */
+@keyframes mangaSpeedlines {
+  0% { background-position: 0 0; }
+  100% { background-position: -200px 0; }
+}
+.anim-manga-speedlines {
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.16) 0px, rgba(255, 255, 255, 0.16) 2px, transparent 2px, transparent 12px);
+  animation: mangaSpeedlines 0.22s linear infinite;
+}
+
+@keyframes demonHurtShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(8px) rotate(8deg); filter: brightness(2) drop-shadow(0 0 8px #ef4444); }
+  40% { transform: translateX(-6px) rotate(-6deg); filter: brightness(1.6); }
+  60% { transform: translateX(6px) rotate(6deg); filter: brightness(1.8); }
+  80% { transform: translateX(-3px) rotate(-2deg); }
+}
+.anim-demon-hurt {
+  animation: demonHurtShake 0.45s ease-out;
+}
+
+@keyframes demonKOSpin {
+  0% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(2) drop-shadow(0 0 15px #ef4444); }
+  30% { transform: scale(1.3) translateY(-18px) rotate(35deg); opacity: 0.9; }
+  60% { transform: scale(0.6) translateY(20px) rotate(180deg); opacity: 0.5; filter: blur(2px); }
+  100% { transform: scale(0) translateY(36px) rotate(360deg); opacity: 0; filter: blur(8px); }
+}
+.anim-demon-ko {
+  animation: demonKOSpin 0.85s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes arcadeKOBounce {
+  0% { transform: scale(0.3) rotate(-10deg); opacity: 0; }
+  50% { transform: scale(1.15) rotate(3deg); opacity: 1; }
+  70% { transform: scale(0.95) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.anim-arcade-ko {
+  animation: arcadeKOBounce 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+@keyframes ultLungeSprint {
+  0% { transform: translateX(0px) scale(1); }
+  25% { transform: translateX(-6px) scale(0.95); }
+  60% { transform: translateX(32px) scale(1.15) rotate(-4deg); }
+  85% { transform: translateX(38px) scale(1.1); }
+  100% { transform: translateX(0px) scale(1); }
+}
+.anim-ult-lunge-sprint {
+  animation: ultLungeSprint 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
 
 
 

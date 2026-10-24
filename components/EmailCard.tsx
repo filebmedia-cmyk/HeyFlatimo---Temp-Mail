@@ -24,7 +24,13 @@ import {
 } from 'lucide-react';
 import CustomEmailModal from './CustomEmailModal';
 import DomainDropdown, { DomainOption } from './DomainDropdown';
-import { playSound, playKatanaSlashSound, playNekoSound, playShibaSound } from '@/lib/sound';
+import {
+  playSound,
+  playKatanaSlashSound,
+  playNekoSound,
+  playShibaSound,
+  playArcadeKOSound,
+} from '@/lib/sound';
 
 export type HeroId = 'giyu' | 'tanjiro' | 'nezuko' | 'inosuke' | 'zenitsu' | 'shinobu';
 
@@ -37,6 +43,8 @@ export interface HeroInfo {
   elementColor: string;
   desc: string;
   quotes: string[];
+  ultName: string;
+  ultBanner: string;
 }
 
 export const HERO_ROSTER: Record<HeroId, HeroInfo> = {
@@ -49,6 +57,8 @@ export const HERO_ROSTER: Record<HeroId, HeroInfo> = {
     elementColor: 'bg-cyan-400 text-black',
     desc: 'Pernapasan Air - Jurus Minamo Giri',
     quotes: ['MINAMO GIRI!', 'PERNAPASAN AIR!', 'WATER SLASH!', 'JU NO KATA!', 'HASHIRA RUSH!'],
+    ultName: 'JU NO KATA: SEIRAN',
+    ultBanner: 'JU NO KATA: SEIRAN!',
   },
   tanjiro: {
     id: 'tanjiro',
@@ -59,6 +69,8 @@ export const HERO_ROSTER: Record<HeroId, HeroInfo> = {
     elementColor: 'bg-red-500 text-white',
     desc: 'Hinokami Kagura - Tarian Dewa Api',
     quotes: ['HINOKAMI KAGURA!', 'ENBU!', 'DEWA API!', 'TARIAN NAGA!', 'HINOKAMI!'],
+    ultName: 'HINOKAMI: ENBU',
+    ultBanner: 'HINOKAMI KAGURA: ENBU!',
   },
   nezuko: {
     id: 'nezuko',
@@ -69,6 +81,8 @@ export const HERO_ROSTER: Record<HeroId, HeroInfo> = {
     elementColor: 'bg-pink-400 text-black',
     desc: 'Kotak Kayu - Meme Sprint & Tendangan',
     quotes: ['NEZUKO RUN!', 'TENDANGAN!', 'NEZUKO RUSH!', 'KOTAK KAYU!'],
+    ultName: 'MEGA SPRINT KICK',
+    ultBanner: 'SMOL NEZUKO MEGA KICK!',
   },
   inosuke: {
     id: 'inosuke',
@@ -79,6 +93,8 @@ export const HERO_ROSTER: Record<HeroId, HeroInfo> = {
     elementColor: 'bg-amber-500 text-black',
     desc: 'Dual Katana - Inoshishi Totsugeki',
     quotes: ['INOSHISHI TOTSUGEKI!', 'KIRI SAKI!', 'DUAL KATANA!', 'MAJU TERUS!'],
+    ultName: 'INOSHISHI TOTSUGEKI',
+    ultBanner: 'INOSHISHI TOTSUGEKI: KIRI SAKI!',
   },
   zenitsu: {
     id: 'zenitsu',
@@ -89,6 +105,8 @@ export const HERO_ROSTER: Record<HeroId, HeroInfo> = {
     elementColor: 'bg-yellow-400 text-black',
     desc: 'Pernapasan Petir - Hekireki Issen',
     quotes: ['HEKIREKI ISSEN!', 'ROKUREN!', 'KILAT PETIR!', 'TIDUR KILAT!'],
+    ultName: 'HEKIREKI: ROKUREN',
+    ultBanner: 'HEKIREKI ISSEN: ROKUREN!',
   },
   shinobu: {
     id: 'shinobu',
@@ -99,6 +117,8 @@ export const HERO_ROSTER: Record<HeroId, HeroInfo> = {
     elementColor: 'bg-purple-400 text-black',
     desc: 'Pernapasan Serangga - Chou no Mai',
     quotes: ['CHOU NO MAI!', 'DOKU WISTERIA!', 'SAYAP KUPU!', 'RACUN SERANGGA!'],
+    ultName: 'CHOU NO MAI',
+    ultBanner: 'CHOU NO MAI: TAWAMURE!',
   },
 };
 
@@ -165,13 +185,6 @@ export default function EmailCard({
   const titleHighlight = heroHeader?.titleHighlight !== undefined ? heroHeader.titleHighlight : 'INBOX';
   const subtitle = heroHeader?.subtitle !== undefined ? heroHeader.subtitle : 'Terima kode OTP & verifikasi instan. Otomatis terhapus, aman & tanpa data pribadi.';
 
-  const handleCopyClick = () => {
-    if (!currentEmail) return;
-    onCopy(currentEmail);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const handleGiyuClick = () => {
     if (giyuState === 'slashing') return;
     setGiyuState('slashing');
@@ -216,6 +229,90 @@ export default function EmailCard({
   const runnerSlashTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const demonHitTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Arcade Universe: Boss HP Bar & Ultimate Energy States
+  const [bossHp, setBossHp] = useState<number>(100);
+  const [comboCount, setComboCount] = useState<number>(0);
+  const [ultEnergy, setUltEnergy] = useState<number>(35);
+  const [isUltActive, setIsUltActive] = useState<boolean>(false);
+  const [isBossHurt, setIsBossHurt] = useState<boolean>(false);
+  const [isBossKO, setIsBossKO] = useState<boolean>(false);
+  const bossHurtTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const bossRespawnTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const ultTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const damageBoss = (amount: number, isCritical: boolean = false) => {
+    if (isBossKO) return;
+
+    setBossHp((prev) => {
+      const nextHp = Math.max(0, prev - amount);
+      if (nextHp === 0) {
+        setIsBossKO(true);
+        setIsBossHurt(false);
+        setDemonQuote('K.O.!');
+        if (isSoundEnabled) {
+          playArcadeKOSound(true);
+        }
+        if (bossRespawnTimeoutRef.current) clearTimeout(bossRespawnTimeoutRef.current);
+        bossRespawnTimeoutRef.current = setTimeout(() => {
+          setIsBossKO(false);
+          setBossHp(100);
+          setDemonQuote(null);
+          setComboCount(0);
+        }, 3000);
+      } else {
+        setIsBossHurt(true);
+        const scream = isCritical ? `CRITICAL -${amount} HP!` : `-${amount} HP!`;
+        setDemonQuote(scream);
+        if (bossHurtTimeoutRef.current) clearTimeout(bossHurtTimeoutRef.current);
+        bossHurtTimeoutRef.current = setTimeout(() => {
+          setIsBossHurt(false);
+          setDemonQuote(null);
+        }, 700);
+      }
+      return nextHp;
+    });
+
+    setComboCount((prev) => prev + 1);
+  };
+
+  const handleCopyClick = () => {
+    if (!currentEmail) return;
+    onCopy(currentEmail);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    // Arcade Universe: Gain +25% energy & attack demon
+    setUltEnergy((prev) => Math.min(100, prev + 25));
+    damageBoss(25);
+  };
+
+  const handleRandomizeClick = () => {
+    onRandomize();
+    setUltEnergy((prev) => Math.min(100, prev + 30));
+  };
+
+  const handleTriggerUltimate = () => {
+    if (ultEnergy < 100 || isUltActive || isBossKO) return;
+    setIsUltActive(true);
+    setUltEnergy(0);
+    const heroData = HERO_ROSTER[activeHero];
+    setRunnerQuote(heroData.ultName);
+
+    if (isSoundEnabled) {
+      playKatanaSlashSound(true);
+    }
+
+    // Critical strike -100 HP to boss with K.O.
+    setTimeout(() => {
+      damageBoss(100, true);
+    }, 280);
+
+    if (ultTimeoutRef.current) clearTimeout(ultTimeoutRef.current);
+    ultTimeoutRef.current = setTimeout(() => {
+      setIsUltActive(false);
+      setRunnerQuote(null);
+    }, 1600);
+  };
+
   // Restore saved hero from localStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -238,7 +335,7 @@ export default function EmailCard({
   };
 
   const handleRunnerClick = () => {
-    if (isRunnerSlashing) return;
+    if (isRunnerSlashing || isUltActive) return;
     setIsRunnerSlashing(true);
     const heroData = HERO_ROSTER[activeHero];
     const picked = heroData.quotes[Math.floor(Math.random() * heroData.quotes.length)];
@@ -247,30 +344,24 @@ export default function EmailCard({
       playKatanaSlashSound(true);
     }
 
-    // Demon flinches and screams in panic
-    setTimeout(() => {
-      setIsDemonHit(true);
-      const demonScreams = ['NANI?! GYAA!', 'JANGAN KEJAR AKU!', 'AMPUN!', 'KABUUR!'];
-      setDemonQuote(demonScreams[Math.floor(Math.random() * demonScreams.length)]);
-    }, 180);
+    // Gain energy & attack demon boss
+    setUltEnergy((prev) => Math.min(100, prev + 15));
+    damageBoss(25);
 
     if (runnerSlashTimeoutRef.current) clearTimeout(runnerSlashTimeoutRef.current);
     runnerSlashTimeoutRef.current = setTimeout(() => {
       setIsRunnerSlashing(false);
-      setIsDemonHit(false);
-      setDemonQuote(null);
       setRunnerQuote(null);
     }, 1050);
   };
 
   const handleDemonClick = () => {
-    setIsDemonHit(true);
-    setDemonQuote('JANGAN SENTUH AKU!');
-    if (demonHitTimeoutRef.current) clearTimeout(demonHitTimeoutRef.current);
-    demonHitTimeoutRef.current = setTimeout(() => {
-      setIsDemonHit(false);
-      setDemonQuote(null);
-    }, 1000);
+    if (isBossKO) return;
+    setUltEnergy((prev) => Math.min(100, prev + 15));
+    damageBoss(25);
+    if (isSoundEnabled) {
+      playKatanaSlashSound(true);
+    }
   };
 
   return (
@@ -556,7 +647,7 @@ export default function EmailCard({
       <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 xs:gap-2.5 pb-4 sm:pb-5 border-b-[2.5px] sm:border-b-[3px] border-dashed border-[var(--border-color)]">
         {/* Tombol EMAIL BARU */}
         <button
-          onClick={onRandomize}
+          onClick={handleRandomizeClick}
           className="brutal-btn bg-[var(--color-yellow)] text-black hover:bg-yellow-400 px-3 xs:px-4 py-2 sm:py-2.5 text-[11px] xs:text-xs font-bold flex items-center justify-center gap-1.5 sm:gap-2 group shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)]"
           title="Buat alamat acak baru"
         >
@@ -648,8 +739,94 @@ export default function EmailCard({
           </div>
         )}
 
+        {/* Arcade Battle HUD: Boss HP, Combo Counter, and Ultimate Energy Gauge */}
+        <div className="col-span-2 w-full flex flex-wrap items-center justify-between gap-1.5 xs:gap-2 pt-2.5 pb-1 border-t border-dashed border-[var(--border-color)]">
+          {/* Sisi Kiri: Boss Iblis HP & Combo Counter */}
+          <div className="flex items-center gap-1.5 xs:gap-2">
+            <span className="font-pixel text-[7px] xs:text-[8px] text-red-600 dark:text-red-400 font-bold whitespace-nowrap">
+              IBLIS HP:
+            </span>
+            <div className="w-20 xs:w-28 sm:w-36 h-3 sm:h-3.5 bg-black border border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
+              <div
+                className="h-full bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 transition-all duration-300"
+                style={{ width: `${bossHp}%` }}
+              />
+              <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5.5px] xs:text-[6.5px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
+                {bossHp} / 100
+              </span>
+            </div>
+            {comboCount > 0 && !isBossKO && (
+              <span className="font-pixel text-[6px] xs:text-[7px] bg-red-600 text-white px-1 py-0.5 border border-black animate-pulse whitespace-nowrap">
+                COMBO x{comboCount}!
+              </span>
+            )}
+          </div>
+
+          {/* Sisi Kanan: Ultimate Meter Gauge & Tombol Jurus */}
+          <div className="flex items-center gap-1.5 xs:gap-2 ml-auto">
+            <div className="flex items-center gap-1">
+              <span className="font-pixel text-[7px] xs:text-[8px] text-[var(--color-blue)] font-bold whitespace-nowrap">
+                ULT:
+              </span>
+              <div className="w-16 xs:w-20 sm:w-28 h-3 sm:h-3.5 bg-black border border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
+                <div
+                  className="h-full bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 transition-all duration-300"
+                  style={{ width: `${ultEnergy}%` }}
+                />
+                <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5.5px] xs:text-[6.5px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
+                  {ultEnergy}%
+                </span>
+              </div>
+            </div>
+
+            {/* Tombol Jurus Pamungkas */}
+            <button
+              type="button"
+              onClick={handleTriggerUltimate}
+              disabled={ultEnergy < 100 || isUltActive || isBossKO}
+              className={`brutal-btn px-2 xs:px-2.5 py-0.5 xs:py-1 font-pixel text-[6.5px] xs:text-[7.5px] font-bold border border-black transition-all ${
+                ultEnergy >= 100
+                  ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-[2px_2px_0px_#000] cursor-pointer'
+                  : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed opacity-60'
+              }`}
+              title={
+                ultEnergy >= 100
+                  ? 'Jurus Pamungkas Siap! Klik untuk melancarkan serangan!'
+                  : `Kumpulkan energi hingga 100% (${ultEnergy}%)`
+              }
+            >
+              <span>{ultEnergy >= 100 ? 'JURUS!' : 'CHARGE'}</span>
+            </button>
+          </div>
+        </div>
+
         {/* Strip Track Container: Giyu Pursuing Demon on Far-Left & Refresh Button on Far-Right */}
-        <div className="col-span-2 w-full flex items-end justify-between pt-1 sm:pt-2 relative">
+        <div className="col-span-2 w-full flex items-end justify-between pt-1 sm:pt-2 relative overflow-hidden">
+          {/* Manga Speedlines Full Runner Overlay */}
+          {isUltActive && (
+            <div className="absolute inset-0 z-40 pointer-events-none anim-manga-speedlines bg-black/50 flex items-center justify-center overflow-hidden">
+              <div className="text-center transform -rotate-2">
+                <div className="font-pixel text-[11px] xs:text-xs sm:text-sm text-yellow-300 bg-black/90 border-2 sm:border-3 border-yellow-400 px-3 py-1 shadow-[3px_3px_0px_#ff0055] tracking-wider animate-pulse">
+                  {HERO_ROSTER[activeHero].ultBanner}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Arcade K.O.! Splash Overlay */}
+          {isBossKO && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none anim-arcade-ko">
+              <div className="text-center transform -rotate-3">
+                <div className="font-pixel text-lg xs:text-xl sm:text-2xl text-yellow-300 bg-red-600 border-2 sm:border-4 border-black px-4 py-1.5 shadow-[4px_4px_0px_#000] tracking-widest animate-pulse">
+                  K.O.!
+                </div>
+                <div className="font-pixel text-[6.5px] xs:text-[7.5px] text-black bg-yellow-400 px-2 py-0.5 mt-0.5 border border-black font-bold uppercase">
+                  TARGET IBLIS TERKALAHKAN!
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* UJUNG KIRI: CHASE DUO (Hero Runner chasing Demon Target - Geser Kiri -8px) */}
           <div className={`flex items-end gap-2.5 xs:gap-3.5 sm:gap-5 relative -ml-2 sm:-ml-2.5 transition-all duration-150 ${isRefreshing ? 'sprint-active' : ''}`}>
             {/* 1. Hero Runner in Place on Strip (Stable Speech Bubble & Fluid Sprite Stride) */}
@@ -666,26 +843,30 @@ export default function EmailCard({
               {/* Speech / Action Bubble (Stable & Anchored at Top) */}
               <div
                 className={`absolute -top-6 left-1/2 -translate-x-1/2 font-pixel text-[5px] xs:text-[6px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
-                  runnerQuote || isRefreshing || isRunnerSlashing
+                  runnerQuote || isRefreshing || isRunnerSlashing || isUltActive
                     ? 'opacity-100 scale-100'
                     : 'opacity-85 group-hover:opacity-100 scale-95'
                 } ${
-                  isRunnerSlashing
+                  isUltActive
+                    ? 'bg-red-500 text-white font-black animate-pulse'
+                    : isRunnerSlashing
                     ? 'bg-cyan-400 text-black font-black'
                     : isRefreshing
                     ? 'bg-cyan-400 text-black font-black animate-pulse'
                     : 'bg-[var(--color-yellow)] text-black font-bold'
                 }`}
               >
-                {isRunnerSlashing
+                {isUltActive
+                  ? runnerQuote || HERO_ROSTER[activeHero].ultName
+                  : isRunnerSlashing
                   ? runnerQuote || HERO_ROSTER[activeHero].quotes[0]
                   : isRefreshing
                   ? 'HASHIRA SYNC'
                   : runnerQuote || HERO_ROSTER[activeHero].badgeName}
               </div>
 
-              {/* Elemental Slash Arc Effect Overlay (Triggered on click) */}
-              {isRunnerSlashing && (
+              {/* Elemental Slash Arc Effect Overlay (Triggered on click or ultimate) */}
+              {(isRunnerSlashing || isUltActive) && (
                 <div
                   className={`absolute -top-4 -right-14 sm:-right-16 pointer-events-none z-50 w-[120px] sm:w-[140px] ${
                     activeHero === 'tanjiro'
@@ -757,7 +938,9 @@ export default function EmailCard({
               {/* Character Sprite Container (With Dynamic Procedural Physics) */}
               <div
                 className={`relative z-20 ${
-                  isRunnerSlashing
+                  isUltActive
+                    ? 'anim-ult-lunge-sprint'
+                    : isRunnerSlashing
                     ? 'anim-slash-lunge-action'
                     : activeHero === 'nezuko'
                     ? 'anim-nezuko-stride'
@@ -1053,12 +1236,12 @@ export default function EmailCard({
               {/* Demon Badge Tag (Stable & Anchored at Top) */}
               <div
                 className={`absolute -top-6 left-1/2 -translate-x-1/2 font-pixel text-[5px] xs:text-[5.5px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
-                  demonQuote || isDemonHit
+                  demonQuote || isDemonHit || isBossHurt || isBossKO
                     ? 'opacity-100 scale-100 bg-red-600 text-white font-black'
                     : 'opacity-85 group-hover:opacity-100 scale-95 bg-red-700/90 text-white font-bold'
                 }`}
               >
-                {demonQuote || (isDemonHit ? 'GYAAA!' : 'TARGET IBLIS')}
+                {demonQuote || (isBossKO ? 'K.O.!' : isBossHurt ? 'GYAAA!' : isDemonHit ? 'GYAAA!' : 'TARGET IBLIS')}
               </div>
 
               {/* Panic Sweat Drop */}
@@ -1070,7 +1253,17 @@ export default function EmailCard({
               </div>
 
               {/* Demon Sprite Container (With Smooth Procedural Physics) */}
-              <div className={`relative z-20 ${isDemonHit ? 'anim-demon-hit-action' : 'anim-demon-stride'}`}>
+              <div
+                className={`relative z-20 ${
+                  isBossKO
+                    ? 'anim-demon-ko'
+                    : isBossHurt
+                    ? 'anim-demon-hurt'
+                    : isDemonHit
+                    ? 'anim-demon-hit-action'
+                    : 'anim-demon-stride'
+                }`}
+              >
                 <svg
                   width="44"
                   height="42"

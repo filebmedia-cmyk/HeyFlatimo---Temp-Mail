@@ -479,6 +479,41 @@ export function playRetroStartSound(force: boolean = false): void {
   } catch (e) {}
 }
 
+export function playArcadeKOSound(force: boolean = false): void {
+  if (!force && !getSoundEnabled()) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state !== 'running') {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(80, now + 0.45);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.56);
+
+    const oscHi = ctx.createOscillator();
+    const gainHi = ctx.createGain();
+    oscHi.type = 'square';
+    oscHi.frequency.setValueAtTime(440, now);
+    oscHi.frequency.setValueAtTime(880, now + 0.1);
+    gainHi.gain.setValueAtTime(0.3, now);
+    gainHi.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    oscHi.connect(gainHi);
+    gainHi.connect(ctx.destination);
+    oscHi.start(now);
+    oscHi.stop(now + 0.46);
+  } catch (e) {}
+}
+
 /**
  * Check if sound FX is enabled in localStorage.
  * Defaults to TRUE (Sound ON) unless explicitly muted by the user.
