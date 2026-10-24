@@ -61,7 +61,7 @@ export const HERO_ROSTER: Record<HeroId, HeroInfo> = {
   giyu: {
     id: 'giyu',
     name: 'GIYU TOMIOKA',
-    badgeName: 'GIYU RUNNER',
+    badgeName: 'GIYU',
     title: 'Pilar Air',
     element: 'AIR',
     elementColor: 'bg-cyan-400 text-black',
@@ -85,7 +85,7 @@ export const HERO_ROSTER: Record<HeroId, HeroInfo> = {
   nezuko: {
     id: 'nezuko',
     name: 'SMOL NEZUKO',
-    badgeName: 'SMOL NEZUKO',
+    badgeName: 'NEZUKO',
     title: 'Iblis Imut',
     element: 'LUCU',
     elementColor: 'bg-pink-400 text-black',
@@ -349,6 +349,35 @@ export default function EmailCard({
       setIsUltActive(false);
       setRunnerQuote(null);
     }, 1600);
+  };
+
+  // Charge Energy and Ultimate Attack Handler (Fixes Charge Button Bug)
+  const [isCharging, setIsCharging] = useState<boolean>(false);
+  const chargeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleChargeOrUltimate = () => {
+    if (isUltActive || isBossKO) return;
+
+    if (ultEnergy < 100) {
+      setUltEnergy((prev) => {
+        const next = Math.min(100, prev + 25);
+        if (next >= 100) {
+          if (isSoundEnabled) {
+            playSound('success');
+          }
+        } else {
+          if (isSoundEnabled) {
+            playSound('pop');
+          }
+        }
+        return next;
+      });
+      setIsCharging(true);
+      if (chargeTimeoutRef.current) clearTimeout(chargeTimeoutRef.current);
+      chargeTimeoutRef.current = setTimeout(() => setIsCharging(false), 450);
+    } else {
+      handleTriggerUltimate();
+    }
   };
 
   // Restore saved hero from localStorage on mount
@@ -866,57 +895,61 @@ export default function EmailCard({
       <div className="w-full grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-between pt-2.5 xs:pt-3 pb-2 border-b border-dashed border-[var(--border-color)]">
         {/* Sisi Kiri: Boss Iblis HP & Combo Counter (Mobile Symmetrical Column) */}
         <div className="flex items-center gap-1 xs:gap-1.5 min-w-0">
-          <span className="font-pixel text-[6.5px] xs:text-[7.5px] sm:text-[8px] text-red-600 dark:text-red-400 font-bold whitespace-nowrap flex-shrink-0">
-            IBLIS HP:
+          <span className="font-pixel text-[6px] xs:text-[7px] sm:text-[8px] text-red-600 dark:text-red-400 font-bold whitespace-nowrap flex-shrink-0">
+            IBLIS:
           </span>
-          <div className="flex-1 max-w-[110px] sm:max-w-[160px] h-3.5 sm:h-4 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
+          <div className="flex-1 max-w-[100px] xs:max-w-[130px] sm:max-w-[160px] h-3.5 sm:h-4 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
             <div
               className="h-full bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 transition-all duration-300"
               style={{ width: `${bossHp}%` }}
             />
-            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5.5px] xs:text-[6.5px] sm:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
+            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5px] xs:text-[6px] sm:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
               {bossHp}/100
             </span>
           </div>
           {comboCount > 0 && !isBossKO && (
-            <span className="font-pixel text-[5.5px] xs:text-[6.5px] bg-red-600 text-white px-1 py-0.5 border border-black animate-pulse whitespace-nowrap shadow-[1px_1px_0px_#000] flex-shrink-0">
+            <span className="font-pixel text-[5px] xs:text-[6px] bg-red-600 text-white px-1 py-0.5 border border-black animate-pulse whitespace-nowrap shadow-[1px_1px_0px_#000] flex-shrink-0">
               x{comboCount}
             </span>
           )}
         </div>
 
-        {/* Sisi Kanan: Ultimate Meter Gauge & Tombol Jurus (Mobile Symmetrical Column) */}
+        {/* Sisi Kanan: Ultimate Meter Gauge & Tombol Jurus / Charge Interaktif */}
         <div className="flex items-center gap-1 xs:gap-1.5 min-w-0 justify-end ml-auto">
-          <span className="font-pixel text-[6.5px] xs:text-[7.5px] sm:text-[8px] text-[var(--color-blue)] font-bold whitespace-nowrap flex-shrink-0">
+          <span className="font-pixel text-[6px] xs:text-[7px] sm:text-[8px] text-[var(--color-blue)] font-bold whitespace-nowrap flex-shrink-0">
             ULT:
           </span>
-          <div className="flex-1 max-w-[80px] sm:max-w-[120px] h-3.5 sm:h-4 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
+          <div className={`flex-1 max-w-[85px] xs:max-w-[110px] sm:max-w-[140px] h-3.5 sm:h-4 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000] transition-all duration-200 ${isCharging ? 'ring-2 ring-cyan-400' : ''}`}>
             <div
-              className="h-full bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 transition-all duration-300"
+              className={`h-full bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 transition-all duration-300 ${isCharging ? 'brightness-125' : ''}`}
               style={{ width: `${ultEnergy}%` }}
             />
-            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5.5px] xs:text-[6.5px] sm:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
+            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5px] xs:text-[6px] sm:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
               {ultEnergy}%
             </span>
           </div>
 
-          {/* Tombol Jurus Pamungkas */}
+          {/* Tombol Jurus Pamungkas & Charge Interaktif (Bisa Diklik untuk Isi Energi) */}
           <button
             type="button"
-            onClick={handleTriggerUltimate}
-            disabled={ultEnergy < 100 || isUltActive || isBossKO}
-            className={`brutal-btn px-1.5 xs:px-2.5 py-0.5 xs:py-1 font-pixel text-[6px] xs:text-[7px] sm:text-[8px] font-bold border-2 border-black flex-shrink-0 transition-all ${
-              ultEnergy >= 100
-                ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-[1.5px_1.5px_0px_#000] cursor-pointer'
-                : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed opacity-60'
+            onClick={handleChargeOrUltimate}
+            disabled={isUltActive || isBossKO}
+            className={`brutal-btn px-2 xs:px-2.5 py-0.5 xs:py-1 font-pixel text-[6px] xs:text-[7px] sm:text-[7.5px] font-bold border-2 border-black flex-shrink-0 transition-all ${
+              isBossKO
+                ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed opacity-60'
+                : ultEnergy >= 100
+                ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-[2px_2px_0px_#000] cursor-pointer'
+                : 'bg-cyan-400 hover:bg-cyan-300 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-black shadow-[1.5px_1.5px_0px_#000] cursor-pointer active:translate-y-0.5'
             }`}
             title={
-              ultEnergy >= 100
-                ? 'Jurus Pamungkas Siap! Klik untuk melancarkan serangan!'
-                : `Kumpulkan energi hingga 100% (${ultEnergy}%)`
+              isBossKO
+                ? 'Iblis telah K.O.! Menunggu respawn...'
+                : ultEnergy >= 100
+                ? 'Jurus Pamungkas Siap! Klik untuk menyerang Iblis!'
+                : `Klik untuk charge energi (+25%)! Sekarang: ${ultEnergy}%`
             }
           >
-            <span>{ultEnergy >= 100 ? 'JURUS!' : 'CHARGE'}</span>
+            <span>{isBossKO ? 'K.O.!' : ultEnergy >= 100 ? 'JURUS!' : 'CHARGE'}</span>
           </button>
         </div>
       </div>
@@ -953,8 +986,8 @@ export default function EmailCard({
 
         {/* Runner Arena Inner Row */}
         <div className="w-full flex items-end justify-between relative z-20 overflow-visible">
-          {/* UJUNG KIRI: CHASE DUO (Hero Runner chasing Demon Target) */}
-          <div className={`flex items-end gap-3 xs:gap-4 sm:gap-6 relative transition-all duration-150 overflow-visible ${isRefreshing ? 'sprint-active' : ''}`}>
+          {/* UJUNG KIRI: CHASE DUO (Hero Runner chasing Demon Target - Wide Breathing Room) */}
+          <div className={`flex items-end gap-8 xs:gap-11 sm:gap-16 relative transition-all duration-150 overflow-visible ${isRefreshing ? 'sprint-active' : ''}`}>
             {/* 1. Hero Runner in Place on Strip (Stable Speech Bubble & Fluid Sprite Stride) */}
             <div
               onClick={handleRunnerClick}
@@ -966,9 +999,9 @@ export default function EmailCard({
               className="relative flex items-end cursor-pointer group pointer-events-auto select-none min-w-[50px] min-h-[44px] flex-shrink-0 overflow-visible"
               title={`${HERO_ROSTER[activeHero].name} (Klik untuk jurus serangan!)`}
             >
-              {/* Speech / Action Bubble (Anchored on Left for Mobile, Center for Desktop) */}
+              {/* Speech / Action Bubble (Anchored on Left for Mobile, Staggered Floor Level) */}
               <div
-                className={`absolute -top-7 xs:-top-8 left-0 xs:-left-1 sm:left-1/2 sm:-translate-x-1/2 font-pixel text-[5px] xs:text-[6px] sm:text-[6.5px] px-1.5 xs:px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
+                className={`absolute -top-6 xs:-top-7 left-0 xs:-left-1 sm:left-1/2 sm:-translate-x-1/2 font-pixel text-[5px] xs:text-[5.5px] sm:text-[6.5px] px-1.5 xs:px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-30 pointer-events-none transition-all duration-200 ${
                   runnerQuote || isRefreshing || isRunnerSlashing || isUltActive
                     ? 'opacity-100 scale-100'
                     : 'opacity-85 group-hover:opacity-100 scale-95'
@@ -1359,9 +1392,9 @@ export default function EmailCard({
               className="relative flex items-end cursor-pointer group pointer-events-auto select-none min-w-[44px] min-h-[42px] flex-shrink-0 overflow-visible"
               title="Target Iblis (Dikejar oleh Giyu) - Klik untuk reaksi panik!"
             >
-              {/* Demon Badge Tag (Anchored Cleanly at Top with Breathing Room) */}
+              {/* Demon Badge Tag (Anchored on Right, Staggered Higher Floor - NEVER COLLIDES) */}
               <div
-                className={`absolute -top-7 xs:-top-8 left-1/2 -translate-x-1/2 font-pixel text-[5px] xs:text-[5.5px] sm:text-[6px] px-1.5 xs:px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
+                className={`absolute -top-10 xs:-top-11 sm:-top-10 right-0 xs:-right-1 sm:left-1/2 sm:-translate-x-1/2 font-pixel text-[5px] xs:text-[5.5px] sm:text-[6px] px-1.5 xs:px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
                   demonQuote || isDemonHit || isBossHurt || isBossKO
                     ? 'opacity-100 scale-100 bg-red-600 text-white font-black'
                     : 'opacity-85 group-hover:opacity-100 scale-95 bg-red-700/90 text-white font-bold'
