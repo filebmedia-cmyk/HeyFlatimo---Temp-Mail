@@ -801,14 +801,17 @@ export default function EmailCard({
         </div>
 
         {/* Strip Track Container: Giyu Pursuing Demon on Far-Left & Refresh Button on Far-Right */}
-        <div className="col-span-2 w-full flex items-end justify-between pt-1 sm:pt-2 relative overflow-hidden">
-          {/* Manga Speedlines Full Runner Overlay */}
+        <div className="col-span-2 w-full flex items-end justify-between pt-8 sm:pt-9 pb-3.5 sm:pb-4 relative overflow-visible">
+          {/* Manga Speedlines Runner Background Layer (Behind Characters, Zero Blockage) */}
           {isUltActive && (
-            <div className="absolute inset-0 z-40 pointer-events-none anim-manga-speedlines bg-black/50 flex items-center justify-center overflow-hidden">
-              <div className="text-center transform -rotate-2">
-                <div className="font-pixel text-[11px] xs:text-xs sm:text-sm text-yellow-300 bg-black/90 border-2 sm:border-3 border-yellow-400 px-3 py-1 shadow-[3px_3px_0px_#ff0055] tracking-wider animate-pulse">
-                  {HERO_ROSTER[activeHero].ultBanner}
-                </div>
+            <div className="absolute inset-0 z-0 pointer-events-none anim-manga-speedlines opacity-50 rounded" />
+          )}
+
+          {/* Ultimate Banner Floating Notification (Top-Center, Unobtrusive) */}
+          {isUltActive && (
+            <div className="absolute top-0.5 sm:top-1 left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-in fade-in zoom-in duration-150">
+              <div className="font-pixel text-[8px] xs:text-[9px] sm:text-xs text-yellow-300 bg-black/95 border-2 border-yellow-400 px-2.5 py-0.5 shadow-[2px_2px_0px_#ff0055] whitespace-nowrap animate-pulse">
+                {HERO_ROSTER[activeHero].ultBanner}
               </div>
             </div>
           )}
@@ -817,10 +820,10 @@ export default function EmailCard({
           {isBossKO && (
             <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none anim-arcade-ko">
               <div className="text-center transform -rotate-3">
-                <div className="font-pixel text-lg xs:text-xl sm:text-2xl text-yellow-300 bg-red-600 border-2 sm:border-4 border-black px-4 py-1.5 shadow-[4px_4px_0px_#000] tracking-widest animate-pulse">
+                <div className="font-pixel text-base xs:text-lg sm:text-xl text-yellow-300 bg-red-600 border-2 sm:border-3 border-black px-3.5 sm:px-4 py-1 shadow-[3px_3px_0px_#000] tracking-widest animate-pulse">
                   K.O.!
                 </div>
-                <div className="font-pixel text-[6.5px] xs:text-[7.5px] text-black bg-yellow-400 px-2 py-0.5 mt-0.5 border border-black font-bold uppercase">
+                <div className="font-pixel text-[6px] xs:text-[7px] text-black bg-yellow-400 px-2 py-0.5 mt-0.5 border border-black font-bold uppercase">
                   TARGET IBLIS TERKALAHKAN!
                 </div>
               </div>
