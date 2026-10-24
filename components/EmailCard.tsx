@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Copy,
   Check,
@@ -19,10 +19,88 @@ import {
   QrCode,
   Bell,
   BellOff,
+  UserCheck,
+  X,
 } from 'lucide-react';
 import CustomEmailModal from './CustomEmailModal';
 import DomainDropdown, { DomainOption } from './DomainDropdown';
 import { playSound, playKatanaSlashSound, playNekoSound, playShibaSound } from '@/lib/sound';
+
+export type HeroId = 'giyu' | 'tanjiro' | 'nezuko' | 'inosuke' | 'zenitsu' | 'shinobu';
+
+export interface HeroInfo {
+  id: HeroId;
+  name: string;
+  badgeName: string;
+  title: string;
+  element: string;
+  elementColor: string;
+  desc: string;
+  quotes: string[];
+}
+
+export const HERO_ROSTER: Record<HeroId, HeroInfo> = {
+  giyu: {
+    id: 'giyu',
+    name: 'GIYU TOMIOKA',
+    badgeName: 'GIYU RUNNER',
+    title: 'Pilar Air',
+    element: 'AIR',
+    elementColor: 'bg-cyan-400 text-black',
+    desc: 'Pernapasan Air - Jurus Minamo Giri',
+    quotes: ['MINAMO GIRI!', 'PERNAPASAN AIR!', 'WATER SLASH!', 'JU NO KATA!', 'HASHIRA RUSH!'],
+  },
+  tanjiro: {
+    id: 'tanjiro',
+    name: 'TANJIRO KAMADO',
+    badgeName: 'TANJIRO',
+    title: 'Dewa Api',
+    element: 'API',
+    elementColor: 'bg-red-500 text-white',
+    desc: 'Hinokami Kagura - Tarian Dewa Api',
+    quotes: ['HINOKAMI KAGURA!', 'ENBU!', 'DEWA API!', 'TARIAN NAGA!', 'HINOKAMI!'],
+  },
+  nezuko: {
+    id: 'nezuko',
+    name: 'SMOL NEZUKO',
+    badgeName: 'SMOL NEZUKO',
+    title: 'Iblis Imut',
+    element: 'LUCU',
+    elementColor: 'bg-pink-400 text-black',
+    desc: 'Kotak Kayu - Meme Sprint & Tendangan',
+    quotes: ['NEZUKO RUN!', 'TENDANGAN!', 'NEZUKO RUSH!', 'KOTAK KAYU!'],
+  },
+  inosuke: {
+    id: 'inosuke',
+    name: 'INOSUKE HASHIBIRA',
+    badgeName: 'INOSUKE',
+    title: 'Pendekar Babi',
+    element: 'SERUDUK',
+    elementColor: 'bg-amber-500 text-black',
+    desc: 'Dual Katana - Inoshishi Totsugeki',
+    quotes: ['INOSHISHI TOTSUGEKI!', 'KIRI SAKI!', 'DUAL KATANA!', 'MAJU TERUS!'],
+  },
+  zenitsu: {
+    id: 'zenitsu',
+    name: 'ZENITSU AGATSUMA',
+    badgeName: 'ZENITSU',
+    title: 'Pendekar Petir',
+    element: 'PETIR',
+    elementColor: 'bg-yellow-400 text-black',
+    desc: 'Pernapasan Petir - Hekireki Issen',
+    quotes: ['HEKIREKI ISSEN!', 'ROKUREN!', 'KILAT PETIR!', 'TIDUR KILAT!'],
+  },
+  shinobu: {
+    id: 'shinobu',
+    name: 'SHINOBU KOCHO',
+    badgeName: 'SHINOBU',
+    title: 'Pilar Serangga',
+    element: 'SERANGGA',
+    elementColor: 'bg-purple-400 text-black',
+    desc: 'Pernapasan Serangga - Chou no Mai',
+    quotes: ['CHOU NO MAI!', 'DOKU WISTERIA!', 'SAYAP KUPU!', 'RACUN SERANGGA!'],
+  },
+};
 
 interface EmailCardProps {
   currentEmail: string;
@@ -127,7 +205,9 @@ export default function EmailCard({
     }, 1200);
   };
 
-  // Interactive Giyu Strip Runner & Demon Target States
+  // Interactive Strip Runner & Character Select States
+  const [activeHero, setActiveHero] = useState<HeroId>('giyu');
+  const [isCharModalOpen, setIsCharModalOpen] = useState<boolean>(false);
   const [runnerQuote, setRunnerQuote] = useState<string | null>(null);
   const [isRunnerSlashing, setIsRunnerSlashing] = useState<boolean>(false);
   const [isDemonHit, setIsDemonHit] = useState<boolean>(false);
@@ -136,17 +216,32 @@ export default function EmailCard({
   const runnerSlashTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const demonHitTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Restore saved hero from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('flatimo_runner_hero') as HeroId;
+      if (saved && ['giyu', 'tanjiro', 'nezuko', 'inosuke', 'zenitsu', 'shinobu'].includes(saved)) {
+        setActiveHero(saved);
+      }
+    }
+  }, []);
+
+  const handleSelectHero = (hero: HeroId) => {
+    setActiveHero(hero);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('flatimo_runner_hero', hero);
+    }
+    setIsCharModalOpen(false);
+    if (isSoundEnabled) {
+      playSound('pop');
+    }
+  };
+
   const handleRunnerClick = () => {
     if (isRunnerSlashing) return;
     setIsRunnerSlashing(true);
-    const quotes = [
-      'MINAMO GIRI!',
-      'PERNAPASAN AIR!',
-      'WATER SLASH!',
-      'TEBASAN KILAT!',
-      'HASHIRA RUSH!',
-    ];
-    const picked = quotes[Math.floor(Math.random() * quotes.length)];
+    const heroData = HERO_ROSTER[activeHero];
+    const picked = heroData.quotes[Math.floor(Math.random() * heroData.quotes.length)];
     setRunnerQuote(picked);
     if (isSoundEnabled) {
       playKatanaSlashSound(true);
@@ -494,6 +589,19 @@ export default function EmailCard({
           </button>
         )}
 
+        {/* Tombol PILIH PAHLAWAN (ROSTER) */}
+        <button
+          onClick={() => {
+            playSound('pop');
+            setIsCharModalOpen(true);
+          }}
+          className="brutal-btn bg-pink-500 text-white hover:bg-pink-600 px-3 xs:px-3.5 py-2 sm:py-2.5 text-[11px] xs:text-xs font-bold font-mono-custom flex items-center justify-center gap-1.5 sm:gap-2 uppercase group shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)]"
+          title="Pilih Pahlawan Pelari (Character Select Roster)"
+        >
+          <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:rotate-45 transition-transform flex-shrink-0 text-yellow-300" />
+          <span className="truncate">ROSTER</span>
+        </button>
+
         {/* Tombol SUARA NOTIFIKASI (Default: Mute) */}
         {onToggleSound && (
           <button
@@ -542,9 +650,9 @@ export default function EmailCard({
 
         {/* Strip Track Container: Giyu Pursuing Demon on Far-Left & Refresh Button on Far-Right */}
         <div className="col-span-2 w-full flex items-end justify-between pt-1 sm:pt-2 relative">
-          {/* UJUNG KIRI: CHASE DUO (Giyu Runner chasing Demon Target - Geser Kiri -8px) */}
+          {/* UJUNG KIRI: CHASE DUO (Hero Runner chasing Demon Target - Geser Kiri -8px) */}
           <div className={`flex items-end gap-2.5 xs:gap-3.5 sm:gap-5 relative -ml-2 sm:-ml-2.5 transition-all duration-150 ${isRefreshing ? 'sprint-active' : ''}`}>
-            {/* 1. Giyu Runner in Place on Strip (Stable Speech Bubble & Fluid Sprite Stride) */}
+            {/* 1. Hero Runner in Place on Strip (Stable Speech Bubble & Fluid Sprite Stride) */}
             <div
               onClick={handleRunnerClick}
               onTouchEnd={(e) => {
@@ -553,7 +661,7 @@ export default function EmailCard({
               }}
               style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
               className="relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-3 sm:-mb-4 min-w-[46px] min-h-[40px] flex-shrink-0"
-              title="Giyu Tomioka (Klik untuk tebasan air mengejar iblis!)"
+              title={`${HERO_ROSTER[activeHero].name} (Klik untuk jurus serangan!)`}
             >
               {/* Speech / Action Bubble (Stable & Anchored at Top) */}
               <div
@@ -570,22 +678,67 @@ export default function EmailCard({
                 }`}
               >
                 {isRunnerSlashing
-                  ? runnerQuote || 'WATER SLASH!'
+                  ? runnerQuote || HERO_ROSTER[activeHero].quotes[0]
                   : isRefreshing
                   ? 'HASHIRA SYNC'
-                  : runnerQuote || 'GIYU RUNNER'}
+                  : runnerQuote || HERO_ROSTER[activeHero].badgeName}
               </div>
 
-              {/* Water Slash Arc Effect Overlay (Triggered on click) */}
+              {/* Elemental Slash Arc Effect Overlay (Triggered on click) */}
               {isRunnerSlashing && (
-                <div className="absolute -top-4 -right-14 sm:-right-16 pointer-events-none z-50 w-[120px] sm:w-[140px] anim-water-arc-fx">
-                  <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(0,240,255,0.95)]">
-                    <path d="M10,48 Q50,6 110,18 T155,5" fill="none" stroke="#00ffff" strokeWidth="6" strokeLinecap="round" />
-                    <path d="M14,50 Q54,10 114,20 T158,7" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
-                    <circle cx="45" cy="20" r="3" fill="#00f0ff" />
-                    <circle cx="90" cy="14" r="4" fill="#ffffff" />
-                    <circle cx="130" cy="12" r="2.5" fill="#00f0ff" />
-                  </svg>
+                <div
+                  className={`absolute -top-4 -right-14 sm:-right-16 pointer-events-none z-50 w-[120px] sm:w-[140px] ${
+                    activeHero === 'tanjiro'
+                      ? 'anim-flame-arc-fx'
+                      : activeHero === 'zenitsu'
+                      ? 'anim-thunder-arc-fx'
+                      : activeHero === 'shinobu'
+                      ? 'anim-poison-arc-fx'
+                      : 'anim-water-arc-fx'
+                  }`}
+                >
+                  {activeHero === 'tanjiro' ? (
+                    <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(255,80,0,0.95)]">
+                      <path d="M10,48 Q50,6 110,18 T155,5" fill="none" stroke="#ff4500" strokeWidth="6" strokeLinecap="round" />
+                      <path d="M14,50 Q54,10 114,20 T158,7" fill="none" stroke="#ffe600" strokeWidth="3" strokeLinecap="round" />
+                      <circle cx="45" cy="20" r="3.5" fill="#ff4500" />
+                      <circle cx="90" cy="14" r="4" fill="#ffffff" />
+                      <circle cx="130" cy="12" r="2.5" fill="#facc15" />
+                    </svg>
+                  ) : activeHero === 'zenitsu' ? (
+                    <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(255,230,0,0.95)]">
+                      <polyline points="10,45 40,25 65,35 110,12 135,22 155,5" fill="none" stroke="#ffe600" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                      <polyline points="12,46 42,26 67,36 112,13 137,23 157,6" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : activeHero === 'shinobu' ? (
+                    <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(192,132,252,0.95)]">
+                      <path d="M10,48 Q50,6 110,18 T155,5" fill="none" stroke="#c084fc" strokeWidth="5" strokeLinecap="round" />
+                      <path d="M14,50 Q54,10 114,20 T158,7" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" />
+                      <circle cx="50" cy="18" r="3" fill="#c084fc" />
+                      <circle cx="95" cy="15" r="3.5" fill="#22d3ee" />
+                      <circle cx="135" cy="10" r="2.5" fill="#ffffff" />
+                    </svg>
+                  ) : activeHero === 'nezuko' ? (
+                    <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(244,114,182,0.95)]">
+                      <path d="M10,42 Q60,12 120,22 T155,8" fill="none" stroke="#f472b6" strokeWidth="5.5" strokeLinecap="round" />
+                      <circle cx="55" cy="22" r="3.5" fill="#f43f5e" />
+                      <circle cx="105" cy="18" r="4" fill="#ffffff" />
+                      <circle cx="140" cy="12" r="2.5" fill="#fed7aa" />
+                    </svg>
+                  ) : activeHero === 'inosuke' ? (
+                    <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(245,158,11,0.95)]">
+                      <line x1="15" y1="12" x2="145" y2="48" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+                      <line x1="15" y1="48" x2="145" y2="12" stroke="#f59e0b" strokeWidth="4.5" strokeLinecap="round" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(0,240,255,0.95)]">
+                      <path d="M10,48 Q50,6 110,18 T155,5" fill="none" stroke="#00ffff" strokeWidth="6" strokeLinecap="round" />
+                      <path d="M14,50 Q54,10 114,20 T158,7" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
+                      <circle cx="45" cy="20" r="3" fill="#00f0ff" />
+                      <circle cx="90" cy="14" r="4" fill="#ffffff" />
+                      <circle cx="130" cy="12" r="2.5" fill="#00f0ff" />
+                    </svg>
+                  )}
                 </div>
               )}
 
@@ -595,143 +748,310 @@ export default function EmailCard({
                 <div className="absolute top-4.5 right-7 w-10 xs:w-12 h-[2px] bg-white rounded-full fluid-wind-2" />
                 <div className="absolute top-7 right-11 w-7 xs:w-9 h-[1.5px] bg-cyan-200 dark:bg-cyan-300 rounded-full fluid-wind-3" />
                 <div className="absolute top-9 right-6 w-9 xs:w-11 h-[1.5px] bg-sky-300 dark:bg-sky-400 rounded-full fluid-wind-4" />
-
-                {/* Floating Petal / Water Droplets */}
                 <div className="absolute top-3.5 right-8 w-1.5 h-1.5 bg-cyan-400 rounded-sm petal-float-1" />
                 <div className="absolute top-6.5 right-11 w-1.5 h-1.5 bg-white rounded-full petal-float-2" />
-
-                {/* Dust Puffs at feet */}
                 <div className="absolute bottom-0 left-1 w-2 h-2 bg-zinc-400/80 rounded-full fluid-dust-1" />
                 <div className="absolute bottom-0 left-3 w-1.5 h-1.5 bg-zinc-300/70 rounded-full fluid-dust-2" />
               </div>
 
-              {/* Character Sprite Container (With Smooth Procedural Physics) */}
-              <div className={`relative z-20 ${isRunnerSlashing ? 'anim-slash-lunge-action' : 'anim-giyu-stride'}`}>
-                <svg
-                  width="52"
-                  height="46"
-                  viewBox="0 0 38 34"
-                  className="w-[46px] h-[40px] xs:w-[52px] xs:h-[46px] sm:w-[58px] sm:h-[51px] drop-shadow-[2px_2px_0px_#000] overflow-visible group-hover:scale-105 transition-transform"
-                >
-                  {/* Ground Contact Shadow (Shared) */}
-                  <ellipse cx="19" cy="33" rx="8" ry="1.4" fill="#000000" opacity="0.45" />
+              {/* Character Sprite Container (With Dynamic Procedural Physics) */}
+              <div
+                className={`relative z-20 ${
+                  isRunnerSlashing
+                    ? 'anim-slash-lunge-action'
+                    : activeHero === 'nezuko'
+                    ? 'anim-nezuko-stride'
+                    : activeHero === 'shinobu'
+                    ? 'anim-shinobu-stride'
+                    : 'anim-giyu-stride'
+                }`}
+              >
+                {/* 1. GIYU TOMIOKA */}
+                {activeHero === 'giyu' && (
+                  <svg
+                    width="52"
+                    height="46"
+                    viewBox="0 0 38 34"
+                    className="w-[46px] h-[40px] xs:w-[52px] xs:h-[46px] sm:w-[58px] sm:h-[51px] drop-shadow-[2px_2px_0px_#000] overflow-visible group-hover:scale-105 transition-transform"
+                  >
+                    <ellipse cx="19" cy="33" rx="8" ry="1.4" fill="#000000" opacity="0.45" />
+                    <g className="sprite-frame-a">
+                      <polygon points="11,11 3,13 0,19 5,22 9,17" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
+                      <rect x="7" y="13.5" width="2.2" height="2" fill="#38bdf8" />
+                      <line x1="2" y1="17" x2="6" y2="16" stroke="#38bdf8" strokeWidth="0.7" />
+                      <rect x="8" y="24" width="3" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                      <rect x="8" y="27" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
+                      <rect x="7.5" y="29.5" width="3.5" height="1.8" fill="#d97706" rx="0.5" />
+                      <rect x="22" y="17" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
+                      <circle cx="23.5" cy="23.5" r="1.5" fill="#fde68a" />
+                      <polygon points="12,5 20,3 28,5 30,11 28,13 12,13 10,10" fill="#0f172a" stroke="#000" strokeWidth="0.9" />
+                      <polygon points="9,8 6,11 11,11" fill="#0f172a" />
+                      <polygon points="29,8 32,11 27,11" fill="#0f172a" />
+                      <rect x="12" y="8" width="16" height="10" fill="#fde68a" stroke="#000" strokeWidth="0.9" rx="0.5" />
+                      <polygon points="12,8 16,12 18,9 22,12 24,8" fill="#0f172a" />
+                      <rect x="20" y="11" width="3.5" height="2.5" fill="#0284c7" stroke="#000" strokeWidth="0.5" />
+                      <rect x="22" y="11" width="1.2" height="1" fill="#ffffff" />
+                      <line x1="20" y1="15" x2="24" y2="15" stroke="#000" strokeWidth="0.75" />
+                      <path d="M12,17 L18,17 L17,25 L7,25 L6,20 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
+                      <path d="M18,17 L26,17 L28,21 L27,26 L18,25 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+                      <rect x="19" y="18" width="2.5" height="2.5" fill="#eab308" />
+                      <rect x="23" y="18" width="2.5" height="2.5" fill="#ea580c" />
+                      <rect x="21" y="21" width="2.5" height="2.5" fill="#eab308" />
+                      <polygon points="16,17 21,17 19,23" fill="#0f172a" />
+                      <line x1="19" y1="17" x2="19" y2="22" stroke="#ffffff" strokeWidth="0.7" />
+                      <rect x="14" y="23" width="9" height="1.8" fill="#ffffff" stroke="#000" strokeWidth="0.6" />
+                      <line x1="5" y1="27" x2="15" y2="22" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" />
+                      <line x1="5" y1="27" x2="15" y2="22" stroke="#0284c7" strokeWidth="1" strokeLinecap="round" />
+                      <rect x="14" y="21" width="1.8" height="1.8" fill="#000" stroke="#38bdf8" strokeWidth="0.5" />
+                      <rect x="15" y="24" width="3" height="7" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                      <rect x="15" y="27.5" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
+                      <rect x="15.5" y="31" width="3.8" height="1.8" fill="#d97706" rx="0.5" />
+                      <rect x="16" y="17" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
+                      <circle cx="18" cy="23.5" r="1.5" fill="#fde68a" />
+                    </g>
+                    <g className="sprite-frame-b">
+                      <polygon points="11,10 2,11 0,16 6,19 9,15" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
+                      <rect x="7" y="12.5" width="2.2" height="2" fill="#38bdf8" />
+                      <line x1="1" y1="15" x2="5" y2="14" stroke="#38bdf8" strokeWidth="0.7" />
+                      <rect x="7" y="24" width="3" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                      <rect x="7" y="27" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
+                      <rect x="6.5" y="29.5" width="3.5" height="1.8" fill="#d97706" rx="0.5" />
+                      <rect x="19" y="17" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
+                      <circle cx="21" cy="23.5" r="1.5" fill="#fde68a" />
+                      <polygon points="12,5 20,3 28,5 30,11 28,13 12,13 10,10" fill="#0f172a" stroke="#000" strokeWidth="0.9" />
+                      <polygon points="9,8 6,11 11,11" fill="#0f172a" />
+                      <polygon points="29,8 32,11 27,11" fill="#0f172a" />
+                      <rect x="12" y="8" width="16" height="10" fill="#fde68a" stroke="#000" strokeWidth="0.9" rx="0.5" />
+                      <polygon points="12,8 16,12 18,9 22,12 24,8" fill="#0f172a" />
+                      <rect x="20" y="11" width="3.5" height="2.5" fill="#0284c7" stroke="#000" strokeWidth="0.5" />
+                      <rect x="22" y="11" width="1.2" height="1" fill="#ffffff" />
+                      <line x1="20" y1="15" x2="24" y2="15" stroke="#000" strokeWidth="0.75" />
+                      <path d="M12,17 L18,17 L16,24 L5,24 L4,19 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
+                      <path d="M18,17 L26,17 L29,19 L28,24 L18,24 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+                      <rect x="19" y="17.5" width="2.5" height="2.5" fill="#eab308" />
+                      <rect x="23" y="17.5" width="2.5" height="2.5" fill="#ea580c" />
+                      <rect x="21" y="20.5" width="2.5" height="2.5" fill="#eab308" />
+                      <polygon points="16,17 21,17 19,23" fill="#0f172a" />
+                      <line x1="19" y1="17" x2="19" y2="22" stroke="#ffffff" strokeWidth="0.7" />
+                      <rect x="14" y="23" width="9" height="1.8" fill="#ffffff" stroke="#000" strokeWidth="0.6" />
+                      <line x1="5" y1="26" x2="15" y2="22" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" />
+                      <line x1="5" y1="26" x2="15" y2="22" stroke="#0284c7" strokeWidth="1" strokeLinecap="round" />
+                      <rect x="14" y="21" width="1.8" height="1.8" fill="#000" stroke="#38bdf8" strokeWidth="0.5" />
+                      <rect x="14" y="24" width="3" height="7" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                      <rect x="14" y="27.5" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
+                      <rect x="14.5" y="31" width="3.8" height="1.8" fill="#d97706" rx="0.5" />
+                      <rect x="15" y="17" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
+                      <circle cx="16.5" cy="23.5" r="1.5" fill="#fde68a" />
+                    </g>
+                  </svg>
+                )}
 
-                  {/* ============================================== */}
-                  {/* FRAME A: STEP 1 (Clean Crisp Toggle)           */}
-                  {/* ============================================== */}
-                  <g className="sprite-frame-a">
-                    {/* Ponytail Hair */}
-                    <polygon points="11,11 3,13 0,19 5,22 9,17" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
-                    <rect x="7" y="13.5" width="2.2" height="2" fill="#38bdf8" />
-                    <line x1="2" y1="17" x2="6" y2="16" stroke="#38bdf8" strokeWidth="0.7" />
+                {/* 2. TANJIRO KAMADO */}
+                {activeHero === 'tanjiro' && (
+                  <svg
+                    width="52"
+                    height="46"
+                    viewBox="0 0 38 34"
+                    className="w-[46px] h-[40px] xs:w-[52px] xs:h-[46px] sm:w-[58px] sm:h-[51px] drop-shadow-[2px_2px_0px_#000] overflow-visible group-hover:scale-105 transition-transform"
+                  >
+                    <ellipse cx="19" cy="33" rx="8" ry="1.4" fill="#000000" opacity="0.45" />
+                    <g className="sprite-frame-a">
+                      <polygon points="15,4 23,4 27,9 25,17 13,17 11,9" fill="#450a0a" stroke="#000" strokeWidth="0.8" />
+                      <rect x="14" y="8" width="10" height="7" fill="#fde68a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                      <polygon points="15,8 17,9 15,11" fill="#b91c1c" />
+                      <rect x="13" y="12" width="1.5" height="3" fill="#ffffff" stroke="#000" strokeWidth="0.4" />
+                      <rect x="19" y="10" width="2" height="2" fill="#78350f" />
+                      <rect x="23" y="10" width="1.5" height="1.8" fill="#78350f" />
+                      <path d="M11,17 L27,17 L29,25 L9,25 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+                      <rect x="13" y="18" width="3" height="3" fill="#000000" />
+                      <rect x="19" y="18" width="3" height="3" fill="#000000" />
+                      <rect x="25" y="18" width="3" height="3" fill="#000000" />
+                      <rect x="16" y="21" width="3" height="3" fill="#000000" />
+                      <rect x="22" y="21" width="3" height="3" fill="#000000" />
+                      <rect x="12" y="24" width="15" height="2" fill="#000000" stroke="#000" strokeWidth="0.7" transform="rotate(-18 12 24)" />
+                      <rect x="13" y="25" width="4" height="6" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                      <rect x="21" y="25" width="4" height="4.5" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                    </g>
+                    <g className="sprite-frame-b">
+                      <polygon points="15,4 23,4 27,9 25,17 13,17 11,9" fill="#450a0a" stroke="#000" strokeWidth="0.8" />
+                      <rect x="14" y="8" width="10" height="7" fill="#fde68a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                      <polygon points="15,8 17,9 15,11" fill="#b91c1c" />
+                      <rect x="13" y="12" width="1.5" height="3" fill="#ffffff" stroke="#000" strokeWidth="0.4" />
+                      <rect x="19" y="10" width="2" height="2" fill="#78350f" />
+                      <rect x="23" y="10" width="1.5" height="1.8" fill="#78350f" />
+                      <path d="M11,17 L27,17 L29,24 L9,24 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+                      <rect x="13" y="17.5" width="3" height="3" fill="#000000" />
+                      <rect x="19" y="17.5" width="3" height="3" fill="#000000" />
+                      <rect x="25" y="17.5" width="3" height="3" fill="#000000" />
+                      <rect x="16" y="20.5" width="3" height="3" fill="#000000" />
+                      <rect x="22" y="20.5" width="3" height="3" fill="#000000" />
+                      <rect x="11" y="23" width="15" height="2" fill="#000000" stroke="#000" strokeWidth="0.7" transform="rotate(-12 11 23)" />
+                      <rect x="21" y="25" width="4" height="6" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                      <rect x="11" y="25" width="4" height="4.5" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                    </g>
+                  </svg>
+                )}
 
-                    {/* Back Leg (Right) - Pushing Off */}
-                    <rect x="8" y="24" width="3" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
-                    <rect x="8" y="27" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
-                    <rect x="7.5" y="29.5" width="3.5" height="1.8" fill="#d97706" rx="0.5" />
+                {/* 3. SMOL NEZUKO */}
+                {activeHero === 'nezuko' && (
+                  <svg
+                    width="52"
+                    height="46"
+                    viewBox="0 0 34 32"
+                    className="w-[44px] h-[38px] xs:w-[50px] xs:h-[44px] sm:w-[54px] sm:h-[48px] drop-shadow-[2px_2px_0px_#000] overflow-visible group-hover:scale-105 transition-transform"
+                  >
+                    <ellipse cx="17" cy="30" rx="6" ry="1.2" fill="#000000" opacity="0.45" />
+                    <g className="fast-frame-a">
+                      <polygon points="10,5 24,5 28,14 26,24 8,24 6,14" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                      <polygon points="4,16 8,26 12,22 8,16" fill="#f97316" />
+                      <polygon points="28,16 32,24 26,22 26,16" fill="#f97316" />
+                      <rect x="11" y="8" width="12" height="8" fill="#fde68a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                      <circle cx="14" cy="11" r="1.5" fill="#f43f5e" />
+                      <circle cx="20" cy="11" r="1.5" fill="#f43f5e" />
+                      <rect x="13" y="13.5" width="8" height="3" fill="#84cc16" stroke="#000" strokeWidth="0.7" rx="1" />
+                      <path d="M10,17 L24,17 L25,26 L9,26 Z" fill="#f472b6" stroke="#000" strokeWidth="0.8" />
+                      <rect x="6" y="17" width="5" height="3" fill="#f472b6" stroke="#000" strokeWidth="0.6" transform="rotate(-30 6 17)" />
+                      <rect x="23" y="17" width="5" height="3" fill="#f472b6" stroke="#000" strokeWidth="0.6" transform="rotate(30 23 17)" />
+                      <rect x="11" y="26" width="3.5" height="4" fill="#18181b" stroke="#000" strokeWidth="0.6" />
+                      <rect x="19" y="26" width="3.5" height="3" fill="#18181b" stroke="#000" strokeWidth="0.6" />
+                    </g>
+                    <g className="fast-frame-b">
+                      <polygon points="10,5 24,5 28,14 26,24 8,24 6,14" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                      <polygon points="4,16 8,26 12,22 8,16" fill="#f97316" />
+                      <polygon points="28,16 32,24 26,22 26,16" fill="#f97316" />
+                      <rect x="11" y="8" width="12" height="8" fill="#fde68a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                      <circle cx="14" cy="11" r="1.5" fill="#f43f5e" />
+                      <circle cx="20" cy="11" r="1.5" fill="#f43f5e" />
+                      <rect x="13" y="13.5" width="8" height="3" fill="#84cc16" stroke="#000" strokeWidth="0.7" rx="1" />
+                      <path d="M10,17 L24,17 L25,26 L9,26 Z" fill="#f472b6" stroke="#000" strokeWidth="0.8" />
+                      <rect x="6" y="18" width="5" height="3" fill="#f472b6" stroke="#000" strokeWidth="0.6" transform="rotate(20 6 18)" />
+                      <rect x="23" y="18" width="5" height="3" fill="#f472b6" stroke="#000" strokeWidth="0.6" transform="rotate(-20 23 18)" />
+                      <rect x="19" y="26" width="3.5" height="4" fill="#18181b" stroke="#000" strokeWidth="0.6" />
+                      <rect x="11" y="26" width="3.5" height="3" fill="#18181b" stroke="#000" strokeWidth="0.6" />
+                    </g>
+                  </svg>
+                )}
 
-                    {/* Back Arm (Right) */}
-                    <rect x="22" y="17" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
-                    <circle cx="23.5" cy="23.5" r="1.5" fill="#fde68a" />
+                {/* 4. INOSUKE HASHIBIRA */}
+                {activeHero === 'inosuke' && (
+                  <svg
+                    width="52"
+                    height="46"
+                    viewBox="0 0 38 34"
+                    className="w-[46px] h-[40px] xs:w-[52px] xs:h-[46px] sm:w-[58px] sm:h-[51px] drop-shadow-[2px_2px_0px_#000] overflow-visible group-hover:scale-105 transition-transform"
+                  >
+                    <ellipse cx="19" cy="33" rx="8" ry="1.4" fill="#000000" opacity="0.45" />
+                    <g className="inosuke-frame-a">
+                      <polygon points="12,5 26,5 30,12 28,18 10,18 8,12" fill="#a1a1aa" stroke="#000" strokeWidth="0.8" />
+                      <polygon points="10,3 7,7 12,6" fill="#f472b6" stroke="#000" strokeWidth="0.6" />
+                      <polygon points="28,3 31,7 26,6" fill="#f472b6" stroke="#000" strokeWidth="0.6" />
+                      <rect x="16" y="13" width="6" height="4" fill="#f472b6" stroke="#000" strokeWidth="0.6" rx="1" />
+                      <circle cx="14" cy="11" r="1.5" fill="#38bdf8" stroke="#000" strokeWidth="0.5" />
+                      <circle cx="24" cy="11" r="1.5" fill="#38bdf8" stroke="#000" strokeWidth="0.5" />
+                      <rect x="12" y="18" width="14" height="6" fill="#fed7aa" stroke="#000" strokeWidth="0.8" />
+                      <rect x="10" y="24" width="18" height="3" fill="#713f12" stroke="#000" strokeWidth="0.7" />
+                      <rect x="6" y="16" width="12" height="2" fill="#e2e8f0" stroke="#000" strokeWidth="0.6" transform="rotate(-35 6 16)" />
+                      <rect x="22" y="16" width="12" height="2" fill="#e2e8f0" stroke="#000" strokeWidth="0.6" transform="rotate(35 22 16)" />
+                      <rect x="13" y="27" width="4" height="5" fill="#1e1b4b" stroke="#000" strokeWidth="0.7" />
+                      <rect x="21" y="27" width="4" height="3.5" fill="#1e1b4b" stroke="#000" strokeWidth="0.7" />
+                    </g>
+                    <g className="inosuke-frame-b">
+                      <polygon points="12,5 26,5 30,12 28,18 10,18 8,12" fill="#a1a1aa" stroke="#000" strokeWidth="0.8" />
+                      <polygon points="10,3 7,7 12,6" fill="#f472b6" stroke="#000" strokeWidth="0.6" />
+                      <polygon points="28,3 31,7 26,6" fill="#f472b6" stroke="#000" strokeWidth="0.6" />
+                      <rect x="16" y="13" width="6" height="4" fill="#f472b6" stroke="#000" strokeWidth="0.6" rx="1" />
+                      <circle cx="14" cy="11" r="1.5" fill="#38bdf8" stroke="#000" strokeWidth="0.5" />
+                      <circle cx="24" cy="11" r="1.5" fill="#38bdf8" stroke="#000" strokeWidth="0.5" />
+                      <rect x="12" y="18" width="14" height="6" fill="#fed7aa" stroke="#000" strokeWidth="0.8" />
+                      <rect x="10" y="24" width="18" height="3" fill="#713f12" stroke="#000" strokeWidth="0.7" />
+                      <rect x="6" y="18" width="12" height="2" fill="#e2e8f0" stroke="#000" strokeWidth="0.6" transform="rotate(-15 6 18)" />
+                      <rect x="22" y="18" width="12" height="2" fill="#e2e8f0" stroke="#000" strokeWidth="0.6" transform="rotate(15 22 18)" />
+                      <rect x="21" y="27" width="4" height="5" fill="#1e1b4b" stroke="#000" strokeWidth="0.7" />
+                      <rect x="13" y="27" width="4" height="3.5" fill="#1e1b4b" stroke="#000" strokeWidth="0.7" />
+                    </g>
+                  </svg>
+                )}
 
-                    {/* Spiky Black Hair */}
-                    <polygon points="12,5 20,3 28,5 30,11 28,13 12,13 10,10" fill="#0f172a" stroke="#000" strokeWidth="0.9" />
-                    <polygon points="9,8 6,11 11,11" fill="#0f172a" />
-                    <polygon points="29,8 32,11 27,11" fill="#0f172a" />
+                {/* 5. ZENITSU AGATSUMA */}
+                {activeHero === 'zenitsu' && (
+                  <svg
+                    width="52"
+                    height="46"
+                    viewBox="0 0 38 34"
+                    className="w-[46px] h-[40px] xs:w-[52px] xs:h-[46px] sm:w-[58px] sm:h-[51px] drop-shadow-[2px_2px_0px_#000] overflow-visible group-hover:scale-105 transition-transform"
+                  >
+                    <ellipse cx="19" cy="33" rx="8" ry="1.4" fill="#000000" opacity="0.45" />
+                    <g className="sprite-frame-a">
+                      <polygon points="14,4 24,4 28,10 25,17 12,17 10,10" fill="#facc15" stroke="#000" strokeWidth="0.8" />
+                      <polygon points="12,14 10,18 14,17" fill="#ea580c" />
+                      <polygon points="26,14 28,18 24,17" fill="#ea580c" />
+                      <rect x="13" y="9" width="12" height="7" fill="#fde68a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                      <line x1="17" y1="12" x2="20" y2="12" stroke="#000" strokeWidth="1.2" />
+                      <line x1="22" y1="12" x2="25" y2="12" stroke="#000" strokeWidth="1.2" />
+                      <path d="M11,17 L27,17 L29,25 L9,25 Z" fill="#eab308" stroke="#000" strokeWidth="0.8" />
+                      <polygon points="14,19 16,23 12,23" fill="#ffffff" />
+                      <polygon points="22,19 24,23 20,23" fill="#ffffff" />
+                      <rect x="11" y="23" width="16" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.7" transform="rotate(-15 11 23)" />
+                      <rect x="13" y="25" width="4" height="6" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                      <rect x="21" y="25" width="4" height="4.5" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                    </g>
+                    <g className="sprite-frame-b">
+                      <polygon points="14,4 24,4 28,10 25,17 12,17 10,10" fill="#facc15" stroke="#000" strokeWidth="0.8" />
+                      <polygon points="12,14 10,18 14,17" fill="#ea580c" />
+                      <polygon points="26,14 28,18 24,17" fill="#ea580c" />
+                      <rect x="13" y="9" width="12" height="7" fill="#fde68a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                      <line x1="17" y1="12" x2="20" y2="12" stroke="#000" strokeWidth="1.2" />
+                      <line x1="22" y1="12" x2="25" y2="12" stroke="#000" strokeWidth="1.2" />
+                      <path d="M11,17 L27,17 L29,24 L9,24 Z" fill="#eab308" stroke="#000" strokeWidth="0.8" />
+                      <polygon points="14,19 16,23 12,23" fill="#ffffff" />
+                      <polygon points="22,19 24,23 20,23" fill="#ffffff" />
+                      <rect x="10" y="22" width="16" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.7" transform="rotate(-10 10 22)" />
+                      <rect x="21" y="25" width="4" height="6" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                      <rect x="11" y="25" width="4" height="4.5" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                    </g>
+                  </svg>
+                )}
 
-                    {/* Face */}
-                    <rect x="12" y="8" width="16" height="10" fill="#fde68a" stroke="#000" strokeWidth="0.9" rx="0.5" />
-                    <polygon points="12,8 16,12 18,9 22,12 24,8" fill="#0f172a" />
-                    <rect x="20" y="11" width="3.5" height="2.5" fill="#0284c7" stroke="#000" strokeWidth="0.5" />
-                    <rect x="22" y="11" width="1.2" height="1" fill="#ffffff" />
-                    <line x1="20" y1="15" x2="24" y2="15" stroke="#000" strokeWidth="0.75" />
-
-                    {/* Split Haori - Frame A Wave (Preserved Clean Grid) */}
-                    <path d="M12,17 L18,17 L17,25 L7,25 L6,20 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
-                    <path d="M18,17 L26,17 L28,21 L27,26 L18,25 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
-                    <rect x="19" y="18" width="2.5" height="2.5" fill="#eab308" />
-                    <rect x="23" y="18" width="2.5" height="2.5" fill="#ea580c" />
-                    <rect x="21" y="21" width="2.5" height="2.5" fill="#eab308" />
-
-                    {/* Uniform & Belt */}
-                    <polygon points="16,17 21,17 19,23" fill="#0f172a" />
-                    <line x1="19" y1="17" x2="19" y2="22" stroke="#ffffff" strokeWidth="0.7" />
-                    <rect x="14" y="23" width="9" height="1.8" fill="#ffffff" stroke="#000" strokeWidth="0.6" />
-
-                    {/* Katana */}
-                    <line x1="5" y1="27" x2="15" y2="22" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" />
-                    <line x1="5" y1="27" x2="15" y2="22" stroke="#0284c7" strokeWidth="1" strokeLinecap="round" />
-                    <rect x="14" y="21" width="1.8" height="1.8" fill="#000" stroke="#38bdf8" strokeWidth="0.5" />
-
-                    {/* Front Leg (Left) - Forward Step */}
-                    <rect x="15" y="24" width="3" height="7" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
-                    <rect x="15" y="27.5" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
-                    <rect x="15.5" y="31" width="3.8" height="1.8" fill="#d97706" rx="0.5" />
-
-                    {/* Front Arm (Left) */}
-                    <rect x="16" y="17" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
-                    <circle cx="18" cy="23.5" r="1.5" fill="#fde68a" />
-                  </g>
-
-                  {/* ============================================== */}
-                  {/* FRAME B: STEP 2 (Clean Crisp Toggle)           */}
-                  {/* ============================================== */}
-                  <g className="sprite-frame-b">
-                    {/* Ponytail Hair - Fluttering Higher */}
-                    <polygon points="11,10 2,11 0,16 6,19 9,15" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
-                    <rect x="7" y="12.5" width="2.2" height="2" fill="#38bdf8" />
-                    <line x1="1" y1="15" x2="5" y2="14" stroke="#38bdf8" strokeWidth="0.7" />
-
-                    {/* Back Leg (Left) - Extended Back */}
-                    <rect x="7" y="24" width="3" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
-                    <rect x="7" y="27" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
-                    <rect x="6.5" y="29.5" width="3.5" height="1.8" fill="#d97706" rx="0.5" />
-
-                    {/* Front Arm (Right) - Pumping Forward */}
-                    <rect x="19" y="17" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
-                    <circle cx="21" cy="23.5" r="1.5" fill="#fde68a" />
-
-                    {/* Spiky Black Hair */}
-                    <polygon points="12,5 20,3 28,5 30,11 28,13 12,13 10,10" fill="#0f172a" stroke="#000" strokeWidth="0.9" />
-                    <polygon points="9,8 6,11 11,11" fill="#0f172a" />
-                    <polygon points="29,8 32,11 27,11" fill="#0f172a" />
-
-                    {/* Face */}
-                    <rect x="12" y="8" width="16" height="10" fill="#fde68a" stroke="#000" strokeWidth="0.9" rx="0.5" />
-                    <polygon points="12,8 16,12 18,9 22,12 24,8" fill="#0f172a" />
-                    <rect x="20" y="11" width="3.5" height="2.5" fill="#0284c7" stroke="#000" strokeWidth="0.5" />
-                    <rect x="22" y="11" width="1.2" height="1" fill="#ffffff" />
-                    <line x1="20" y1="15" x2="24" y2="15" stroke="#000" strokeWidth="0.75" />
-
-                    {/* Split Haori - Frame B Wave (Preserved Clean Grid) */}
-                    <path d="M12,17 L18,17 L16,24 L5,24 L4,19 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
-                    <path d="M18,17 L26,17 L29,19 L28,24 L18,24 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
-                    <rect x="19" y="17.5" width="2.5" height="2.5" fill="#eab308" />
-                    <rect x="23" y="17.5" width="2.5" height="2.5" fill="#ea580c" />
-                    <rect x="21" y="20.5" width="2.5" height="2.5" fill="#eab308" />
-
-                    {/* Uniform & Belt */}
-                    <polygon points="16,17 21,17 19,23" fill="#0f172a" />
-                    <line x1="19" y1="17" x2="19" y2="22" stroke="#ffffff" strokeWidth="0.7" />
-                    <rect x="14" y="23" width="9" height="1.8" fill="#ffffff" stroke="#000" strokeWidth="0.6" />
-
-                    {/* Katana - Slightly Swayed */}
-                    <line x1="5" y1="26" x2="15" y2="22" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" />
-                    <line x1="5" y1="26" x2="15" y2="22" stroke="#0284c7" strokeWidth="1" strokeLinecap="round" />
-                    <rect x="14" y="21" width="1.8" height="1.8" fill="#000" stroke="#38bdf8" strokeWidth="0.5" />
-
-                    {/* Front Leg (Right) - Forward Step */}
-                    <rect x="14" y="24" width="3" height="7" fill="#0f172a" stroke="#000" strokeWidth="0.8" rx="0.5" />
-                    <rect x="14" y="27.5" width="3" height="2" fill="#ffffff" stroke="#000" strokeWidth="0.5" />
-                    <rect x="14.5" y="31" width="3.8" height="1.8" fill="#d97706" rx="0.5" />
-
-                    {/* Back Arm (Left) - Pumping Back */}
-                    <rect x="15" y="17" width="3.5" height="6" fill="#0f172a" stroke="#000" strokeWidth="0.7" rx="1" />
-                    <circle cx="16.5" cy="23.5" r="1.5" fill="#fde68a" />
-                  </g>
-                </svg>
+                {/* 6. SHINOBU KOCHO */}
+                {activeHero === 'shinobu' && (
+                  <svg
+                    width="52"
+                    height="46"
+                    viewBox="0 0 38 34"
+                    className="w-[46px] h-[40px] xs:w-[52px] xs:h-[46px] sm:w-[58px] sm:h-[51px] drop-shadow-[2px_2px_0px_#000] overflow-visible group-hover:scale-105 transition-transform"
+                  >
+                    <ellipse cx="19" cy="33" rx="8" ry="1.4" fill="#000000" opacity="0.45" />
+                    <g>
+                      <path d="M4,14 C2,8 10,6 15,12 C10,18 4,20 4,14 Z" fill="#c084fc" stroke="#000" strokeWidth="0.8" />
+                      <path d="M34,14 C36,8 28,6 23,12 C28,18 34,20 34,14 Z" fill="#22d3ee" stroke="#000" strokeWidth="0.8" />
+                      <polygon points="14,4 24,4 28,10 25,17 13,17 10,10" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                      <polygon points="12,3 10,0 15,2" fill="#c084fc" />
+                      <polygon points="26,3 28,0 23,2" fill="#22d3ee" />
+                      <rect x="13" y="8" width="12" height="7" fill="#fde68a" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                      <circle cx="16" cy="11" r="1.3" fill="#a855f7" />
+                      <circle cx="22" cy="11" r="1.3" fill="#a855f7" />
+                      <rect x="14" y="16" width="10" height="9" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                      <line x1="12" y1="22" x2="28" y2="22" stroke="#e2e8f0" strokeWidth="1.2" strokeLinecap="round" />
+                      <circle cx="28" cy="22" r="1.2" fill="#c084fc" />
+                    </g>
+                  </svg>
+                )}
               </div>
             </div>
+
+            {/* Quick Roster Selector Pill Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                playSound('pop');
+                setIsCharModalOpen(true);
+              }}
+              className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-300 text-black px-1.5 xs:px-2 py-0.5 text-[6.5px] xs:text-[7.5px] font-pixel font-black border border-black shadow-[1px_1px_0px_#000] flex items-center gap-1 cursor-pointer flex-shrink-0 self-center -mb-2 z-30"
+              title="Buka Pemilih Karakter Roster"
+            >
+              <span>ROSTER</span>
+            </button>
 
             {/* 2. Demon Target in Front of Giyu (Stable Speech Bubble & Fluid Sprite Stride) */}
             <div
@@ -909,6 +1229,98 @@ export default function EmailCard({
         isVipUnlocked={isVipUnlocked}
         onRequestVipUnlock={onRequestVipUnlock}
       />
+
+      {/* ======================================================== */}
+      {/* MODAL: CHARACTER SELECT ROSTER (ARCADE FIGHTING STYLE)   */}
+      {/* ======================================================== */}
+      {isCharModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150"
+          onClick={() => setIsCharModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-2xl bg-[var(--card-bg)] border-[3px] border-[var(--border-color)] p-4 sm:p-5 brutal-card relative max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex justify-between items-center border-b-[2.5px] border-[var(--border-color)] pb-3 mb-4">
+              <div className="text-left">
+                <span className="font-pixel text-[9px] sm:text-[10px] text-[var(--color-blue)] font-bold block uppercase tracking-wide">
+                  PILIH PAHLAWAN ANDA
+                </span>
+                <h3 className="font-pixel text-xs sm:text-sm text-[var(--text-main)] font-black uppercase">
+                  CHARACTER SELECT ROSTER
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCharModalOpen(false)}
+                className="brutal-btn w-7 h-7 sm:w-8 sm:h-8 bg-red-500 hover:bg-red-600 text-white font-mono-custom font-black border-2 border-[var(--border-color)] text-xs flex items-center justify-center p-0 shadow-[2px_2px_0px_var(--shadow-color)]"
+                title="Tutup Modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 6 Character Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 mb-4">
+              {(Object.keys(HERO_ROSTER) as HeroId[]).map((heroKey) => {
+                const hero = HERO_ROSTER[heroKey];
+                const isSelected = activeHero === heroKey;
+
+                return (
+                  <div
+                    key={hero.id}
+                    onClick={() => handleSelectHero(hero.id)}
+                    className={`p-3 border-2 text-left cursor-pointer brutal-card transition-all ${
+                      isSelected
+                        ? 'border-[var(--color-blue)] bg-cyan-500/10 dark:bg-cyan-950/30 ring-2 ring-[var(--color-blue)]'
+                        : 'border-[var(--border-color)] bg-white dark:bg-zinc-900 hover:border-[var(--color-yellow)]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`px-1.5 py-0.5 font-pixel text-[7px] font-black border border-black ${hero.elementColor}`}>
+                        {hero.element}
+                      </span>
+                      {isSelected ? (
+                        <span className="font-pixel text-[7px] text-[var(--color-blue)] font-bold flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 inline text-[var(--color-blue)]" />
+                          <span>AKTIF</span>
+                        </span>
+                      ) : (
+                        <span className="font-pixel text-[7px] text-[var(--text-muted)] font-bold">
+                          PILIH
+                        </span>
+                      )}
+                    </div>
+                    <div className="font-pixel text-xs text-[var(--text-main)] font-bold mb-0.5">
+                      {hero.name}
+                    </div>
+                    <p className="text-[11px] font-mono-custom text-[var(--text-muted)] mb-2">
+                      {hero.title}
+                    </p>
+                    <div className="bg-zinc-100 dark:bg-black/50 p-1.5 border border-zinc-300 dark:border-zinc-800 font-mono-custom text-[10px] text-[var(--text-main)]">
+                      {hero.desc}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <p className="text-xs font-mono-custom text-[var(--text-muted)] mb-4 text-center sm:text-left">
+              Pilihan pahlawan Anda tersimpan otomatis di perangkat dan langsung aktif di strip pelari setiap kali Anda membuka kotak surat.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setIsCharModalOpen(false)}
+              className="brutal-btn w-full py-2.5 bg-[var(--color-yellow)] hover:bg-yellow-400 text-black font-mono-custom font-black uppercase border-2 border-[var(--border-color)] text-xs shadow-[2px_2px_0px_var(--shadow-color)]"
+            >
+              TUTUP ROSTER
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

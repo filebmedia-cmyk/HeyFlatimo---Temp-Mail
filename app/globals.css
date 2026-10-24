@@ -1150,6 +1150,48 @@ pre {
 .sprint-active .fluid-dust-1 { animation-duration: 0.28s; }
 .sprint-active .fluid-dust-2 { animation-duration: 0.28s; }
 
+/* 10. Multi-Hero Cadence & Strides (Character Select System) */
+.fast-frame-a { animation: frameToggleA 0.24s steps(1) infinite; }
+.fast-frame-b { animation: frameToggleB 0.24s steps(1) infinite; }
+.inosuke-frame-a { animation: frameToggleA 0.38s steps(1) infinite; }
+.inosuke-frame-b { animation: frameToggleB 0.38s steps(1) infinite; }
+
+@keyframes nezukoBobbing {
+  0%, 100% { transform: translateY(0px) rotate(-3deg); }
+  50% { transform: translateY(-4px) rotate(3deg); }
+}
+.anim-nezuko-stride {
+  animation: nezukoBobbing 0.24s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+.sprint-active .anim-nezuko-stride {
+  animation-duration: 0.16s;
+}
+
+@keyframes shinobuGliding {
+  0%, 100% { transform: translateY(0px) rotate(-2deg); }
+  50% { transform: translateY(-6px) rotate(2deg); }
+}
+.anim-shinobu-stride {
+  animation: shinobuGliding 1.2s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+.sprint-active .anim-shinobu-stride {
+  animation-duration: 0.6s;
+}
+
+/* Elemental Slash Overlays */
+.anim-flame-arc-fx {
+  animation: waterArcMinamo 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.anim-thunder-arc-fx {
+  animation: waterArcMinamo 0.70s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+.anim-poison-arc-fx {
+  animation: waterArcMinamo 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+
 
 
 
