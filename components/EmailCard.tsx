@@ -892,39 +892,39 @@ export default function EmailCard({
       {/* ======================================================== */}
       {/* ARCADE BATTLE HUD: BOSS HP & ULTIMATE ENERGY             */}
       {/* ======================================================== */}
-      <div className="w-full grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-between pt-2.5 xs:pt-3 pb-2 border-b border-dashed border-[var(--border-color)]">
-        {/* Sisi Kiri: Boss Iblis HP & Combo Counter (Mobile Symmetrical Column) */}
-        <div className="flex items-center gap-1 xs:gap-1.5 min-w-0">
-          <span className="font-pixel text-[6px] xs:text-[7px] sm:text-[8px] text-red-600 dark:text-red-400 font-bold whitespace-nowrap flex-shrink-0">
-            IBLIS:
+      <div className="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 xs:gap-2.5 sm:gap-4 pt-2.5 xs:pt-3 pb-2.5 border-b border-dashed border-[var(--border-color)]">
+        {/* Row 1 / Sisi Kiri: Boss Iblis HP & Combo Counter (Wide, Anti-Collapse) */}
+        <div className="flex items-center gap-1.5 xs:gap-2 w-full sm:flex-1 sm:max-w-[320px]">
+          <span className="font-pixel text-[6.5px] xs:text-[7.5px] sm:text-[8px] text-red-600 dark:text-red-400 font-bold whitespace-nowrap flex-shrink-0">
+            IBLIS HP:
           </span>
-          <div className="flex-1 max-w-[100px] xs:max-w-[130px] sm:max-w-[160px] h-3.5 sm:h-4 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
+          <div className="flex-1 min-w-[90px] xs:min-w-[120px] h-4 xs:h-4.5 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
             <div
               className="h-full bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 transition-all duration-300"
               style={{ width: `${bossHp}%` }}
             />
-            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5px] xs:text-[6px] sm:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
+            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5.5px] xs:text-[6.5px] sm:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
               {bossHp}/100
             </span>
           </div>
           {comboCount > 0 && !isBossKO && (
-            <span className="font-pixel text-[5px] xs:text-[6px] bg-red-600 text-white px-1 py-0.5 border border-black animate-pulse whitespace-nowrap shadow-[1px_1px_0px_#000] flex-shrink-0">
+            <span className="font-pixel text-[5.5px] xs:text-[6.5px] bg-red-600 text-white px-1.5 py-0.5 border border-black animate-pulse whitespace-nowrap shadow-[1px_1px_0px_#000] flex-shrink-0">
               x{comboCount}
             </span>
           )}
         </div>
 
-        {/* Sisi Kanan: Ultimate Meter Gauge & Tombol Jurus / Charge Interaktif */}
-        <div className="flex items-center gap-1 xs:gap-1.5 min-w-0 justify-end ml-auto">
-          <span className="font-pixel text-[6px] xs:text-[7px] sm:text-[8px] text-[var(--color-blue)] font-bold whitespace-nowrap flex-shrink-0">
+        {/* Row 2 / Sisi Kanan: Ultimate Meter Gauge & Tombol Jurus / Charge (Wide, Anti-Collapse) */}
+        <div className="flex items-center gap-1.5 xs:gap-2 w-full sm:flex-1 sm:max-w-[340px] sm:justify-end">
+          <span className="font-pixel text-[6.5px] xs:text-[7.5px] sm:text-[8px] text-[var(--color-blue)] font-bold whitespace-nowrap flex-shrink-0">
             ULT:
           </span>
-          <div className={`flex-1 max-w-[85px] xs:max-w-[110px] sm:max-w-[140px] h-3.5 sm:h-4 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000] transition-all duration-200 ${isCharging ? 'ring-2 ring-cyan-400' : ''}`}>
+          <div className={`flex-1 min-w-[90px] xs:min-w-[120px] h-4 xs:h-4.5 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000] transition-all duration-200 ${isCharging ? 'ring-2 ring-cyan-400' : ''}`}>
             <div
               className={`h-full bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 transition-all duration-300 ${isCharging ? 'brightness-125' : ''}`}
               style={{ width: `${ultEnergy}%` }}
             />
-            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5px] xs:text-[6px] sm:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
+            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5.5px] xs:text-[6.5px] sm:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
               {ultEnergy}%
             </span>
           </div>
@@ -934,12 +934,12 @@ export default function EmailCard({
             type="button"
             onClick={handleChargeOrUltimate}
             disabled={isUltActive || isBossKO}
-            className={`brutal-btn px-2 xs:px-2.5 py-0.5 xs:py-1 font-pixel text-[6px] xs:text-[7px] sm:text-[7.5px] font-bold border-2 border-black flex-shrink-0 transition-all ${
+            className={`brutal-btn px-2.5 xs:px-3 py-1 font-pixel text-[6.5px] xs:text-[7.5px] sm:text-[8px] font-bold border-2 border-black flex-shrink-0 transition-all shadow-[1.5px_1.5px_0px_#000] active:translate-y-0.5 ${
               isBossKO
                 ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed opacity-60'
                 : ultEnergy >= 100
                 ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-[2px_2px_0px_#000] cursor-pointer'
-                : 'bg-cyan-400 hover:bg-cyan-300 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-black shadow-[1.5px_1.5px_0px_#000] cursor-pointer active:translate-y-0.5'
+                : 'bg-cyan-400 hover:bg-cyan-300 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-black cursor-pointer'
             }`}
             title={
               isBossKO
