@@ -544,7 +544,7 @@ export default function EmailCard({
         <div className="col-span-2 w-full flex items-end justify-between pt-1 sm:pt-2 relative">
           {/* UJUNG KIRI: CHASE DUO (Giyu Runner chasing Demon Target - Geser Kiri -8px) */}
           <div className={`flex items-end gap-2.5 xs:gap-3.5 sm:gap-5 relative -ml-2 sm:-ml-2.5 transition-all duration-150 ${isRefreshing ? 'sprint-active' : ''}`}>
-            {/* 1. Giyu Runner in Place on Strip (Fluid Anime Stride) */}
+            {/* 1. Giyu Runner in Place on Strip (Stable Speech Bubble & Fluid Sprite Stride) */}
             <div
               onClick={handleRunnerClick}
               onTouchEnd={(e) => {
@@ -552,14 +552,10 @@ export default function EmailCard({
                 handleRunnerClick();
               }}
               style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-              className={`relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-3 sm:-mb-4 min-w-[46px] min-h-[40px] flex-shrink-0 ${
-                isRunnerSlashing
-                  ? 'anim-smooth-lunge z-30'
-                  : 'anim-giyu-fluid-stride'
-              }`}
+              className="relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-3 sm:-mb-4 min-w-[46px] min-h-[40px] flex-shrink-0"
               title="Giyu Tomioka (Klik untuk tebasan air mengejar iblis!)"
             >
-              {/* Speech / Action Bubble (Pure Text Tanpa Emoji) */}
+              {/* Speech / Action Bubble (Stable & Anchored at Top) */}
               <div
                 className={`absolute -top-6 left-1/2 -translate-x-1/2 font-pixel text-[5px] xs:text-[6px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
                   runnerQuote || isRefreshing || isRunnerSlashing
@@ -582,7 +578,7 @@ export default function EmailCard({
 
               {/* Water Slash Arc Effect Overlay (Triggered on click) */}
               {isRunnerSlashing && (
-                <div className="absolute -top-4 -right-14 sm:-right-16 pointer-events-none z-50 w-[120px] sm:w-[140px] anim-smooth-arc">
+                <div className="absolute -top-4 -right-14 sm:-right-16 pointer-events-none z-50 w-[120px] sm:w-[140px] anim-water-arc-fx">
                   <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(0,240,255,0.95)]">
                     <path d="M10,48 Q50,6 110,18 T155,5" fill="none" stroke="#00ffff" strokeWidth="6" strokeLinecap="round" />
                     <path d="M14,50 Q54,10 114,20 T158,7" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
@@ -609,8 +605,8 @@ export default function EmailCard({
                 <div className="absolute bottom-0 left-3 w-1.5 h-1.5 bg-zinc-300/70 rounded-full fluid-dust-2" />
               </div>
 
-              {/* Dual-Frame Pixel Runner SVG (Frame A & Frame B alternate via CSS) */}
-              <div className="relative z-20">
+              {/* Character Sprite Container (With Smooth Procedural Physics) */}
+              <div className={`relative z-20 ${isRunnerSlashing ? 'anim-slash-lunge-action' : 'anim-giyu-stride'}`}>
                 <svg
                   width="52"
                   height="46"
@@ -621,9 +617,9 @@ export default function EmailCard({
                   <ellipse cx="19" cy="33" rx="8" ry="1.4" fill="#000000" opacity="0.45" />
 
                   {/* ============================================== */}
-                  {/* FRAME A: STEP 1 (Left Leg Forward, Haori Mid) */}
+                  {/* FRAME A: STEP 1 (Clean Crisp Toggle)           */}
                   {/* ============================================== */}
-                  <g className="anim-smooth-frame-a">
+                  <g className="sprite-frame-a">
                     {/* Ponytail Hair */}
                     <polygon points="11,11 3,13 0,19 5,22 9,17" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
                     <rect x="7" y="13.5" width="2.2" height="2" fill="#38bdf8" />
@@ -650,14 +646,12 @@ export default function EmailCard({
                     <rect x="22" y="11" width="1.2" height="1" fill="#ffffff" />
                     <line x1="20" y1="15" x2="24" y2="15" stroke="#000" strokeWidth="0.75" />
 
-                    {/* Split Haori - Frame A Wave (with Flutter) */}
-                    <g className="anim-haori-flutter">
-                      <path d="M12,17 L18,17 L17,25 L7,25 L6,20 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
-                      <path d="M18,17 L26,17 L28,21 L27,26 L18,25 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
-                      <rect x="19" y="18" width="2.5" height="2.5" fill="#eab308" />
-                      <rect x="23" y="18" width="2.5" height="2.5" fill="#ea580c" />
-                      <rect x="21" y="21" width="2.5" height="2.5" fill="#eab308" />
-                    </g>
+                    {/* Split Haori - Frame A Wave (Preserved Clean Grid) */}
+                    <path d="M12,17 L18,17 L17,25 L7,25 L6,20 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
+                    <path d="M18,17 L26,17 L28,21 L27,26 L18,25 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+                    <rect x="19" y="18" width="2.5" height="2.5" fill="#eab308" />
+                    <rect x="23" y="18" width="2.5" height="2.5" fill="#ea580c" />
+                    <rect x="21" y="21" width="2.5" height="2.5" fill="#eab308" />
 
                     {/* Uniform & Belt */}
                     <polygon points="16,17 21,17 19,23" fill="#0f172a" />
@@ -680,9 +674,9 @@ export default function EmailCard({
                   </g>
 
                   {/* ============================================== */}
-                  {/* FRAME B: STEP 2 (Right Leg Forward, Haori High)*/}
+                  {/* FRAME B: STEP 2 (Clean Crisp Toggle)           */}
                   {/* ============================================== */}
-                  <g className="anim-smooth-frame-b">
+                  <g className="sprite-frame-b">
                     {/* Ponytail Hair - Fluttering Higher */}
                     <polygon points="11,10 2,11 0,16 6,19 9,15" fill="#0f172a" stroke="#000" strokeWidth="0.8" />
                     <rect x="7" y="12.5" width="2.2" height="2" fill="#38bdf8" />
@@ -709,14 +703,12 @@ export default function EmailCard({
                     <rect x="22" y="11" width="1.2" height="1" fill="#ffffff" />
                     <line x1="20" y1="15" x2="24" y2="15" stroke="#000" strokeWidth="0.75" />
 
-                    {/* Split Haori - Frame B Wave (with Flutter) */}
-                    <g className="anim-haori-flutter">
-                      <path d="M12,17 L18,17 L16,24 L5,24 L4,19 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
-                      <path d="M18,17 L26,17 L29,19 L28,24 L18,24 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
-                      <rect x="19" y="17.5" width="2.5" height="2.5" fill="#eab308" />
-                      <rect x="23" y="17.5" width="2.5" height="2.5" fill="#ea580c" />
-                      <rect x="21" y="20.5" width="2.5" height="2.5" fill="#eab308" />
-                    </g>
+                    {/* Split Haori - Frame B Wave (Preserved Clean Grid) */}
+                    <path d="M12,17 L18,17 L16,24 L5,24 L4,19 Z" fill="#b91c1c" stroke="#000" strokeWidth="0.8" />
+                    <path d="M18,17 L26,17 L29,19 L28,24 L18,24 Z" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+                    <rect x="19" y="17.5" width="2.5" height="2.5" fill="#eab308" />
+                    <rect x="23" y="17.5" width="2.5" height="2.5" fill="#ea580c" />
+                    <rect x="21" y="20.5" width="2.5" height="2.5" fill="#eab308" />
 
                     {/* Uniform & Belt */}
                     <polygon points="16,17 21,17 19,23" fill="#0f172a" />
@@ -741,7 +733,7 @@ export default function EmailCard({
               </div>
             </div>
 
-            {/* 2. Demon Target in Front of Giyu (Interactive Click: Panic Flinch) */}
+            {/* 2. Demon Target in Front of Giyu (Stable Speech Bubble & Fluid Sprite Stride) */}
             <div
               onClick={handleDemonClick}
               onTouchEnd={(e) => {
@@ -749,12 +741,10 @@ export default function EmailCard({
                 handleDemonClick();
               }}
               style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-              className={`relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-3 sm:-mb-4 min-w-[40px] min-h-[38px] flex-shrink-0 ${
-                isDemonHit ? 'anim-smooth-demon-hit z-30' : 'anim-demon-fluid-stride'
-              }`}
+              className="relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-3 sm:-mb-4 min-w-[40px] min-h-[38px] flex-shrink-0"
               title="Target Iblis (Dikejar oleh Giyu) - Klik untuk reaksi panik!"
             >
-              {/* Demon Badge Tag (Pure Text Tanpa Emoji) */}
+              {/* Demon Badge Tag (Stable & Anchored at Top) */}
               <div
                 className={`absolute -top-6 left-1/2 -translate-x-1/2 font-pixel text-[5px] xs:text-[5.5px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
                   demonQuote || isDemonHit
@@ -766,15 +756,15 @@ export default function EmailCard({
               </div>
 
               {/* Panic Sweat Drop */}
-              <div className="absolute -top-3.5 right-1 pointer-events-none z-30 anim-fluid-sweat">
+              <div className="absolute -top-3.5 right-1 pointer-events-none z-30 anim-sweat-fx">
                 <svg width="10" height="10" viewBox="0 0 10 10">
                   <path d="M5,1 C5,1 2,5 2,7 C2,8.5 3.5,9.5 5,9.5 C6.5,9.5 8,8.5 8,7 C8,5 5,1 5,1 Z" fill="#38bdf8" stroke="#000" strokeWidth="0.6" />
                   <circle cx="4" cy="6" r="0.7" fill="#fff" />
                 </svg>
               </div>
 
-              {/* Dual-Frame Demon SVG */}
-              <div className="relative z-20">
+              {/* Demon Sprite Container (With Smooth Procedural Physics) */}
+              <div className={`relative z-20 ${isDemonHit ? 'anim-demon-hit-action' : 'anim-demon-stride'}`}>
                 <svg
                   width="44"
                   height="42"
@@ -783,8 +773,8 @@ export default function EmailCard({
                 >
                   <ellipse cx="18" cy="32" rx="7" ry="1.2" fill="#000000" opacity="0.4" />
 
-                  {/* DEMON FRAME A: STEP 1 */}
-                  <g className="anim-demon-smooth-a">
+                  {/* DEMON FRAME A: STEP 1 (Clean Crisp Toggle) */}
+                  <g className="sprite-frame-a">
                     {/* Red Sharp Horns on Head */}
                     <polygon points="12,3 9,7 13,8" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
                     <polygon points="24,3 27,7 23,8" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
@@ -825,8 +815,8 @@ export default function EmailCard({
                     <polygon points="26,23 28,23 27,25" fill="#ef4444" />
                   </g>
 
-                  {/* DEMON FRAME B: STEP 2 (Panic Kick) */}
-                  <g className="anim-demon-smooth-b">
+                  {/* DEMON FRAME B: STEP 2 (Clean Crisp Toggle) */}
+                  <g className="sprite-frame-b">
                     {/* Red Sharp Horns on Head */}
                     <polygon points="12,2 9,6 13,7" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
                     <polygon points="24,2 27,6 23,7" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
