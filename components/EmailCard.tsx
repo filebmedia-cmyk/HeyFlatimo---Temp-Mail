@@ -738,100 +738,105 @@ export default function EmailCard({
             />
           </div>
         )}
+      </div>
 
-        {/* Arcade Battle HUD: Boss HP, Combo Counter, and Ultimate Energy Gauge */}
-        <div className="col-span-2 w-full flex flex-wrap items-center justify-between gap-1.5 xs:gap-2 pt-2.5 pb-1 border-t border-dashed border-[var(--border-color)]">
-          {/* Sisi Kiri: Boss Iblis HP & Combo Counter */}
-          <div className="flex items-center gap-1.5 xs:gap-2">
-            <span className="font-pixel text-[7px] xs:text-[8px] text-red-600 dark:text-red-400 font-bold whitespace-nowrap">
-              IBLIS HP:
+      {/* ======================================================== */}
+      {/* ARCADE BATTLE HUD: BOSS HP & ULTIMATE ENERGY             */}
+      {/* ======================================================== */}
+      <div className="w-full flex flex-wrap items-center justify-between gap-2 pt-3 pb-2 border-b border-dashed border-[var(--border-color)]">
+        {/* Sisi Kiri: Boss Iblis HP & Combo Counter */}
+        <div className="flex items-center gap-2">
+          <span className="font-pixel text-[7.5px] xs:text-[8.5px] text-red-600 dark:text-red-400 font-bold whitespace-nowrap">
+            IBLIS HP:
+          </span>
+          <div className="w-24 xs:w-32 sm:w-44 h-3.5 sm:h-4 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
+            <div
+              className="h-full bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 transition-all duration-300"
+              style={{ width: `${bossHp}%` }}
+            />
+            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[6px] xs:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
+              {bossHp} / 100
             </span>
-            <div className="w-20 xs:w-28 sm:w-36 h-3 sm:h-3.5 bg-black border border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
-              <div
-                className="h-full bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 transition-all duration-300"
-                style={{ width: `${bossHp}%` }}
-              />
-              <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5.5px] xs:text-[6.5px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
-                {bossHp} / 100
-              </span>
-            </div>
-            {comboCount > 0 && !isBossKO && (
-              <span className="font-pixel text-[6px] xs:text-[7px] bg-red-600 text-white px-1 py-0.5 border border-black animate-pulse whitespace-nowrap">
-                COMBO x{comboCount}!
-              </span>
-            )}
           </div>
-
-          {/* Sisi Kanan: Ultimate Meter Gauge & Tombol Jurus */}
-          <div className="flex items-center gap-1.5 xs:gap-2 ml-auto">
-            <div className="flex items-center gap-1">
-              <span className="font-pixel text-[7px] xs:text-[8px] text-[var(--color-blue)] font-bold whitespace-nowrap">
-                ULT:
-              </span>
-              <div className="w-16 xs:w-20 sm:w-28 h-3 sm:h-3.5 bg-black border border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
-                <div
-                  className="h-full bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 transition-all duration-300"
-                  style={{ width: `${ultEnergy}%` }}
-                />
-                <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5.5px] xs:text-[6.5px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
-                  {ultEnergy}%
-                </span>
-              </div>
-            </div>
-
-            {/* Tombol Jurus Pamungkas */}
-            <button
-              type="button"
-              onClick={handleTriggerUltimate}
-              disabled={ultEnergy < 100 || isUltActive || isBossKO}
-              className={`brutal-btn px-2 xs:px-2.5 py-0.5 xs:py-1 font-pixel text-[6.5px] xs:text-[7.5px] font-bold border border-black transition-all ${
-                ultEnergy >= 100
-                  ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-[2px_2px_0px_#000] cursor-pointer'
-                  : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed opacity-60'
-              }`}
-              title={
-                ultEnergy >= 100
-                  ? 'Jurus Pamungkas Siap! Klik untuk melancarkan serangan!'
-                  : `Kumpulkan energi hingga 100% (${ultEnergy}%)`
-              }
-            >
-              <span>{ultEnergy >= 100 ? 'JURUS!' : 'CHARGE'}</span>
-            </button>
-          </div>
+          {comboCount > 0 && !isBossKO && (
+            <span className="font-pixel text-[6.5px] xs:text-[7.5px] bg-red-600 text-white px-1.5 py-0.5 border border-black animate-pulse whitespace-nowrap shadow-[1px_1px_0px_#000]">
+              COMBO x{comboCount}!
+            </span>
+          )}
         </div>
 
-        {/* Strip Track Container: Giyu Pursuing Demon on Far-Left & Refresh Button on Far-Right */}
-        <div className="col-span-2 w-full flex items-end justify-between pt-8 sm:pt-9 pb-3.5 sm:pb-4 relative overflow-visible">
-          {/* Manga Speedlines Runner Background Layer (Behind Characters, Zero Blockage) */}
-          {isUltActive && (
-            <div className="absolute inset-0 z-0 pointer-events-none anim-manga-speedlines opacity-50 rounded" />
-          )}
-
-          {/* Ultimate Banner Floating Notification (Top-Center, Unobtrusive) */}
-          {isUltActive && (
-            <div className="absolute top-0.5 sm:top-1 left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-in fade-in zoom-in duration-150">
-              <div className="font-pixel text-[8px] xs:text-[9px] sm:text-xs text-yellow-300 bg-black/95 border-2 border-yellow-400 px-2.5 py-0.5 shadow-[2px_2px_0px_#ff0055] whitespace-nowrap animate-pulse">
-                {HERO_ROSTER[activeHero].ultBanner}
-              </div>
+        {/* Sisi Kanan: Ultimate Meter Gauge & Tombol Jurus */}
+        <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-1.5">
+            <span className="font-pixel text-[7.5px] xs:text-[8.5px] text-[var(--color-blue)] font-bold whitespace-nowrap">
+              ULT:
+            </span>
+            <div className="w-20 xs:w-24 sm:w-32 h-3.5 sm:h-4 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
+              <div
+                className="h-full bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 transition-all duration-300"
+                style={{ width: `${ultEnergy}%` }}
+              />
+              <span className="absolute inset-0 flex items-center justify-center font-pixel text-[6px] xs:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
+                {ultEnergy}%
+              </span>
             </div>
-          )}
+          </div>
 
-          {/* Arcade K.O.! Splash Overlay */}
-          {isBossKO && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none anim-arcade-ko">
-              <div className="text-center transform -rotate-3">
-                <div className="font-pixel text-base xs:text-lg sm:text-xl text-yellow-300 bg-red-600 border-2 sm:border-3 border-black px-3.5 sm:px-4 py-1 shadow-[3px_3px_0px_#000] tracking-widest animate-pulse">
-                  K.O.!
-                </div>
-                <div className="font-pixel text-[6px] xs:text-[7px] text-black bg-yellow-400 px-2 py-0.5 mt-0.5 border border-black font-bold uppercase">
-                  TARGET IBLIS TERKALAHKAN!
-                </div>
-              </div>
+          {/* Tombol Jurus Pamungkas */}
+          <button
+            type="button"
+            onClick={handleTriggerUltimate}
+            disabled={ultEnergy < 100 || isUltActive || isBossKO}
+            className={`brutal-btn px-2.5 xs:px-3 py-1 font-pixel text-[7px] xs:text-[8px] font-bold border-2 border-black transition-all ${
+              ultEnergy >= 100
+                ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-[2px_2px_0px_#000] cursor-pointer'
+                : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed opacity-60'
+            }`}
+            title={
+              ultEnergy >= 100
+                ? 'Jurus Pamungkas Siap! Klik untuk melancarkan serangan!'
+                : `Kumpulkan energi hingga 100% (${ultEnergy}%)`
+            }
+          >
+            <span>{ultEnergy >= 100 ? 'JURUS!' : 'CHARGE'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* STRIP RUNNER ARENA (SPACIOUS, UNCONSTRAINED & BREATHING) */}
+      {/* ======================================================== */}
+      <div className="w-full relative overflow-visible pt-10 sm:pt-12 pb-5 sm:pb-6 border-b-[2.5px] sm:border-b-[3px] border-dashed border-[var(--border-color)]">
+        {/* Manga Speedlines Runner Background Layer (Bursting Outward, Behind Characters) */}
+        {isUltActive && (
+          <div className="absolute -inset-x-4 -inset-y-2 z-0 pointer-events-none anim-manga-speedlines opacity-45 rounded" />
+        )}
+
+        {/* Ultimate Banner Floating Notification (Pops High Above, Never Covers Characters) */}
+        {isUltActive && (
+          <div className="absolute -top-7 sm:-top-8 left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-in fade-in zoom-in duration-150 whitespace-nowrap">
+            <div className="font-pixel text-[9px] xs:text-[10px] sm:text-xs text-yellow-300 bg-black/95 border-2 border-yellow-400 px-3 py-1 shadow-[3px_3px_0px_#ff0055] animate-pulse">
+              {HERO_ROSTER[activeHero].ultBanner}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* UJUNG KIRI: CHASE DUO (Hero Runner chasing Demon Target - Geser Kiri -8px) */}
-          <div className={`flex items-end gap-2.5 xs:gap-3.5 sm:gap-5 relative -ml-2 sm:-ml-2.5 transition-all duration-150 ${isRefreshing ? 'sprint-active' : ''}`}>
+        {/* Arcade K.O.! Splash Overlay - Pops High Above, Never Covers Characters or Slashes */}
+        {isBossKO && (
+          <div className="absolute -top-12 sm:-top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none anim-arcade-ko whitespace-nowrap">
+            <div className="font-pixel text-2xl xs:text-3xl sm:text-4xl text-yellow-300 bg-red-600 border-3 sm:border-4 border-black px-5 sm:px-7 py-1.5 sm:py-2 shadow-[4px_4px_0px_#000] tracking-widest animate-bounce">
+              K.O.!
+            </div>
+            <div className="font-pixel text-[7px] xs:text-[8px] sm:text-[9px] text-black bg-yellow-400 px-3 py-1 mt-1 border-2 border-black font-black uppercase shadow-[2px_2px_0px_#000]">
+              TARGET IBLIS TERKALAHKAN!
+            </div>
+          </div>
+        )}
+
+        {/* Runner Arena Inner Row */}
+        <div className="w-full flex items-end justify-between relative z-20 overflow-visible">
+          {/* UJUNG KIRI: CHASE DUO (Hero Runner chasing Demon Target) */}
+          <div className={`flex items-end gap-3 xs:gap-4 sm:gap-6 relative transition-all duration-150 overflow-visible ${isRefreshing ? 'sprint-active' : ''}`}>
             {/* 1. Hero Runner in Place on Strip (Stable Speech Bubble & Fluid Sprite Stride) */}
             <div
               onClick={handleRunnerClick}
@@ -840,12 +845,12 @@ export default function EmailCard({
                 handleRunnerClick();
               }}
               style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-              className="relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-3 sm:-mb-4 min-w-[46px] min-h-[40px] flex-shrink-0"
+              className="relative flex items-end cursor-pointer group pointer-events-auto select-none min-w-[50px] min-h-[44px] flex-shrink-0 overflow-visible"
               title={`${HERO_ROSTER[activeHero].name} (Klik untuk jurus serangan!)`}
             >
-              {/* Speech / Action Bubble (Stable & Anchored at Top) */}
+              {/* Speech / Action Bubble (Anchored Cleanly at Top with Breathing Room) */}
               <div
-                className={`absolute -top-6 left-1/2 -translate-x-1/2 font-pixel text-[5px] xs:text-[6px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
+                className={`absolute -top-8 left-1/2 -translate-x-1/2 font-pixel text-[5.5px] xs:text-[6.5px] px-2 py-0.5 border border-black shadow-[1.5px_1.5px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
                   runnerQuote || isRefreshing || isRunnerSlashing || isUltActive
                     ? 'opacity-100 scale-100'
                     : 'opacity-85 group-hover:opacity-100 scale-95'
@@ -868,10 +873,10 @@ export default function EmailCard({
                   : runnerQuote || HERO_ROSTER[activeHero].badgeName}
               </div>
 
-              {/* Elemental Slash Arc Effect Overlay (Triggered on click or ultimate) */}
+              {/* Elemental Slash Arc Effect Overlay (Expansive, Bursting Outward Beyond Box) */}
               {(isRunnerSlashing || isUltActive) && (
                 <div
-                  className={`absolute -top-4 -right-14 sm:-right-16 pointer-events-none z-50 w-[120px] sm:w-[140px] ${
+                  className={`absolute -top-6 -right-16 sm:-right-20 pointer-events-none z-30 w-[140px] sm:w-[170px] overflow-visible ${
                     activeHero === 'tanjiro'
                       ? 'anim-flame-arc-fx'
                       : activeHero === 'zenitsu'
@@ -940,7 +945,7 @@ export default function EmailCard({
 
               {/* Character Sprite Container (With Dynamic Procedural Physics) */}
               <div
-                className={`relative z-20 ${
+                className={`relative z-20 overflow-visible ${
                   isUltActive
                     ? 'anim-ult-lunge-sprint'
                     : isRunnerSlashing
@@ -1233,12 +1238,12 @@ export default function EmailCard({
                 handleDemonClick();
               }}
               style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-              className="relative flex items-end cursor-pointer group pointer-events-auto select-none -mb-3 sm:-mb-4 min-w-[40px] min-h-[38px] flex-shrink-0"
+              className="relative flex items-end cursor-pointer group pointer-events-auto select-none min-w-[44px] min-h-[42px] flex-shrink-0 overflow-visible"
               title="Target Iblis (Dikejar oleh Giyu) - Klik untuk reaksi panik!"
             >
-              {/* Demon Badge Tag (Stable & Anchored at Top) */}
+              {/* Demon Badge Tag (Anchored Cleanly at Top with Breathing Room) */}
               <div
-                className={`absolute -top-6 left-1/2 -translate-x-1/2 font-pixel text-[5px] xs:text-[5.5px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
+                className={`absolute -top-8 left-1/2 -translate-x-1/2 font-pixel text-[5.5px] xs:text-[6px] px-2 py-0.5 border border-black shadow-[1.5px_1.5px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
                   demonQuote || isDemonHit || isBossHurt || isBossKO
                     ? 'opacity-100 scale-100 bg-red-600 text-white font-black'
                     : 'opacity-85 group-hover:opacity-100 scale-95 bg-red-700/90 text-white font-bold'
@@ -1248,7 +1253,7 @@ export default function EmailCard({
               </div>
 
               {/* Panic Sweat Drop */}
-              <div className="absolute -top-3.5 right-1 pointer-events-none z-30 anim-sweat-fx">
+              <div className="absolute -top-4 right-1 pointer-events-none z-30 anim-sweat-fx">
                 <svg width="10" height="10" viewBox="0 0 10 10">
                   <path d="M5,1 C5,1 2,5 2,7 C2,8.5 3.5,9.5 5,9.5 C6.5,9.5 8,8.5 8,7 C8,5 5,1 5,1 Z" fill="#38bdf8" stroke="#000" strokeWidth="0.6" />
                   <circle cx="4" cy="6" r="0.7" fill="#fff" />
@@ -1257,7 +1262,7 @@ export default function EmailCard({
 
               {/* Demon Sprite Container (With Smooth Procedural Physics) */}
               <div
-                className={`relative z-20 ${
+                className={`relative z-20 overflow-visible ${
                   isBossKO
                     ? 'anim-demon-ko'
                     : isBossHurt
