@@ -979,8 +979,8 @@ pre {
 }
 
 /* ======================================================== */
-/* GIYU RUNNER & DEMON CHASE: FLUID ORGANIC ANIME PHYSICS   */
-/* CRISP PIXEL FRAMES + PROCEDURAL SPRITE PHYSICS (NO GHOST)*/
+/* GIYU RUNNER & DEMON CHASE: STEADY JOG CADENCE & MINAMO   */
+/* 0.60S STEADY JOG, DYNAMIC SPRINT ACCELERATION, ZERO GHOST*/
 /* ======================================================== */
 
 /* 1. Crisp Frame Toggle (Bebas Ghosting & Sobekan Piksel) */
@@ -993,107 +993,92 @@ pre {
   50%, 100% { display: inline; opacity: 1; visibility: visible; }
 }
 
-.sprite-frame-a { animation: frameToggleA 0.28s steps(1) infinite; }
-.sprite-frame-b { animation: frameToggleB 0.28s steps(1) infinite; }
-.sprint-active .sprite-frame-a { animation-duration: 0.14s; }
-.sprint-active .sprite-frame-b { animation-duration: 0.14s; }
+/* Giyu Frame Toggle: 0.60s Steady Jog, 0.28s Sprint */
+.sprite-frame-a { animation: frameToggleA 0.60s steps(1) infinite; }
+.sprite-frame-b { animation: frameToggleB 0.60s steps(1) infinite; }
+.sprint-active .sprite-frame-a { animation-duration: 0.28s; }
+.sprint-active .sprite-frame-b { animation-duration: 0.28s; }
 
-/* 2. Giyu: Natural forward spring stride with subtle squash & lean */
+/* Demon Frame Toggle: 0.54s Paced Stride, 0.24s Sprint */
+.demon-frame-a { animation: frameToggleA 0.54s steps(1) infinite; }
+.demon-frame-b { animation: frameToggleB 0.54s steps(1) infinite; }
+.sprint-active .demon-frame-a { animation-duration: 0.24s; }
+.sprint-active .demon-frame-b { animation-duration: 0.24s; }
+
+/* 2. Giyu: Natural forward spring stride with steady, rhythmic cadence */
 @keyframes giyuSpringStride {
   0% {
-    transform: translateY(0px) rotate(1.5deg) scale(1, 0.98);
+    transform: translateY(0px) rotate(1deg) scale(1, 0.985);
   }
   25% {
-    transform: translateY(-3.5px) rotate(0.5deg) scale(0.99, 1.02);
+    transform: translateY(-3px) rotate(0deg) scale(0.99, 1.015);
   }
   50% {
-    transform: translateY(0px) rotate(2deg) scale(1, 0.98);
+    transform: translateY(0px) rotate(1.5deg) scale(1, 0.985);
   }
   75% {
-    transform: translateY(-4px) rotate(1deg) scale(0.99, 1.02);
+    transform: translateY(-3.5px) rotate(0.5deg) scale(0.99, 1.015);
   }
   100% {
-    transform: translateY(0px) rotate(1.5deg) scale(1, 0.98);
+    transform: translateY(0px) rotate(1deg) scale(1, 0.985);
   }
 }
 .anim-giyu-stride {
-  animation: giyuSpringStride 0.28s cubic-bezier(0.35, 0.15, 0.65, 0.85) infinite;
+  animation: giyuSpringStride 0.60s cubic-bezier(0.35, 0.15, 0.65, 0.85) infinite;
   transform-origin: bottom center;
 }
 .sprint-active .anim-giyu-stride {
-  animation-duration: 0.14s;
+  animation-duration: 0.28s;
 }
 
 /* 3. Demon: Frantic panic wobble with energetic body bounce */
 @keyframes demonPanicStride {
   0% {
-    transform: translateY(0px) rotate(-3deg) scale(1.02, 0.97);
+    transform: translateY(0px) rotate(-2.5deg) scale(1.02, 0.975);
   }
   25% {
-    transform: translateY(-4.5px) rotate(2.5deg) scale(0.98, 1.03);
+    transform: translateY(-4px) rotate(2deg) scale(0.985, 1.025);
   }
   50% {
-    transform: translateY(0px) rotate(-3.5deg) scale(1.02, 0.97);
+    transform: translateY(0px) rotate(-3deg) scale(1.02, 0.975);
   }
   75% {
-    transform: translateY(-5px) rotate(2deg) scale(0.98, 1.03);
+    transform: translateY(-4.5px) rotate(1.5deg) scale(0.985, 1.025);
   }
   100% {
-    transform: translateY(0px) rotate(-3deg) scale(1.02, 0.97);
+    transform: translateY(0px) rotate(-2.5deg) scale(1.02, 0.975);
   }
 }
 .anim-demon-stride {
-  animation: demonPanicStride 0.24s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
+  animation: demonPanicStride 0.54s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
   transform-origin: bottom center;
 }
 .sprint-active .anim-demon-stride {
-  animation-duration: 0.12s;
+  animation-duration: 0.24s;
 }
 
-/* 4. Cinematic Slash Lunge (Anticipation -> Flash Slice -> Deceleration) */
-@keyframes slashLungePhysics {
-  0% {
-    transform: translateX(0) scale(1);
-  }
-  14% {
-    transform: translateX(-4px) translateY(1px) scale(0.98, 1.02) rotate(-2deg);
-  }
-  36% {
-    transform: translateX(28px) translateY(-3px) scale(1.15, 0.94) rotate(5deg);
-  }
-  56% {
-    transform: translateX(26px) translateY(0) scale(1.08, 0.98) rotate(1deg);
-  }
-  100% {
-    transform: translateX(0) scale(1) rotate(0deg);
-  }
+/* 4. Minamo Giri Slash Lunge (Water Surface Slash) */
+@keyframes actionMinamoGiri {
+  0% { transform: translateX(0) scale(1); }
+  15% { transform: translateX(-5px) translateY(1px) scale(0.97, 1.02) rotate(-3deg); }
+  38% { transform: translateX(28px) translateY(-3px) scale(1.16, 0.94) rotate(4deg); }
+  58% { transform: translateX(25px) translateY(0) scale(1.06, 0.98) rotate(1deg); }
+  100% { transform: translateX(0) scale(1) rotate(0deg); }
 }
 .anim-slash-lunge-action {
-  animation: slashLungePhysics 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: actionMinamoGiri 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   transform-origin: bottom center;
 }
 
-/* 5. Water Wave Arc Overlay */
-@keyframes waterArcExpand {
-  0% {
-    transform: scale(0.3) translateX(-15px) rotate(-15deg);
-    opacity: 0;
-  }
-  20% {
-    transform: scale(1.1) translateX(16px) rotate(2deg);
-    opacity: 1;
-  }
-  65% {
-    transform: scale(1.26) translateX(28px) rotate(8deg);
-    opacity: 0.95;
-  }
-  100% {
-    transform: scale(1.4) translateX(38px) rotate(14deg);
-    opacity: 0;
-  }
+/* 5. Water Wave Arc Overlay (Minamo Giri) */
+@keyframes waterArcMinamo {
+  0% { transform: scale(0.3) translateX(-15px) rotate(-15deg); opacity: 0; }
+  20% { transform: scale(1.1) translateX(16px) rotate(2deg); opacity: 1; }
+  65% { transform: scale(1.28) translateX(28px) rotate(8deg); opacity: 0.95; }
+  100% { transform: scale(1.42) translateX(38px) rotate(14deg); opacity: 0; }
 }
 .anim-water-arc-fx {
-  animation: waterArcExpand 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: waterArcMinamo 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* 6. Demon Panic Flinch (Anime Shock & Air Fluid Bounce) */
@@ -1137,26 +1122,33 @@ pre {
   animation: fluidSweatFloat 0.5s ease-in-out infinite;
 }
 
-/* 8. Wind Streaks (Fluid Bezier) */
+/* 8. Wind Streaks (Tuned for calm jogging) */
 @keyframes fluidWindFlow {
-  0% { transform: translateX(50px) scaleX(0.4); opacity: 0; }
-  25% { opacity: 0.95; transform: translateX(10px) scaleX(1.1); }
-  75% { opacity: 0.95; transform: translateX(-35px) scaleX(1); }
-  100% { transform: translateX(-80px) scaleX(0.5); opacity: 0; }
+  0% { transform: translateX(45px) scaleX(0.4); opacity: 0; }
+  25% { opacity: 0.85; transform: translateX(8px) scaleX(1); }
+  75% { opacity: 0.85; transform: translateX(-30px) scaleX(0.9); }
+  100% { transform: translateX(-70px) scaleX(0.4); opacity: 0; }
 }
-.fluid-wind-1 { animation: fluidWindFlow 0.75s cubic-bezier(0.25, 0.1, 0.25, 1) infinite; }
-.fluid-wind-2 { animation: fluidWindFlow 1.0s cubic-bezier(0.25, 0.1, 0.25, 1) infinite 0.2s; }
-.fluid-wind-3 { animation: fluidWindFlow 0.65s cubic-bezier(0.25, 0.1, 0.25, 1) infinite 0.4s; }
-.fluid-wind-4 { animation: fluidWindFlow 0.85s cubic-bezier(0.25, 0.1, 0.25, 1) infinite 0.15s; }
+.fluid-wind-1 { animation: fluidWindFlow 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) infinite; }
+.fluid-wind-2 { animation: fluidWindFlow 1.5s cubic-bezier(0.25, 0.1, 0.25, 1) infinite 0.3s; }
+.fluid-wind-3 { animation: fluidWindFlow 1.0s cubic-bezier(0.25, 0.1, 0.25, 1) infinite 0.6s; }
+.fluid-wind-4 { animation: fluidWindFlow 1.3s cubic-bezier(0.25, 0.1, 0.25, 1) infinite 0.2s; }
+
+.sprint-active .fluid-wind-1 { animation-duration: 0.45s; }
+.sprint-active .fluid-wind-2 { animation-duration: 0.55s; }
+.sprint-active .fluid-wind-3 { animation-duration: 0.38s; }
+.sprint-active .fluid-wind-4 { animation-duration: 0.48s; }
 
 /* 9. Dust Puffs with smooth expansion */
 @keyframes fluidDust {
   0% { transform: scale(0.2) translate(3px, 0); opacity: 0; }
-  30% { opacity: 0.8; }
-  100% { transform: scale(1.3) translate(-16px, -3px); opacity: 0; }
+  30% { opacity: 0.7; }
+  100% { transform: scale(1.2) translate(-14px, -2px); opacity: 0; }
 }
-.fluid-dust-1 { animation: fluidDust 0.45s ease-out infinite; }
-.fluid-dust-2 { animation: fluidDust 0.45s ease-out infinite 0.22s; }
+.fluid-dust-1 { animation: fluidDust 0.60s ease-out infinite; }
+.fluid-dust-2 { animation: fluidDust 0.60s ease-out infinite 0.30s; }
+.sprint-active .fluid-dust-1 { animation-duration: 0.28s; }
+.sprint-active .fluid-dust-2 { animation-duration: 0.28s; }
 
 
 

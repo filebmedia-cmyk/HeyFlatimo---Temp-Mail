@@ -140,11 +140,11 @@ export default function EmailCard({
     if (isRunnerSlashing) return;
     setIsRunnerSlashing(true);
     const quotes = [
-      'WATER SLASH!',
+      'MINAMO GIRI!',
       'PERNAPASAN AIR!',
-      'HASHIRA RUSH!',
-      'JANGAN MENYERAH!',
+      'WATER SLASH!',
       'TEBASAN KILAT!',
+      'HASHIRA RUSH!',
     ];
     const picked = quotes[Math.floor(Math.random() * quotes.length)];
     setRunnerQuote(picked);
@@ -165,7 +165,7 @@ export default function EmailCard({
       setIsDemonHit(false);
       setDemonQuote(null);
       setRunnerQuote(null);
-    }, 1000);
+    }, 1050);
   };
 
   const handleDemonClick = () => {
@@ -773,8 +773,8 @@ export default function EmailCard({
                 >
                   <ellipse cx="18" cy="32" rx="7" ry="1.2" fill="#000000" opacity="0.4" />
 
-                  {/* DEMON FRAME A: STEP 1 (Clean Crisp Toggle) */}
-                  <g className="sprite-frame-a">
+                  {/* DEMON FRAME A: STEP 1 (Paced Crisp Toggle - 0.54s) */}
+                  <g className="demon-frame-a">
                     {/* Red Sharp Horns on Head */}
                     <polygon points="12,3 9,7 13,8" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
                     <polygon points="24,3 27,7 23,8" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
@@ -815,8 +815,8 @@ export default function EmailCard({
                     <polygon points="26,23 28,23 27,25" fill="#ef4444" />
                   </g>
 
-                  {/* DEMON FRAME B: STEP 2 (Clean Crisp Toggle) */}
-                  <g className="sprite-frame-b">
+                  {/* DEMON FRAME B: STEP 2 (Paced Crisp Toggle - 0.54s) */}
+                  <g className="demon-frame-b">
                     {/* Red Sharp Horns on Head */}
                     <polygon points="12,2 9,6 13,7" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
                     <polygon points="24,2 27,6 23,7" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
