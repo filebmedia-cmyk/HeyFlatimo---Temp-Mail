@@ -1039,20 +1039,6 @@ export default function EmailCard({
               </div>
             </div>
 
-            {/* Quick Roster Selector Pill Button */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                playSound('pop');
-                setIsCharModalOpen(true);
-              }}
-              className="brutal-btn bg-[var(--color-yellow)] hover:bg-yellow-300 text-black px-1.5 xs:px-2 py-0.5 text-[6.5px] xs:text-[7.5px] font-pixel font-black border border-black shadow-[1px_1px_0px_#000] flex items-center gap-1 cursor-pointer flex-shrink-0 self-center -mb-2 z-30"
-              title="Buka Pemilih Karakter Roster"
-            >
-              <span>ROSTER</span>
-            </button>
-
             {/* 2. Demon Target in Front of Giyu (Stable Speech Bubble & Fluid Sprite Stride) */}
             <div
               onClick={handleDemonClick}
