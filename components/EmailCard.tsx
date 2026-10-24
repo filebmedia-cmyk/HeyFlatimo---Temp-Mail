@@ -743,43 +743,41 @@ export default function EmailCard({
       {/* ======================================================== */}
       {/* ARCADE BATTLE HUD: BOSS HP & ULTIMATE ENERGY             */}
       {/* ======================================================== */}
-      <div className="w-full flex flex-wrap items-center justify-between gap-2 pt-3 pb-2 border-b border-dashed border-[var(--border-color)]">
-        {/* Sisi Kiri: Boss Iblis HP & Combo Counter */}
-        <div className="flex items-center gap-2">
-          <span className="font-pixel text-[7.5px] xs:text-[8.5px] text-red-600 dark:text-red-400 font-bold whitespace-nowrap">
+      <div className="w-full grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-between pt-2.5 xs:pt-3 pb-2 border-b border-dashed border-[var(--border-color)]">
+        {/* Sisi Kiri: Boss Iblis HP & Combo Counter (Mobile Symmetrical Column) */}
+        <div className="flex items-center gap-1 xs:gap-1.5 min-w-0">
+          <span className="font-pixel text-[6.5px] xs:text-[7.5px] sm:text-[8px] text-red-600 dark:text-red-400 font-bold whitespace-nowrap flex-shrink-0">
             IBLIS HP:
           </span>
-          <div className="w-24 xs:w-32 sm:w-44 h-3.5 sm:h-4 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
+          <div className="flex-1 max-w-[110px] sm:max-w-[160px] h-3.5 sm:h-4 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
             <div
               className="h-full bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 transition-all duration-300"
               style={{ width: `${bossHp}%` }}
             />
-            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[6px] xs:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
-              {bossHp} / 100
+            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5.5px] xs:text-[6.5px] sm:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
+              {bossHp}/100
             </span>
           </div>
           {comboCount > 0 && !isBossKO && (
-            <span className="font-pixel text-[6.5px] xs:text-[7.5px] bg-red-600 text-white px-1.5 py-0.5 border border-black animate-pulse whitespace-nowrap shadow-[1px_1px_0px_#000]">
-              COMBO x{comboCount}!
+            <span className="font-pixel text-[5.5px] xs:text-[6.5px] bg-red-600 text-white px-1 py-0.5 border border-black animate-pulse whitespace-nowrap shadow-[1px_1px_0px_#000] flex-shrink-0">
+              x{comboCount}
             </span>
           )}
         </div>
 
-        {/* Sisi Kanan: Ultimate Meter Gauge & Tombol Jurus */}
-        <div className="flex items-center gap-2 ml-auto">
-          <div className="flex items-center gap-1.5">
-            <span className="font-pixel text-[7.5px] xs:text-[8.5px] text-[var(--color-blue)] font-bold whitespace-nowrap">
-              ULT:
+        {/* Sisi Kanan: Ultimate Meter Gauge & Tombol Jurus (Mobile Symmetrical Column) */}
+        <div className="flex items-center gap-1 xs:gap-1.5 min-w-0 justify-end ml-auto">
+          <span className="font-pixel text-[6.5px] xs:text-[7.5px] sm:text-[8px] text-[var(--color-blue)] font-bold whitespace-nowrap flex-shrink-0">
+            ULT:
+          </span>
+          <div className="flex-1 max-w-[80px] sm:max-w-[120px] h-3.5 sm:h-4 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
+            <div
+              className="h-full bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 transition-all duration-300"
+              style={{ width: `${ultEnergy}%` }}
+            />
+            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[5.5px] xs:text-[6.5px] sm:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
+              {ultEnergy}%
             </span>
-            <div className="w-20 xs:w-24 sm:w-32 h-3.5 sm:h-4 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
-              <div
-                className="h-full bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 transition-all duration-300"
-                style={{ width: `${ultEnergy}%` }}
-              />
-              <span className="absolute inset-0 flex items-center justify-center font-pixel text-[6px] xs:text-[7px] text-white font-bold drop-shadow-[1px_1px_0px_#000]">
-                {ultEnergy}%
-              </span>
-            </div>
           </div>
 
           {/* Tombol Jurus Pamungkas */}
@@ -787,9 +785,9 @@ export default function EmailCard({
             type="button"
             onClick={handleTriggerUltimate}
             disabled={ultEnergy < 100 || isUltActive || isBossKO}
-            className={`brutal-btn px-2.5 xs:px-3 py-1 font-pixel text-[7px] xs:text-[8px] font-bold border-2 border-black transition-all ${
+            className={`brutal-btn px-1.5 xs:px-2.5 py-0.5 xs:py-1 font-pixel text-[6px] xs:text-[7px] sm:text-[8px] font-bold border-2 border-black flex-shrink-0 transition-all ${
               ultEnergy >= 100
-                ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-[2px_2px_0px_#000] cursor-pointer'
+                ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-[1.5px_1.5px_0px_#000] cursor-pointer'
                 : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed opacity-60'
             }`}
             title={
@@ -806,28 +804,28 @@ export default function EmailCard({
       {/* ======================================================== */}
       {/* STRIP RUNNER ARENA (SPACIOUS, UNCONSTRAINED & BREATHING) */}
       {/* ======================================================== */}
-      <div className="w-full relative overflow-visible pt-10 sm:pt-12 pb-5 sm:pb-6 border-b-[2.5px] sm:border-b-[3px] border-dashed border-[var(--border-color)]">
+      <div className="w-full relative overflow-visible pt-8 xs:pt-10 sm:pt-12 pb-4 xs:pb-5 sm:pb-6 border-b-[2.5px] sm:border-b-[3px] border-dashed border-[var(--border-color)]">
         {/* Manga Speedlines Runner Background Layer (Bursting Outward, Behind Characters) */}
         {isUltActive && (
           <div className="absolute -inset-x-4 -inset-y-2 z-0 pointer-events-none anim-manga-speedlines opacity-45 rounded" />
         )}
 
-        {/* Ultimate Banner Floating Notification (Pops High Above, Never Covers Characters) */}
+        {/* Ultimate Banner Floating Notification (Mobile Screen Safe & Centered) */}
         {isUltActive && (
-          <div className="absolute -top-7 sm:-top-8 left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-in fade-in zoom-in duration-150 whitespace-nowrap">
-            <div className="font-pixel text-[9px] xs:text-[10px] sm:text-xs text-yellow-300 bg-black/95 border-2 border-yellow-400 px-3 py-1 shadow-[3px_3px_0px_#ff0055] animate-pulse">
+          <div className="absolute -top-6 xs:-top-7 sm:-top-8 left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-in fade-in zoom-in duration-150 max-w-[90vw]">
+            <div className="font-pixel text-[7.5px] xs:text-[8.5px] sm:text-xs text-yellow-300 bg-black/95 border-2 border-yellow-400 px-2.5 xs:px-3 py-0.5 xs:py-1 shadow-[2px_2px_0px_#ff0055] whitespace-nowrap truncate animate-pulse">
               {HERO_ROSTER[activeHero].ultBanner}
             </div>
           </div>
         )}
 
-        {/* Arcade K.O.! Splash Overlay - Pops High Above, Never Covers Characters or Slashes */}
+        {/* Arcade K.O.! Splash Overlay - Mobile Proportional, Never Blocks Runner Actions */}
         {isBossKO && (
-          <div className="absolute -top-12 sm:-top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none anim-arcade-ko whitespace-nowrap">
-            <div className="font-pixel text-2xl xs:text-3xl sm:text-4xl text-yellow-300 bg-red-600 border-3 sm:border-4 border-black px-5 sm:px-7 py-1.5 sm:py-2 shadow-[4px_4px_0px_#000] tracking-widest animate-bounce">
+          <div className="absolute -top-7 xs:-top-9 sm:-top-12 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none anim-arcade-ko whitespace-nowrap">
+            <div className="font-pixel text-xl xs:text-2xl sm:text-4xl text-yellow-300 bg-red-600 border-2 sm:border-4 border-black px-4 xs:px-5 sm:px-7 py-1 xs:py-1.5 sm:py-2 shadow-[3px_3px_0px_#000] sm:shadow-[5px_5px_0px_#000] tracking-widest animate-bounce">
               K.O.!
             </div>
-            <div className="font-pixel text-[7px] xs:text-[8px] sm:text-[9px] text-black bg-yellow-400 px-3 py-1 mt-1 border-2 border-black font-black uppercase shadow-[2px_2px_0px_#000]">
+            <div className="font-pixel text-[6px] xs:text-[7px] sm:text-[8.5px] text-black bg-yellow-400 px-2 xs:px-2.5 py-0.5 mt-0.5 sm:mt-1 border sm:border-2 border-black font-black uppercase shadow-[1.5px_1.5px_0px_#000]">
               TARGET IBLIS TERKALAHKAN!
             </div>
           </div>
@@ -848,9 +846,9 @@ export default function EmailCard({
               className="relative flex items-end cursor-pointer group pointer-events-auto select-none min-w-[50px] min-h-[44px] flex-shrink-0 overflow-visible"
               title={`${HERO_ROSTER[activeHero].name} (Klik untuk jurus serangan!)`}
             >
-              {/* Speech / Action Bubble (Anchored Cleanly at Top with Breathing Room) */}
+              {/* Speech / Action Bubble (Anchored on Left for Mobile, Center for Desktop) */}
               <div
-                className={`absolute -top-8 left-1/2 -translate-x-1/2 font-pixel text-[5.5px] xs:text-[6.5px] px-2 py-0.5 border border-black shadow-[1.5px_1.5px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
+                className={`absolute -top-7 xs:-top-8 left-0 xs:-left-1 sm:left-1/2 sm:-translate-x-1/2 font-pixel text-[5px] xs:text-[6px] sm:text-[6.5px] px-1.5 xs:px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
                   runnerQuote || isRefreshing || isRunnerSlashing || isUltActive
                     ? 'opacity-100 scale-100'
                     : 'opacity-85 group-hover:opacity-100 scale-95'
@@ -873,10 +871,10 @@ export default function EmailCard({
                   : runnerQuote || HERO_ROSTER[activeHero].badgeName}
               </div>
 
-              {/* Elemental Slash Arc Effect Overlay (Expansive, Bursting Outward Beyond Box) */}
+              {/* Elemental Slash Arc Effect Overlay (Mobile Proportional, Never Clipped) */}
               {(isRunnerSlashing || isUltActive) && (
                 <div
-                  className={`absolute -top-6 -right-16 sm:-right-20 pointer-events-none z-30 w-[140px] sm:w-[170px] overflow-visible ${
+                  className={`absolute -top-4 xs:-top-5 sm:-top-6 -right-12 xs:-right-16 sm:-right-20 pointer-events-none z-30 w-[110px] xs:w-[135px] sm:w-[170px] overflow-visible ${
                     activeHero === 'tanjiro'
                       ? 'anim-flame-arc-fx'
                       : activeHero === 'zenitsu'
@@ -1243,7 +1241,7 @@ export default function EmailCard({
             >
               {/* Demon Badge Tag (Anchored Cleanly at Top with Breathing Room) */}
               <div
-                className={`absolute -top-8 left-1/2 -translate-x-1/2 font-pixel text-[5.5px] xs:text-[6px] px-2 py-0.5 border border-black shadow-[1.5px_1.5px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
+                className={`absolute -top-7 xs:-top-8 left-1/2 -translate-x-1/2 font-pixel text-[5px] xs:text-[5.5px] sm:text-[6px] px-1.5 xs:px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
                   demonQuote || isDemonHit || isBossHurt || isBossKO
                     ? 'opacity-100 scale-100 bg-red-600 text-white font-black'
                     : 'opacity-85 group-hover:opacity-100 scale-95 bg-red-700/90 text-white font-bold'
