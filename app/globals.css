@@ -1416,6 +1416,75 @@ pre {
   animation: butterflySwarmWisteria 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* ============================================================
+   MUZAN ATTACK & PARRY COUNTER MECHANICS
+   ============================================================ */
+
+/* 1. Muzan Lunge Attack */
+@keyframes muzanLungeAttack {
+  0% { transform: translateX(0); }
+  35% { transform: translateX(-24px) scale(1.08, 0.96); filter: drop-shadow(0 0 10px #dc2626); }
+  70% { transform: translateX(-16px); }
+  100% { transform: translateX(0); }
+}
+.anim-muzan-lunge {
+  animation: muzanLungeAttack 0.5s ease-out forwards;
+}
+
+/* 2. Blood Demon Whip Strike */
+@keyframes whipSlashArc {
+  0% { transform: scaleX(0.2) translateY(0); opacity: 0; }
+  30% { transform: scaleX(1.15) translateY(-4px); opacity: 1; filter: drop-shadow(0 0 12px #dc2626); }
+  70% { transform: scaleX(1.02) translateY(2px); opacity: 0.9; }
+  100% { transform: scaleX(0.7) translateY(0); opacity: 0; }
+}
+.anim-whip-strike {
+  animation: whipSlashArc 0.5s ease-out forwards;
+  transform-origin: right center;
+}
+
+/* 3. Hero Parry Guard */
+@keyframes heroParryGuard {
+  0% { transform: translateX(0); }
+  30% { transform: translateX(-6px) scale(0.96, 1.04); filter: brightness(1.3); }
+  70% { transform: translateX(-2px); }
+  100% { transform: translateX(0); filter: brightness(1); }
+}
+.anim-hero-parry {
+  animation: heroParryGuard 0.55s ease-out forwards;
+}
+
+/* 4. Hero Stagger Recoil */
+@keyframes heroStaggerRecoil {
+  0% { transform: translateX(0); filter: brightness(1.8) contrast(1.4); }
+  25% { transform: translateX(-14px) rotate(-5deg); filter: brightness(1.4); }
+  50% { transform: translateX(-10px) rotate(2deg); }
+  75% { transform: translateX(-4px) rotate(-1deg); }
+  100% { transform: translateX(0); filter: brightness(1); }
+}
+.anim-hero-stagger {
+  animation: heroStaggerRecoil 0.55s ease-out forwards;
+}
+
+/* 5. Parry Spark Burst Flare */
+@keyframes parrySparkBurst {
+  0% { transform: scale(0.2) rotate(0deg); opacity: 1; }
+  50% { transform: scale(1.4) rotate(45deg); opacity: 1; filter: drop-shadow(0 0 12px #facc15); }
+  100% { transform: scale(1.8) rotate(90deg); opacity: 0; }
+}
+.anim-parry-spark {
+  animation: parrySparkBurst 0.4s ease-out forwards;
+}
+
+/* 6. Parry Reaction Timer Shrink */
+@keyframes parryTimerShrink {
+  0% { width: 100%; }
+  100% { width: 0%; }
+}
+.anim-parry-timer {
+  animation: parryTimerShrink 0.95s linear forwards;
+}
+
 
 
 

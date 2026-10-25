@@ -710,6 +710,14 @@ export default function EmailCard({
   const [respawnCountdown, setRespawnCountdown] = useState<number>(3);
   const respawnIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Muzan Counter-Attack & Parry Mechanics
+  const [isMuzanWarning, setIsMuzanWarning] = useState<boolean>(false);
+  const [isMuzanAttacking, setIsMuzanAttacking] = useState<boolean>(false);
+  const [isHeroParrying, setIsHeroParrying] = useState<boolean>(false);
+  const [isHeroStaggered, setIsHeroStaggered] = useState<boolean>(false);
+  const muzanWarningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const muzanAttackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Spiderman Hanging on VIP Crown States
   const [spideyQuoteIdx, setSpideyQuoteIdx] = useState<number>(0);
   const [isSpideyFlipping, setIsSpideyFlipping] = useState<boolean>(false);
@@ -747,6 +755,10 @@ export default function EmailCard({
         setIsBossKO(true);
         setIsBossHurt(false);
         setDemonQuote('K.O.!');
+        setIsMuzanWarning(false);
+        setIsMuzanAttacking(false);
+        if (muzanWarningTimeoutRef.current) clearTimeout(muzanWarningTimeoutRef.current);
+        if (muzanAttackTimeoutRef.current) clearTimeout(muzanAttackTimeoutRef.current);
 
         // Increment kill count and save to localStorage
         setDemonKills((prevKills) => {
@@ -791,6 +803,13 @@ export default function EmailCard({
           setIsBossHurt(false);
           setDemonQuote(null);
         }, 700);
+        if (!isMuzanWarning && !isMuzanAttacking && Math.random() < 0.3) {
+          setTimeout(() => {
+            if (!isBossKO && !isUltActive) {
+              triggerMuzanAttack();
+            }
+          }, 1100);
+        }
       }
       return nextHp;
     });
@@ -834,6 +853,70 @@ export default function EmailCard({
       setIsUltActive(false);
       setRunnerQuote(null);
     }, 1600);
+  };
+
+  // Muzan Counter-Attack & Hero Parry Mechanics
+  const handleParryHero = () => {
+    if (!isMuzanWarning) return;
+    if (muzanWarningTimeoutRef.current) clearTimeout(muzanWarningTimeoutRef.current);
+    setIsMuzanWarning(false);
+    setIsHeroParrying(true);
+
+    if (isSoundEnabled) {
+      playKatanaSlashSound(true);
+      playSound('pop');
+    }
+
+    // Award +25% Ult Energy for perfect parry
+    setUltEnergy((prev) => Math.min(100, prev + 25));
+    setRunnerQuote('PERFECT PARRY!');
+
+    // Stun Muzan with counter-reaction
+    setIsBossHurt(true);
+    setDemonQuote('KISAMA...!');
+    if (bossHurtTimeoutRef.current) clearTimeout(bossHurtTimeoutRef.current);
+    bossHurtTimeoutRef.current = setTimeout(() => {
+      setIsBossHurt(false);
+      setDemonQuote(null);
+    }, 750);
+
+    setTimeout(() => {
+      setIsHeroParrying(false);
+      setRunnerQuote(null);
+    }, 550);
+  };
+
+  const triggerMuzanAttack = () => {
+    if (isMuzanWarning || isMuzanAttacking || isBossKO || isUltActive) return;
+    setIsMuzanWarning(true);
+
+    if (muzanWarningTimeoutRef.current) clearTimeout(muzanWarningTimeoutRef.current);
+    muzanWarningTimeoutRef.current = setTimeout(() => {
+      setIsMuzanWarning(false);
+      setIsMuzanAttacking(true);
+
+      if (isSoundEnabled) {
+        playKatanaSlashSound(true);
+      }
+
+      // At 200ms, whip strikes the hero if not parried
+      if (muzanAttackTimeoutRef.current) clearTimeout(muzanAttackTimeoutRef.current);
+      muzanAttackTimeoutRef.current = setTimeout(() => {
+        setIsHeroStaggered(true);
+        setUltEnergy((prev) => Math.max(0, prev - 10));
+        setRunnerQuote('TERKENA CAMBUK!');
+        setComboCount(0);
+
+        setTimeout(() => {
+          setIsHeroStaggered(false);
+          setRunnerQuote(null);
+        }, 500);
+      }, 200);
+
+      setTimeout(() => {
+        setIsMuzanAttacking(false);
+      }, 500);
+    }, 950);
   };
 
   // Charge Energy and Ultimate Attack Handler (Fixes Charge Button Bug)
@@ -883,8 +966,21 @@ export default function EmailCard({
     return () => {
       if (rosterTransitionTimeoutRef.current) clearTimeout(rosterTransitionTimeoutRef.current);
       if (rosterBurstTimeoutRef.current) clearTimeout(rosterBurstTimeoutRef.current);
+      if (muzanWarningTimeoutRef.current) clearTimeout(muzanWarningTimeoutRef.current);
+      if (muzanAttackTimeoutRef.current) clearTimeout(muzanAttackTimeoutRef.current);
     };
   }, []);
+
+  // Periodic Muzan Counter-Attack Interval (Every 12 seconds during battle)
+  useEffect(() => {
+    const muzanAttackTimer = setInterval(() => {
+      if (!isBossKO && !isUltActive && !isMuzanWarning && !isMuzanAttacking) {
+        triggerMuzanAttack();
+      }
+    }, 12000);
+
+    return () => clearInterval(muzanAttackTimer);
+  }, [isBossKO, isUltActive, isMuzanWarning, isMuzanAttacking]);
 
   const handleSelectHero = (hero: HeroId) => {
     setActiveHero(hero);
@@ -1024,6 +1120,10 @@ export default function EmailCard({
   }, [isCharModalOpen, previewHero]);
 
   const handleRunnerClick = () => {
+    if (isMuzanWarning) {
+      handleParryHero();
+      return;
+    }
     if (isRunnerSlashing || isUltActive) return;
     setIsRunnerSlashing(true);
     const heroData = HERO_ROSTER[activeHero];
@@ -1046,6 +1146,10 @@ export default function EmailCard({
 
   const handleDemonClick = () => {
     if (isBossKO) return;
+    if (isMuzanWarning) {
+      handleParryHero();
+      return;
+    }
     setUltEnergy((prev) => Math.min(100, prev + 15));
     damageBoss(25);
     if (isSoundEnabled) {
@@ -1621,6 +1725,33 @@ export default function EmailCard({
           </div>
         )}
 
+        {/* Telegraph Warning Notification: Muzan Counter-Attack (Centered, High-Impact & Interactive) */}
+        {isMuzanWarning && !isBossKO && (
+          <div
+            onClick={handleParryHero}
+            className="absolute top-1.5 xs:top-2 left-0 right-0 z-40 flex justify-center pointer-events-auto cursor-pointer px-2 select-none"
+            title="Klik sekarang untuk Tangkis (Parry)!"
+          >
+            <div className="bg-red-600 dark:bg-red-700 text-white border-2 border-black shadow-[3px_3px_0px_#000] px-3 py-1 xs:py-1.5 flex flex-col items-center gap-1 max-w-[94vw] hover:bg-red-700 active:scale-95 transition-transform">
+              <div className="flex items-center gap-1.5 xs:gap-2">
+                <span className="font-pixel text-[6px] xs:text-[7px] bg-yellow-400 text-black px-1.5 py-0.5 border border-black font-black animate-pulse">
+                  ! AWAS !
+                </span>
+                <span className="font-pixel text-[7.5px] xs:text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider text-white">
+                  MUZAN AKAN MENYERANG!
+                </span>
+                <span className="font-pixel text-[6px] xs:text-[7px] bg-black text-yellow-300 px-1.5 py-0.5 border border-yellow-300 font-bold hidden xs:inline-block">
+                  KLIK TANGKIS
+                </span>
+              </div>
+              {/* Reaction Shrinking Countdown Progress Bar (0.95s window) */}
+              <div className="w-full h-1 bg-black/40 border border-black/50 overflow-hidden">
+                <div className="h-full bg-yellow-300 anim-parry-timer" />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Runner Arena Inner Row */}
         <div className="w-full flex items-end justify-between relative z-20 overflow-visible">
           {/* UJUNG KIRI: CHASE DUO (Hero Runner chasing Muzan Target - Grounded on Track) */}
@@ -1641,12 +1772,20 @@ export default function EmailCard({
                 className={`absolute -top-6 xs:-top-7 left-0 xs:-left-1 sm:left-1/2 sm:-translate-x-1/2 font-pixel text-[5px] xs:text-[5.5px] sm:text-[6.5px] px-1.5 xs:px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-30 pointer-events-none transition-all duration-200 ${
                   isBossKO
                     ? 'opacity-100 scale-100 bg-emerald-400 text-black font-black animate-pulse'
+                    : isHeroParrying
+                    ? 'opacity-100 scale-100 bg-emerald-400 text-black font-black animate-bounce'
+                    : isHeroStaggered
+                    ? 'opacity-100 scale-100 bg-red-600 text-white font-black'
                     : runnerQuote || isRefreshing || isRunnerSlashing || isUltActive
                     ? 'opacity-100 scale-100'
                     : 'opacity-85 group-hover:opacity-100 scale-95'
                 } ${
                   isBossKO
                     ? ''
+                    : isHeroParrying
+                    ? 'bg-emerald-400 text-black font-black'
+                    : isHeroStaggered
+                    ? 'bg-red-600 text-white font-black'
                     : isUltActive
                     ? 'bg-red-500 text-white font-black animate-pulse'
                     : isRunnerSlashing
@@ -1658,6 +1797,10 @@ export default function EmailCard({
               >
                 {isBossKO
                   ? 'VICTORY!'
+                  : isHeroParrying
+                  ? 'PERFECT PARRY!'
+                  : isHeroStaggered
+                  ? 'TERKENA CAMBUK!'
                   : isUltActive
                   ? runnerQuote || HERO_ROSTER[activeHero].ultName
                   : isRunnerSlashing
@@ -1740,7 +1883,11 @@ export default function EmailCard({
               {/* Character Sprite Container (With Dynamic Procedural Physics) */}
               <div
                 className={`relative z-20 overflow-visible ${
-                  isBossKO
+                  isHeroParrying
+                    ? 'anim-hero-parry'
+                    : isHeroStaggered
+                    ? 'anim-hero-stagger'
+                    : isBossKO
                     ? 'anim-victory-hop'
                     : isUltActive
                     ? 'anim-ult-lunge-sprint'
@@ -2026,6 +2173,17 @@ export default function EmailCard({
               </div>
             </div>
 
+            {/* Parry Spark Flare Burst (Golden Starburst Flare on Nichirin Contact) */}
+            {isHeroParrying && (
+              <div className="absolute bottom-2 left-10 xs:left-12 sm:left-14 pointer-events-none z-40 w-10 h-10 xs:w-12 xs:h-12 anim-parry-spark">
+                <svg viewBox="0 0 40 40" className="w-full h-full filter drop-shadow-[0_0_10px_#facc15]">
+                  <polygon points="20,0 24,14 38,20 24,26 20,40 16,26 2,20 16,14" fill="#facc15" stroke="#ffffff" strokeWidth="1" />
+                  <polygon points="20,6 23,15 32,20 23,25 20,34 17,25 8,20 17,15" fill="#ffffff" />
+                  <circle cx="20" cy="20" r="4" fill="#ffffff" />
+                </svg>
+              </div>
+            )}
+
             {/* 2. Muzan Demon King Target in Front of Hero (Iconic Fedora, Tuxedo & Blood Demon Mist) */}
             <div
               onClick={handleDemonClick}
@@ -2048,6 +2206,22 @@ export default function EmailCard({
                 {demonQuote || (isBossKO ? 'K.O.!' : isBossHurt ? 'KISAMA!' : isDemonHit ? 'KISAMA!' : 'MUZAN')}
               </div>
 
+              {/* Muzan Blood Demon Whip (Thorny Crimson Tendril Lashing towards Hero) */}
+              {isMuzanAttacking && (
+                <div className="absolute bottom-1 right-7 xs:right-9 sm:right-11 pointer-events-none z-35 w-[115px] xs:w-[140px] sm:w-[170px] anim-whip-strike">
+                  <svg viewBox="0 0 150 45" className="w-full filter drop-shadow-[0_0_12px_rgba(220,38,38,0.95)]">
+                    <path d="M145,22 Q90,2 45,28 T5,20" fill="none" stroke="#7f1d1d" strokeWidth="6" strokeLinecap="round" />
+                    <path d="M145,22 Q90,2 45,28 T5,20" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+                    <polygon points="85,12 92,7 90,16" fill="#ef4444" />
+                    <polygon points="50,25 44,34 55,29" fill="#ef4444" />
+                    <polygon points="24,20 16,28 20,16" fill="#ffffff" />
+                    <circle cx="115" cy="12" r="3" fill="#dc2626" />
+                    <circle cx="70" cy="20" r="2.5" fill="#f87171" />
+                    <circle cx="30" cy="24" r="3" fill="#ffffff" />
+                  </svg>
+                </div>
+              )}
+
               {/* Panic Sweat Drop */}
               <div className="absolute -top-3 right-1 pointer-events-none z-30 anim-sweat-fx">
                 <svg width="10" height="10" viewBox="0 0 10 10">
@@ -2059,7 +2233,9 @@ export default function EmailCard({
               {/* Muzan Sprite Container (With Smooth Procedural Physics) */}
               <div
                 className={`relative z-20 overflow-visible ${
-                  isBossKO
+                  isMuzanAttacking
+                    ? 'anim-muzan-lunge'
+                    : isBossKO
                     ? 'anim-demon-ko'
                     : isBossHurt
                     ? 'anim-demon-hurt'
