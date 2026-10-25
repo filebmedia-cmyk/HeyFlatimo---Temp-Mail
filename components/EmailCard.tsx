@@ -32,6 +32,10 @@ import {
   playShibaSound,
   playArcadeKOSound,
   playSpideyThwipSound,
+  playSpideySenseSound,
+  playSpideyCameraSound,
+  playSpideyPizzaSound,
+  playSpideyDroneSound,
   playVictoryFanfareSound,
 } from '@/lib/sound';
 
@@ -721,32 +725,103 @@ export default function EmailCard({
   const muzanWarningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const muzanAttackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Spiderman Hanging on VIP Crown States
+  // Spiderman Signature Interactive Action States
+  type SpideyActionType = 'sense' | 'pizza' | 'camera' | 'drone' | 'yoink';
+  const SPIDEY_ACTIONS: SpideyActionType[] = ['sense', 'pizza', 'camera', 'drone', 'yoink'];
+  const [activeSpideyAction, setActiveSpideyAction] = useState<SpideyActionType | null>(null);
+  const [spideyActionQuote, setSpideyActionQuote] = useState<string | null>(null);
+  const [spideyPopBadge, setSpideyPopBadge] = useState<string | null>(null);
+  const [isCameraFlashing, setIsCameraFlashing] = useState<boolean>(false);
+  const [spideyActionIdx, setSpideyActionIdx] = useState<number>(0);
   const [spideyQuoteIdx, setSpideyQuoteIdx] = useState<number>(0);
-  const [isSpideyFlipping, setIsSpideyFlipping] = useState<boolean>(false);
-  const [isThwipActive, setIsThwipActive] = useState<boolean>(false);
-  const spideyFlipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const spideyThwipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const spideyActionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const spideyFlashTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerSpideyAction = (action: SpideyActionType, customQuote?: string) => {
+    if (spideyActionTimeoutRef.current) clearTimeout(spideyActionTimeoutRef.current);
+    if (spideyFlashTimeoutRef.current) clearTimeout(spideyFlashTimeoutRef.current);
+
+    setActiveSpideyAction(action);
+
+    if (action === 'sense') {
+      if (isSoundEnabled) playSpideySenseSound(true);
+      setSpideyPopBadge('ZZZT!');
+      setSpideyActionQuote(customQuote || 'SPIDEY-SENSE TINGLING!');
+
+      spideyActionTimeoutRef.current = setTimeout(() => {
+        setActiveSpideyAction(null);
+        setSpideyPopBadge(null);
+        setSpideyActionQuote(null);
+      }, 850);
+    } else if (action === 'pizza') {
+      if (isSoundEnabled) playSpideyPizzaSound(true);
+      setSpideyPopBadge('CHOMP!');
+      setSpideyActionQuote('PIZZA TIME! NYAM!');
+
+      spideyActionTimeoutRef.current = setTimeout(() => {
+        setSpideyActionQuote('ENERGY 100%!');
+        setTimeout(() => {
+          setActiveSpideyAction(null);
+          setSpideyPopBadge(null);
+          setSpideyActionQuote(null);
+        }, 650);
+      }, 700);
+    } else if (action === 'camera') {
+      if (isSoundEnabled) playSpideyCameraSound(true);
+      setSpideyPopBadge('FLASH!');
+      setSpideyActionQuote('SAY CHEESE!');
+      setIsCameraFlashing(true);
+
+      spideyFlashTimeoutRef.current = setTimeout(() => {
+        setIsCameraFlashing(false);
+      }, 500);
+
+      spideyActionTimeoutRef.current = setTimeout(() => {
+        setSpideyActionQuote('GREAT PHOTO!');
+        setTimeout(() => {
+          setActiveSpideyAction(null);
+          setSpideyPopBadge(null);
+          setSpideyActionQuote(null);
+        }, 550);
+      }, 600);
+    } else if (action === 'drone') {
+      if (isSoundEnabled) playSpideyDroneSound(true);
+      setSpideyPopBadge('DRONE!');
+      setSpideyActionQuote('DRONE: SCANNING INBOX...');
+
+      spideyActionTimeoutRef.current = setTimeout(() => {
+        setSpideyActionQuote('INBOX CLEAN & SECURE!');
+        setTimeout(() => {
+          setActiveSpideyAction(null);
+          setSpideyPopBadge(null);
+          setSpideyActionQuote(null);
+        }, 650);
+      }, 1300);
+    } else if (action === 'yoink') {
+      if (isSoundEnabled) playSpideyThwipSound(true);
+      setSpideyPopBadge('YOINK!');
+      setSpideyActionQuote('YOINK! EMAIL COPIED!');
+
+      if (currentEmail) {
+        onCopy(currentEmail);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+
+      spideyActionTimeoutRef.current = setTimeout(() => {
+        setActiveSpideyAction(null);
+        setSpideyPopBadge(null);
+        setSpideyActionQuote(null);
+      }, 800);
+    }
+  };
 
   const handleSpideyClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
-    if (isSoundEnabled) {
-      playSpideyThwipSound(true);
-    }
-    setIsThwipActive(true);
-    setIsSpideyFlipping(true);
-
-    if (spideyThwipTimeoutRef.current) clearTimeout(spideyThwipTimeoutRef.current);
-    spideyThwipTimeoutRef.current = setTimeout(() => {
-      setIsThwipActive(false);
-    }, 600);
-
-    if (spideyFlipTimeoutRef.current) clearTimeout(spideyFlipTimeoutRef.current);
-    spideyFlipTimeoutRef.current = setTimeout(() => {
-      setIsSpideyFlipping(false);
-    }, 650);
-
+    const action = SPIDEY_ACTIONS[spideyActionIdx % SPIDEY_ACTIONS.length];
+    setSpideyActionIdx((prev) => (prev + 1) % SPIDEY_ACTIONS.length);
     setSpideyQuoteIdx((prev) => (prev + 1) % SPIDEY_QUOTES.length);
+    triggerSpideyAction(action);
   };
 
   const damageBoss = (amount: number, isCritical: boolean = false) => {
@@ -982,8 +1057,19 @@ export default function EmailCard({
       if (rosterBurstTimeoutRef.current) clearTimeout(rosterBurstTimeoutRef.current);
       if (muzanWarningTimeoutRef.current) clearTimeout(muzanWarningTimeoutRef.current);
       if (muzanAttackTimeoutRef.current) clearTimeout(muzanAttackTimeoutRef.current);
+      if (spideyActionTimeoutRef.current) clearTimeout(spideyActionTimeoutRef.current);
+      if (spideyFlashTimeoutRef.current) clearTimeout(spideyFlashTimeoutRef.current);
     };
   }, []);
+
+  // Auto Spidey-Sense alert when inbox refresh completes
+  const prevRefreshingRef = useRef<boolean>(false);
+  useEffect(() => {
+    if (prevRefreshingRef.current && !isRefreshing) {
+      triggerSpideyAction('sense', 'SPIDEY-SENSE: INBOX SYNCED!');
+    }
+    prevRefreshingRef.current = isRefreshing;
+  }, [isRefreshing]);
 
   // Periodic Muzan Counter-Attack Interval (Randomized between 9s and 14s during battle)
   useEffect(() => {
@@ -1180,6 +1266,10 @@ export default function EmailCard({
 
   return (
     <div className="brutal-card px-4 pb-4 pt-5 xs:px-5 xs:pb-5 xs:pt-6 sm:p-7 mt-14 xs:mt-16 sm:mt-20 mb-5 sm:mb-7 relative bg-[var(--card-bg)]">
+      {/* Camera Flash Blitz Screen Overlay (Daily Bugle Snap) */}
+      {isCameraFlashing && (
+        <div className="absolute inset-0 bg-white pointer-events-none z-50 anim-spidey-flash rounded-sm" />
+      )}
       {/* ======================================================== */}
       {/* SQUAD DIORAMA: SOLO GIYU CENTER + CORNER PET GUARDIANS   */}
       {/* BALANCED TRIPOD COMPOSITION: Spacious, zero crowding     */}
@@ -1422,18 +1512,82 @@ export default function EmailCard({
 
           {/* Speech Tag Bubble (Safe Leftward Anchor) */}
           <div className="absolute -left-16 sm:-left-20 top-4 sm:top-5 bg-red-600 text-white font-pixel text-[4.5px] xs:text-[5px] sm:text-[6px] px-1 xs:px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none animate-pulse">
-            {SPIDEY_QUOTES[spideyQuoteIdx]}
+            {spideyActionQuote || SPIDEY_QUOTES[spideyQuoteIdx]}
           </div>
 
-          {/* THWIP Action FX Pop */}
-          {isThwipActive && (
+          {/* Dynamic Action FX Pop Badge */}
+          {spideyPopBadge && (
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-yellow-300 text-black font-pixel text-[6px] xs:text-[7px] sm:text-[8px] px-1.5 py-0.5 border border-black shadow-[1px_1px_0px_#000] font-black whitespace-nowrap z-40 pointer-events-none anim-thwip-pop">
-              THWIP!
+              {spideyPopBadge}
             </div>
           )}
 
+          {/* 1. Spidey-Sense Rays Overlay */}
+          {activeSpideyAction === 'sense' && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-11 h-11 pointer-events-none z-30 anim-spidey-sense-pro">
+              <svg viewBox="0 0 50 50" className="w-full h-full filter drop-shadow-[0_0_8px_#facc15]">
+                <line x1="8" y1="12" x2="16" y2="18" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+                <line x1="2" y1="25" x2="12" y2="25" stroke="#facc15" strokeWidth="2.5" strokeLinecap="round" />
+                <line x1="8" y1="38" x2="16" y2="32" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+                <line x1="42" y1="12" x2="34" y2="18" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+                <line x1="48" y1="25" x2="38" y2="25" stroke="#facc15" strokeWidth="2.5" strokeLinecap="round" />
+                <line x1="42" y1="38" x2="34" y2="32" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+            </div>
+          )}
+
+          {/* 2. Pizza Slice Overlay Graphic */}
+          {activeSpideyAction === 'pizza' && (
+            <div className="absolute -bottom-1 -left-3 pointer-events-none z-35 anim-spidey-pizza">
+              <svg width="22" height="22" viewBox="0 0 24 24" className="drop-shadow-[1px_1px_0px_#000]">
+                <polygon points="2,4 22,8 10,22" fill="#facc15" stroke="#000" strokeWidth="1.2" />
+                <polygon points="2,4 22,8 20,4 4,2" fill="#b45309" stroke="#000" strokeWidth="1" />
+                <circle cx="9" cy="11" r="2" fill="#dc2626" />
+                <circle cx="15" cy="13" r="2.2" fill="#dc2626" />
+                <circle cx="12" cy="17" r="1.5" fill="#dc2626" />
+              </svg>
+            </div>
+          )}
+
+          {/* 3. Retro Camera Graphic */}
+          {activeSpideyAction === 'camera' && (
+            <div className="absolute bottom-1 -left-3.5 pointer-events-none z-35">
+              <svg width="20" height="18" viewBox="0 0 24 22" className="drop-shadow-[1px_1px_0px_#000]">
+                <rect x="2" y="5" width="20" height="14" fill="#334155" stroke="#000" strokeWidth="1.2" rx="1" />
+                <rect x="6" y="2" width="6" height="3" fill="#64748b" stroke="#000" strokeWidth="1" />
+                <circle cx="12" cy="12" r="4.5" fill="#94a3b8" stroke="#000" strokeWidth="1.2" />
+                <circle cx="19" cy="8" r="1.5" fill="#ef4444" />
+              </svg>
+            </div>
+          )}
+
+          {/* 4. Spider-Drone Flying Graphic */}
+          {activeSpideyAction === 'drone' && (
+            <div className="absolute top-4 left-0 pointer-events-none z-40 anim-spidey-drone">
+              <svg width="22" height="22" viewBox="0 0 24 24" className="drop-shadow-[0_0_6px_#38bdf8]">
+                <ellipse cx="12" cy="12" rx="4" ry="5" fill="#0f172a" stroke="#38bdf8" strokeWidth="1" />
+                <circle cx="12" cy="12" r="2" fill="#ef4444" />
+                <line x1="6" y1="6" x2="18" y2="18" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
+                <line x1="6" y1="18" x2="18" y2="6" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </div>
+          )}
+
+          {/* 5. Web Yoink Line to Email Box */}
+          {activeSpideyAction === 'yoink' && (
+            <div className="absolute bottom-1 right-3 h-[2.5px] bg-white border border-black shadow-[0_0_4px_#fff] origin-right pointer-events-none z-30 anim-web-yoink" />
+          )}
+
           {/* Spiderman Sprite Vector SVG */}
-          <div className={`transition-transform duration-200 ${isSpideyFlipping ? 'anim-spidey-flip' : 'group-hover:scale-105'}`}>
+          <div
+            className={`transition-transform duration-200 ${
+              activeSpideyAction === 'sense'
+                ? 'anim-spidey-head-shake'
+                : activeSpideyAction === 'pizza'
+                ? 'anim-spidey-pizza'
+                : 'anim-spidey-swing group-hover:scale-105'
+            }`}
+          >
             <svg
               width="34"
               height="42"
