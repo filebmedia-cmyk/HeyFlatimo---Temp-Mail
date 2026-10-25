@@ -659,6 +659,87 @@ export function playVictoryFanfareSound(force: boolean = false): void {
   } catch (e) {}
 }
 
+export function playElementalSkillSound(
+  type: 'dragon' | 'wheel' | 'calm' | 'fire' | 'thunder' | 'slash',
+  force: boolean = false
+): void {
+  if (!force && !getSoundEnabled()) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state !== 'running') {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+
+    if (type === 'dragon') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.linearRampToValueAtTime(380, now + 0.3);
+      osc.frequency.linearRampToValueAtTime(80, now + 0.6);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.66);
+    } else if (type === 'calm') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(440, now + 0.5);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.56);
+    } else if (type === 'thunder') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(900, now);
+      osc.frequency.linearRampToValueAtTime(80, now + 0.25);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.27);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.28);
+    } else if (type === 'fire') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.linearRampToValueAtTime(640, now + 0.2);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.26);
+    } else if (type === 'wheel') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.linearRampToValueAtTime(520, now + 0.15);
+      osc.frequency.linearRampToValueAtTime(220, now + 0.35);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.39);
+    } else {
+      playKatanaSlashSound(force);
+    }
+  } catch (e) {}
+}
+
 /**
  * Check if sound FX is enabled in localStorage.
  * Defaults to TRUE (Sound ON) unless explicitly muted by the user.
