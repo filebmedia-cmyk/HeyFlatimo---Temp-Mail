@@ -782,7 +782,9 @@ export default function EmailCard({
         }, 3000);
       } else {
         setIsBossHurt(true);
-        const scream = isCritical ? `CRITICAL -${amount} HP!` : `-${amount} HP!`;
+        const MUZAN_QUOTES = ['KISAMA...!', 'BERANINYA!', 'KUTUKAN DARAH!', 'LENYAPLAH!', 'TIDAK MUNGKIN!', 'AKU ABADI!'];
+        const randomQuote = MUZAN_QUOTES[Math.floor(Math.random() * MUZAN_QUOTES.length)];
+        const scream = isCritical ? `CRITICAL -${amount} HP!` : randomQuote;
         setDemonQuote(scream);
         if (bossHurtTimeoutRef.current) clearTimeout(bossHurtTimeoutRef.current);
         bossHurtTimeoutRef.current = setTimeout(() => {
@@ -1514,10 +1516,10 @@ export default function EmailCard({
       {/* ARCADE BATTLE HUD: BOSS HP & ULTIMATE ENERGY             */}
       {/* ======================================================== */}
       <div className="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 xs:gap-2.5 sm:gap-4 pt-2.5 xs:pt-3 pb-2.5 border-b border-dashed border-[var(--border-color)]">
-        {/* Row 1 / Sisi Kiri: Boss Iblis HP & Combo Counter (Wide, Anti-Collapse) */}
+        {/* Row 1 / Sisi Kiri: Boss Muzan HP & Combo Counter (Wide, Anti-Collapse) */}
         <div className="flex items-center gap-1.5 xs:gap-2 w-full sm:flex-1 sm:max-w-[320px]">
           <span className="font-pixel text-[6.5px] xs:text-[7.5px] sm:text-[8px] text-red-600 dark:text-red-400 font-bold whitespace-nowrap flex-shrink-0">
-            IBLIS HP:
+            MUZAN HP:
           </span>
           <div className="flex-1 min-w-[90px] xs:min-w-[120px] h-4 xs:h-4.5 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
             <div
@@ -1536,7 +1538,7 @@ export default function EmailCard({
           {demonKills > 0 && (
             <span
               className="font-pixel text-[5px] xs:text-[6px] sm:text-[6.5px] bg-yellow-400 text-black px-1.5 py-0.5 border border-black font-bold shadow-[1px_1px_0px_#000] flex-shrink-0 ml-auto sm:ml-0"
-              title={`Total Iblis yang dikalahkan: ${demonKills}`}
+              title={`Total Muzan yang dikalahkan: ${demonKills}`}
             >
               {demonKills} KILLS
             </span>
@@ -1572,9 +1574,9 @@ export default function EmailCard({
             }`}
             title={
               isBossKO
-                ? 'Iblis telah K.O.! Menunggu respawn...'
+                ? 'Muzan telah K.O.! Menunggu respawn...'
                 : ultEnergy >= 100
-                ? 'Jurus Pamungkas Siap! Klik untuk menyerang Iblis!'
+                ? 'Jurus Pamungkas Siap! Klik untuk menebas Muzan!'
                 : `Klik untuk charge energi (+25%)! Sekarang: ${ultEnergy}%`
             }
           >
@@ -1584,9 +1586,9 @@ export default function EmailCard({
       </div>
 
       {/* ======================================================== */}
-      {/* STRIP RUNNER ARENA (SPACIOUS, UNCONSTRAINED & BREATHING) */}
+      {/* STRIP RUNNER ARENA (GROUNDED PRECISELY ON TRACK LINE)     */}
       {/* ======================================================== */}
-      <div className="w-full relative overflow-visible pt-8 xs:pt-10 sm:pt-12 pb-4 xs:pb-5 sm:pb-6 border-b-[2.5px] sm:border-b-[3px] border-dashed border-[var(--border-color)]">
+      <div className="w-full relative overflow-visible pt-8 xs:pt-10 sm:pt-12 pb-0.5 xs:pb-1 sm:pb-1 border-b-[2.5px] sm:border-b-[3px] border-dashed border-[var(--border-color)]">
         {/* Manga Speedlines Runner Background Layer (Bursting Outward, Behind Characters) */}
         {isUltActive && (
           <div className="absolute -inset-x-4 -inset-y-2 z-0 pointer-events-none anim-manga-speedlines opacity-45 rounded" />
@@ -1606,7 +1608,7 @@ export default function EmailCard({
           <div className="absolute -top-8 xs:-top-10 sm:-top-14 left-0 right-0 z-50 flex justify-center pointer-events-none px-2">
             <div className="flex flex-col items-center anim-arcade-ko whitespace-nowrap max-w-[95vw]">
               <div className="font-pixel text-xl xs:text-2xl sm:text-4xl text-yellow-300 bg-red-600 border-2 sm:border-4 border-black px-4 xs:px-6 sm:px-8 py-1 xs:py-1.5 sm:py-2 shadow-[3px_3px_0px_#000] sm:shadow-[5px_5px_0px_#000] tracking-widest animate-bounce">
-                K.O.!
+                MUZAN K.O.!
               </div>
               <div className="font-pixel text-[6px] xs:text-[7.5px] sm:text-[9px] text-white bg-black px-2.5 xs:px-3 py-0.5 xs:py-1 mt-0.5 sm:mt-1 border sm:border-2 border-yellow-400 font-bold uppercase shadow-[1.5px_1.5px_0px_#000] flex items-center gap-1.5 xs:gap-2">
                 <span className="text-yellow-400 font-black">VICTORY!</span>
@@ -1621,8 +1623,8 @@ export default function EmailCard({
 
         {/* Runner Arena Inner Row */}
         <div className="w-full flex items-end justify-between relative z-20 overflow-visible">
-          {/* UJUNG KIRI: CHASE DUO (Hero Runner chasing Demon Target - Wide Breathing Room) */}
-          <div className={`flex items-end gap-8 xs:gap-11 sm:gap-16 relative transition-all duration-150 overflow-visible ${isRefreshing ? 'sprint-active' : ''}`}>
+          {/* UJUNG KIRI: CHASE DUO (Hero Runner chasing Muzan Target - Grounded on Track) */}
+          <div className={`flex items-end gap-8 xs:gap-11 sm:gap-16 relative transition-all duration-150 overflow-visible mb-[-1.5px] ${isRefreshing ? 'sprint-active' : ''}`}>
             {/* 1. Hero Runner in Place on Strip (Stable Speech Bubble & Fluid Sprite Stride) */}
             <div
               onClick={handleRunnerClick}
@@ -1631,7 +1633,7 @@ export default function EmailCard({
                 handleRunnerClick();
               }}
               style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-              className="relative flex items-end cursor-pointer group pointer-events-auto select-none min-w-[50px] min-h-[44px] flex-shrink-0 overflow-visible"
+              className="relative flex items-end cursor-pointer group pointer-events-auto select-none min-w-[50px] flex-shrink-0 overflow-visible"
               title={`${HERO_ROSTER[activeHero].name} (Klik untuk jurus serangan!)`}
             >
               {/* Speech / Action Bubble (Anchored on Left for Mobile, Staggered Floor Level) */}
@@ -1665,10 +1667,10 @@ export default function EmailCard({
                   : runnerQuote || HERO_ROSTER[activeHero].badgeName}
               </div>
 
-              {/* Elemental Slash Arc Effect Overlay (Mobile Proportional, Never Clipped) */}
+              {/* Elemental Slash Arc Effect Overlay (Accurately Anchored to Blade Tip, Sweeping into Muzan) */}
               {(isRunnerSlashing || isUltActive) && (
                 <div
-                  className={`absolute -top-4 xs:-top-5 sm:-top-6 -right-12 xs:-right-16 sm:-right-20 pointer-events-none z-30 w-[110px] xs:w-[135px] sm:w-[170px] overflow-visible ${
+                  className={`absolute bottom-0.5 xs:bottom-1 left-7 xs:left-9 sm:left-11 pointer-events-none z-30 w-[105px] xs:w-[130px] sm:w-[160px] overflow-visible ${
                     activeHero === 'tanjiro'
                       ? 'anim-flame-arc-fx'
                       : activeHero === 'zenitsu'
@@ -1680,41 +1682,41 @@ export default function EmailCard({
                 >
                   {activeHero === 'tanjiro' ? (
                     <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(255,80,0,0.95)]">
-                      <path d="M10,48 Q50,6 110,18 T155,5" fill="none" stroke="#ff4500" strokeWidth="6" strokeLinecap="round" />
-                      <path d="M14,50 Q54,10 114,20 T158,7" fill="none" stroke="#ffe600" strokeWidth="3" strokeLinecap="round" />
+                      <path d="M5,42 Q50,8 110,20 T155,6" fill="none" stroke="#ff4500" strokeWidth="6" strokeLinecap="round" />
+                      <path d="M9,44 Q54,12 114,22 T158,8" fill="none" stroke="#ffe600" strokeWidth="3" strokeLinecap="round" />
                       <circle cx="45" cy="20" r="3.5" fill="#ff4500" />
                       <circle cx="90" cy="14" r="4" fill="#ffffff" />
                       <circle cx="130" cy="12" r="2.5" fill="#facc15" />
                     </svg>
                   ) : activeHero === 'zenitsu' ? (
                     <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(255,230,0,0.95)]">
-                      <polyline points="10,45 40,25 65,35 110,12 135,22 155,5" fill="none" stroke="#ffe600" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-                      <polyline points="12,46 42,26 67,36 112,13 137,23 157,6" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <polyline points="5,42 40,25 65,35 110,12 135,22 155,5" fill="none" stroke="#ffe600" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                      <polyline points="7,43 42,26 67,36 112,13 137,23 157,6" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   ) : activeHero === 'shinobu' ? (
                     <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(192,132,252,0.95)]">
-                      <path d="M10,48 Q50,6 110,18 T155,5" fill="none" stroke="#c084fc" strokeWidth="5" strokeLinecap="round" />
-                      <path d="M14,50 Q54,10 114,20 T158,7" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" />
+                      <path d="M5,42 Q50,8 110,20 T155,6" fill="none" stroke="#c084fc" strokeWidth="5" strokeLinecap="round" />
+                      <path d="M9,44 Q54,12 114,22 T158,8" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" />
                       <circle cx="50" cy="18" r="3" fill="#c084fc" />
                       <circle cx="95" cy="15" r="3.5" fill="#22d3ee" />
                       <circle cx="135" cy="10" r="2.5" fill="#ffffff" />
                     </svg>
                   ) : activeHero === 'nezuko' ? (
                     <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(244,114,182,0.95)]">
-                      <path d="M10,42 Q60,12 120,22 T155,8" fill="none" stroke="#f472b6" strokeWidth="5.5" strokeLinecap="round" />
+                      <path d="M5,38 Q60,12 120,22 T155,8" fill="none" stroke="#f472b6" strokeWidth="5.5" strokeLinecap="round" />
                       <circle cx="55" cy="22" r="3.5" fill="#f43f5e" />
                       <circle cx="105" cy="18" r="4" fill="#ffffff" />
                       <circle cx="140" cy="12" r="2.5" fill="#fed7aa" />
                     </svg>
                   ) : activeHero === 'inosuke' ? (
                     <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(245,158,11,0.95)]">
-                      <line x1="15" y1="12" x2="145" y2="48" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
-                      <line x1="15" y1="48" x2="145" y2="12" stroke="#f59e0b" strokeWidth="4.5" strokeLinecap="round" />
+                      <line x1="10" y1="12" x2="145" y2="48" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
+                      <line x1="10" y1="48" x2="145" y2="12" stroke="#f59e0b" strokeWidth="4.5" strokeLinecap="round" />
                     </svg>
                   ) : (
                     <svg viewBox="0 0 160 60" className="w-full filter drop-shadow-[0_0_12px_rgba(0,240,255,0.95)]">
-                      <path d="M10,48 Q50,6 110,18 T155,5" fill="none" stroke="#00ffff" strokeWidth="6" strokeLinecap="round" />
-                      <path d="M14,50 Q54,10 114,20 T158,7" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
+                      <path d="M5,42 Q50,8 110,20 T155,6" fill="none" stroke="#00ffff" strokeWidth="6" strokeLinecap="round" />
+                      <path d="M9,44 Q54,12 114,22 T158,8" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
                       <circle cx="45" cy="20" r="3" fill="#00f0ff" />
                       <circle cx="90" cy="14" r="4" fill="#ffffff" />
                       <circle cx="130" cy="12" r="2.5" fill="#00f0ff" />
@@ -2024,7 +2026,7 @@ export default function EmailCard({
               </div>
             </div>
 
-            {/* 2. Demon Target in Front of Giyu (Stable Speech Bubble & Fluid Sprite Stride) */}
+            {/* 2. Muzan Demon King Target in Front of Hero (Iconic Fedora, Tuxedo & Blood Demon Mist) */}
             <div
               onClick={handleDemonClick}
               onTouchEnd={(e) => {
@@ -2032,29 +2034,29 @@ export default function EmailCard({
                 handleDemonClick();
               }}
               style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-              className="relative flex items-end cursor-pointer group pointer-events-auto select-none min-w-[44px] min-h-[42px] flex-shrink-0 overflow-visible"
-              title="Target Iblis (Dikejar oleh Giyu) - Klik untuk reaksi panik!"
+              className="relative flex items-end cursor-pointer group pointer-events-auto select-none min-w-[44px] flex-shrink-0 overflow-visible"
+              title="Kibutsuji Muzan (Raja Iblis) - Klik untuk menyerang!"
             >
-              {/* Demon Badge Tag (Anchored on Right, Staggered Higher Floor - NEVER COLLIDES) */}
+              {/* Muzan Badge Tag (Anchored on Right, Staggered Floor Level - NEVER COLLIDES) */}
               <div
                 className={`absolute -top-10 xs:-top-11 sm:-top-10 right-0 xs:-right-1 sm:left-1/2 sm:-translate-x-1/2 font-pixel text-[5px] xs:text-[5.5px] sm:text-[6px] px-1.5 xs:px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
                   demonQuote || isDemonHit || isBossHurt || isBossKO
                     ? 'opacity-100 scale-100 bg-red-600 text-white font-black'
-                    : 'opacity-85 group-hover:opacity-100 scale-95 bg-red-700/90 text-white font-bold'
+                    : 'opacity-85 group-hover:opacity-100 scale-95 bg-black text-red-400 border-red-600 font-bold'
                 }`}
               >
-                {demonQuote || (isBossKO ? 'K.O.!' : isBossHurt ? 'GYAAA!' : isDemonHit ? 'GYAAA!' : 'TARGET IBLIS')}
+                {demonQuote || (isBossKO ? 'K.O.!' : isBossHurt ? 'KISAMA!' : isDemonHit ? 'KISAMA!' : 'TARGET: MUZAN')}
               </div>
 
               {/* Panic Sweat Drop */}
-              <div className="absolute -top-4 right-1 pointer-events-none z-30 anim-sweat-fx">
+              <div className="absolute -top-3 right-1 pointer-events-none z-30 anim-sweat-fx">
                 <svg width="10" height="10" viewBox="0 0 10 10">
                   <path d="M5,1 C5,1 2,5 2,7 C2,8.5 3.5,9.5 5,9.5 C6.5,9.5 8,8.5 8,7 C8,5 5,1 5,1 Z" fill="#38bdf8" stroke="#000" strokeWidth="0.6" />
                   <circle cx="4" cy="6" r="0.7" fill="#fff" />
                 </svg>
               </div>
 
-              {/* Demon Sprite Container (With Smooth Procedural Physics) */}
+              {/* Muzan Sprite Container (With Smooth Procedural Physics) */}
               <div
                 className={`relative z-20 overflow-visible ${
                   isBossKO
@@ -2067,94 +2069,125 @@ export default function EmailCard({
                 }`}
               >
                 <svg
-                  width="44"
-                  height="42"
-                  viewBox="0 0 36 34"
-                  className="w-[38px] h-[36px] xs:w-[42px] xs:h-[40px] sm:w-[46px] sm:h-[44px] drop-shadow-[2px_2px_0px_#000] overflow-visible group-hover:scale-105 transition-transform"
+                  width="48"
+                  height="44"
+                  viewBox="0 0 40 36"
+                  className="w-[42px] h-[38px] xs:w-[46px] xs:h-[42px] sm:w-[50px] sm:h-[46px] drop-shadow-[2px_2px_0px_#000] overflow-visible group-hover:scale-105 transition-transform"
                 >
-                  <ellipse cx="18" cy="32" rx="7" ry="1.2" fill="#000000" opacity="0.4" />
+                  <ellipse cx="20" cy="35" rx="8.5" ry="1.3" fill="#000000" opacity="0.45" />
 
-                  {/* DEMON FRAME A: STEP 1 (Paced Crisp Toggle - 0.54s) */}
+                  {/* MUZAN FRAME A: Stride Step 1 (Holding Hat Brim, Coat Fluttering) */}
                   <g className="demon-frame-a">
-                    {/* Red Sharp Horns on Head */}
-                    <polygon points="12,3 9,7 13,8" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
-                    <polygon points="24,3 27,7 23,8" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
+                    {/* Blood Demon Dark Mist / Tendrils */}
+                    <path d="M4,18 Q1,12 6,10 Q3,6 7,8" fill="none" stroke="#dc2626" strokeWidth="0.9" opacity="0.6" />
+                    <path d="M2,24 Q5,26 8,23" fill="none" stroke="#7f1d1d" strokeWidth="1" opacity="0.7" />
 
-                    {/* Messy Dark Purple Demon Hair */}
-                    <polygon points="10,6 18,3 26,6 29,12 26,13 10,13 7,12" fill="#312e81" stroke="#000" strokeWidth="0.8" />
-                    <polygon points="7,9 4,12 9,12" fill="#312e81" />
-                    <polygon points="29,9 32,12 27,12" fill="#312e81" />
+                    {/* Back Leg (Left Leg extending backward) */}
+                    <polygon points="13,25 9,33 12,33 15,25" fill="#18181b" stroke="#000" strokeWidth="0.7" />
+                    <rect x="7.5" y="32.5" width="4.5" height="2" fill="#000000" rx="0.5" />
 
-                    {/* Pale Demon Skin Face */}
-                    <rect x="10" y="8" width="16" height="10" fill="#a78bfa" stroke="#000" strokeWidth="0.9" rx="0.5" />
-                    {/* Fangs & Mouth */}
-                    <rect x="13" y="15" width="10" height="2" fill="#450a0a" stroke="#000" strokeWidth="0.5" />
-                    <polygon points="14,15 15,17 16,15" fill="#ffffff" />
-                    <polygon points="20,15 21,17 22,15" fill="#ffffff" />
+                    {/* Front Leg (Right Leg stepping forward) */}
+                    <polygon points="20,25 22,34 25,34 23,25" fill="#18181b" stroke="#000" strokeWidth="0.7" />
+                    <rect x="22" y="33.5" width="4.5" height="2" fill="#000000" rx="0.5" />
 
-                    {/* Glowing Crimson Demon Eyes Looking Back (Leftwards towards Giyu) */}
-                    <rect x="12" y="10.5" width="3.5" height="3" fill="#dc2626" stroke="#000" strokeWidth="0.5" />
-                    <rect x="12.5" y="11" width="1.2" height="2" fill="#fbbf24" />
-                    <rect x="20" y="10.5" width="3.5" height="3" fill="#dc2626" stroke="#000" strokeWidth="0.5" />
-                    <rect x="20.5" y="11" width="1.2" height="2" fill="#fbbf24" />
+                    {/* Tuxedo Coat Tails Fluttering Behind */}
+                    <path d="M10,24 L5,28 L10,28 L14,24 Z" fill="#09090b" stroke="#000" strokeWidth="0.7" />
 
-                    {/* Dark Demon Kimono */}
-                    <path d="M10,18 L26,18 L28,26 L8,26 Z" fill="#1e1b4b" stroke="#000" strokeWidth="0.8" />
-                    <polygon points="15,18 21,18 18,23" fill="#4c1d95" />
-                    <rect x="12" y="22" width="12" height="2" fill="#b91c1c" />
+                    {/* Tuxedo Jacket & Vest */}
+                    <path d="M11,17 L25,17 L27,25 L9,25 Z" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                    <polygon points="16,17 20,17 18,22" fill="#ffffff" />
+                    <polygon points="17.5,18 18.5,18 19,23 18,24 17,23" fill="#991b1b" />
+                    <rect x="12" y="19" width="2" height="1" fill="#ffffff" />
 
-                    {/* Demon Legs (Frame A Step) */}
-                    <rect x="9" y="25" width="3.5" height="6" fill="#a78bfa" stroke="#000" strokeWidth="0.7" />
-                    <rect x="8.5" y="30" width="4.5" height="2" fill="#1e1b4b" rx="0.5" />
-                    <rect x="23" y="24" width="3.5" height="7" fill="#a78bfa" stroke="#000" strokeWidth="0.7" />
-                    <rect x="23" y="29.5" width="4.5" height="2" fill="#1e1b4b" rx="0.5" />
+                    {/* Left Arm / Hand (Trailing with sharp demon claws) */}
+                    <polygon points="11,18 7,22 9,24 13,19" fill="#18181b" stroke="#000" strokeWidth="0.7" />
+                    <rect x="6" y="22" width="2.5" height="2.5" fill="#f8fafc" stroke="#000" strokeWidth="0.5" rx="0.5" />
+                    <polygon points="5.5,23 6,24.5 5.5,24" fill="#000000" />
 
-                    {/* Demon Claws / Arms (Pumping in Panic) */}
-                    <rect x="7" y="18" width="3" height="5" fill="#a78bfa" stroke="#000" strokeWidth="0.6" rx="0.5" />
-                    <polygon points="7,23 9,23 8,25" fill="#ef4444" />
-                    <rect x="26" y="18" width="3" height="5" fill="#a78bfa" stroke="#000" strokeWidth="0.6" rx="0.5" />
-                    <polygon points="26,23 28,23 27,25" fill="#ef4444" />
+                    {/* Face & Head (Turning back with cold fury towards slayers) */}
+                    <rect x="11" y="8" width="14" height="10" fill="#f8fafc" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                    <path d="M10.5,11 L11.5,12 L11,14" fill="none" stroke="#ef4444" strokeWidth="0.6" />
+
+                    {/* Wavy Jet Black Locks */}
+                    <path d="M10,8 Q8,12 11,15 Q9,17 11,18" fill="none" stroke="#09090b" strokeWidth="1.8" strokeLinecap="round" />
+                    <path d="M25,8 Q27,12 24,15 Q26,17 24,18" fill="none" stroke="#09090b" strokeWidth="1.8" strokeLinecap="round" />
+
+                    {/* Menacing Plum-Red Demon Eyes (Cat slit pupils) */}
+                    <rect x="12.5" y="10.5" width="3.2" height="2.8" fill="#dc2626" stroke="#000" strokeWidth="0.5" />
+                    <line x1="14" y1="10.5" x2="14" y2="13.3" stroke="#450a0a" strokeWidth="0.8" />
+                    <rect x="19.5" y="10.5" width="3.2" height="2.8" fill="#dc2626" stroke="#000" strokeWidth="0.5" />
+                    <line x1="21" y1="10.5" x2="21" y2="13.3" stroke="#450a0a" strokeWidth="0.8" />
+
+                    {/* Frown & Demon Fangs */}
+                    <line x1="15" y1="15.5" x2="20" y2="15.5" stroke="#450a0a" strokeWidth="0.8" />
+                    <polygon points="16,15.5 17,17 18,15.5" fill="#ffffff" />
+
+                    {/* White Fedora Hat */}
+                    <ellipse cx="18" cy="8" rx="11" ry="2.5" fill="#f8fafc" stroke="#000" strokeWidth="0.8" />
+                    <rect x="10" y="4.8" width="16" height="2" fill="#09090b" />
+                    <path d="M10,5.5 C11,1.5 25,1.5 26,5.5 Z" fill="#f8fafc" stroke="#000" strokeWidth="0.8" />
+                    <line x1="15" y1="2.2" x2="21" y2="2.2" stroke="#94a3b8" strokeWidth="0.8" />
+
+                    {/* Right Arm (Holding hat brim - iconic pose) */}
+                    <path d="M22,18 Q27,15 26,9" fill="none" stroke="#18181b" strokeWidth="2.5" strokeLinecap="round" />
+                    <circle cx="25.5" cy="8" r="1.5" fill="#f8fafc" stroke="#000" strokeWidth="0.5" />
                   </g>
 
-                  {/* DEMON FRAME B: STEP 2 (Paced Crisp Toggle - 0.54s) */}
+                  {/* MUZAN FRAME B: Stride Step 2 (Alternated Stride) */}
                   <g className="demon-frame-b">
-                    {/* Red Sharp Horns on Head */}
-                    <polygon points="12,2 9,6 13,7" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
-                    <polygon points="24,2 27,6 23,7" fill="#ef4444" stroke="#000" strokeWidth="0.8" />
+                    {/* Blood Demon Dark Mist */}
+                    <path d="M5,17 Q2,11 7,9 Q4,5 9,7" fill="none" stroke="#dc2626" strokeWidth="0.9" opacity="0.7" />
+                    <path d="M3,25 Q6,27 9,24" fill="none" stroke="#7f1d1d" strokeWidth="1" opacity="0.8" />
 
-                    {/* Messy Dark Purple Demon Hair */}
-                    <polygon points="10,5 18,2 26,5 29,11 26,12 10,12 7,11" fill="#312e81" stroke="#000" strokeWidth="0.8" />
-                    <polygon points="7,8 4,11 9,11" fill="#312e81" />
-                    <polygon points="29,8 32,11 27,11" fill="#312e81" />
+                    {/* Back Leg (Right Leg extending back) */}
+                    <polygon points="19,25 16,33 19,33 22,25" fill="#18181b" stroke="#000" strokeWidth="0.7" />
+                    <rect x="15" y="32.5" width="4.5" height="2" fill="#000000" rx="0.5" />
 
-                    {/* Pale Demon Skin Face */}
-                    <rect x="10" y="7" width="16" height="10" fill="#a78bfa" stroke="#000" strokeWidth="0.9" rx="0.5" />
-                    <rect x="13" y="14" width="10" height="2" fill="#450a0a" stroke="#000" strokeWidth="0.5" />
-                    <polygon points="14,14 15,16 16,14" fill="#ffffff" />
-                    <polygon points="20,14 21,16 22,14" fill="#ffffff" />
+                    {/* Front Leg (Left Leg stepping forward) */}
+                    <polygon points="14,25 11,34 14,34 17,25" fill="#18181b" stroke="#000" strokeWidth="0.7" />
+                    <rect x="9.5" y="33.5" width="4.5" height="2" fill="#000000" rx="0.5" />
 
-                    {/* Glowing Crimson Demon Eyes */}
-                    <rect x="12" y="9.5" width="3.5" height="3" fill="#dc2626" stroke="#000" strokeWidth="0.5" />
-                    <rect x="12.5" y="10" width="1.2" height="2" fill="#fbbf24" />
-                    <rect x="20" y="9.5" width="3.5" height="3" fill="#dc2626" stroke="#000" strokeWidth="0.5" />
-                    <rect x="20.5" y="10" width="1.2" height="2" fill="#fbbf24" />
+                    {/* Tuxedo Coat Tails Fluttering Higher */}
+                    <path d="M9,24 L4,26 L9,27 L13,24 Z" fill="#09090b" stroke="#000" strokeWidth="0.7" />
 
-                    {/* Dark Demon Kimono */}
-                    <path d="M10,17 L26,17 L28,25 L8,25 Z" fill="#1e1b4b" stroke="#000" strokeWidth="0.8" />
-                    <polygon points="15,17 21,17 18,22" fill="#4c1d95" />
-                    <rect x="12" y="21" width="12" height="2" fill="#b91c1c" />
+                    {/* Tuxedo Jacket & Vest */}
+                    <path d="M11,16 L25,16 L27,24 L9,24 Z" fill="#18181b" stroke="#000" strokeWidth="0.8" />
+                    <polygon points="16,16 20,16 18,21" fill="#ffffff" />
+                    <polygon points="17.5,17 18.5,17 19,22 18,23 17,22" fill="#991b1b" />
+                    <rect x="12" y="18" width="2" height="1" fill="#ffffff" />
 
-                    {/* Demon Legs (Frame B Step: Alternated) */}
-                    <rect x="8" y="24" width="3.5" height="7" fill="#a78bfa" stroke="#000" strokeWidth="0.7" />
-                    <rect x="7.5" y="29.5" width="4.5" height="2" fill="#1e1b4b" rx="0.5" />
-                    <rect x="24" y="25" width="3.5" height="6" fill="#a78bfa" stroke="#000" strokeWidth="0.7" />
-                    <rect x="24" y="30" width="4.5" height="2" fill="#1e1b4b" rx="0.5" />
+                    {/* Left Arm (Pumping in stride) */}
+                    <polygon points="10,17 6,20 8,22 12,18" fill="#18181b" stroke="#000" strokeWidth="0.7" />
+                    <rect x="5" y="20" width="2.5" height="2.5" fill="#f8fafc" stroke="#000" strokeWidth="0.5" rx="0.5" />
+                    <polygon points="4.5,21 5,22.5 4.5,22" fill="#000000" />
 
-                    {/* Demon Claws / Arms (Higher Flail) */}
-                    <rect x="6" y="16" width="3" height="5" fill="#a78bfa" stroke="#000" strokeWidth="0.6" rx="0.5" />
-                    <polygon points="6,21 8,21 7,23" fill="#ef4444" />
-                    <rect x="27" y="16" width="3" height="5" fill="#a78bfa" stroke="#000" strokeWidth="0.6" rx="0.5" />
-                    <polygon points="27,21 29,21 28,23" fill="#ef4444" />
+                    {/* Face & Head (Bobbed with hat) */}
+                    <rect x="11" y="7" width="14" height="10" fill="#f8fafc" stroke="#000" strokeWidth="0.8" rx="0.5" />
+                    <path d="M10.5,10 L11.5,11 L11,13" fill="none" stroke="#ef4444" strokeWidth="0.6" />
+
+                    {/* Wavy Black Hair */}
+                    <path d="M10,7 Q8,11 11,14 Q9,16 11,17" fill="none" stroke="#09090b" strokeWidth="1.8" strokeLinecap="round" />
+                    <path d="M25,7 Q27,11 24,14 Q26,16 24,17" fill="none" stroke="#09090b" strokeWidth="1.8" strokeLinecap="round" />
+
+                    {/* Plum-Red Eyes */}
+                    <rect x="12.5" y="9.5" width="3.2" height="2.8" fill="#dc2626" stroke="#000" strokeWidth="0.5" />
+                    <line x1="14" y1="9.5" x2="14" y2="12.3" stroke="#450a0a" strokeWidth="0.8" />
+                    <rect x="19.5" y="9.5" width="3.2" height="2.8" fill="#dc2626" stroke="#000" strokeWidth="0.5" />
+                    <line x1="21" y1="9.5" x2="21" y2="12.3" stroke="#450a0a" strokeWidth="0.8" />
+
+                    {/* Frown & Demon Fangs */}
+                    <line x1="15" y1="14.5" x2="20" y2="14.5" stroke="#450a0a" strokeWidth="0.8" />
+                    <polygon points="18,14.5 19,16 20,14.5" fill="#ffffff" />
+
+                    {/* White Fedora Hat */}
+                    <ellipse cx="18" cy="7" rx="11" ry="2.5" fill="#f8fafc" stroke="#000" strokeWidth="0.8" />
+                    <rect x="10" y="3.8" width="16" height="2" fill="#09090b" />
+                    <path d="M10,4.5 C11,0.5 25,0.5 26,4.5 Z" fill="#f8fafc" stroke="#000" strokeWidth="0.8" />
+                    <line x1="15" y1="1.2" x2="21" y2="1.2" stroke="#94a3b8" strokeWidth="0.8" />
+
+                    {/* Right Arm (Holding hat brim) */}
+                    <path d="M22,17 Q27,14 26,8" fill="none" stroke="#18181b" strokeWidth="2.5" strokeLinecap="round" />
+                    <circle cx="25.5" cy="7" r="1.5" fill="#f8fafc" stroke="#000" strokeWidth="0.5" />
                   </g>
                 </svg>
               </div>
