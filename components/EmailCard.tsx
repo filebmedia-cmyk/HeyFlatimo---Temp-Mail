@@ -12,6 +12,7 @@ import {
   Clock,
   Sparkles,
   Layers,
+  ChevronLeft,
   ChevronRight,
   Crown,
   Sun,
@@ -45,6 +46,8 @@ export const SPIDEY_QUOTES = [
 
 export type HeroId = 'giyu' | 'tanjiro' | 'nezuko' | 'inosuke' | 'zenitsu' | 'shinobu';
 
+export const HERO_KEYS: HeroId[] = ['giyu', 'tanjiro', 'nezuko', 'inosuke', 'zenitsu', 'shinobu'];
+
 export interface HeroInfo {
   id: HeroId;
   name: string;
@@ -56,6 +59,15 @@ export interface HeroInfo {
   quotes: string[];
   ultName: string;
   ultBanner: string;
+  kanji?: string;
+  kanjiWatermark?: string;
+  stats?: {
+    atk: number;
+    spd: number;
+    ult: number;
+    crit: number;
+  };
+  glowColor?: string;
 }
 
 export const HERO_ROSTER: Record<HeroId, HeroInfo> = {
@@ -63,75 +75,389 @@ export const HERO_ROSTER: Record<HeroId, HeroInfo> = {
     id: 'giyu',
     name: 'GIYU TOMIOKA',
     badgeName: 'GIYU',
-    title: 'Pilar Air',
+    title: 'Hashira Air - Nichirin Katana Biru',
     element: 'AIR',
     elementColor: 'bg-cyan-400 text-black',
-    desc: 'Pernapasan Air - Jurus Minamo Giri',
+    desc: 'Pendekar pedang tenang pembawa Pernapasan Air. Memiliki jubah haori dua motif (merah marun polos & geometris hijau-kuning) serta katana biru tua.',
     quotes: ['MINAMO GIRI!', 'PERNAPASAN AIR!', 'WATER SLASH!', 'JU NO KATA!', 'HASHIRA RUSH!'],
     ultName: 'JU NO KATA: SEIRAN',
     ultBanner: 'JU NO KATA: SEIRAN!',
+    kanji: '冨岡 義勇',
+    kanjiWatermark: '水',
+    glowColor: '#06b6d4',
+    stats: { atk: 88, spd: 92, ult: 95, crit: 75 },
   },
   tanjiro: {
     id: 'tanjiro',
     name: 'TANJIRO KAMADO',
     badgeName: 'TANJIRO',
-    title: 'Dewa Api',
+    title: 'Dewa Api - Hinokami Kagura',
     element: 'API',
     elementColor: 'bg-red-500 text-white',
-    desc: 'Hinokami Kagura - Tarian Dewa Api',
+    desc: 'Pemuda berhati mulia pembawa Tarian Dewa Api. Mengenakan anting Hanafuda, bekas luka dahi, dan jubah bermotif kotak-kotak hijau-hitam.',
     quotes: ['HINOKAMI KAGURA!', 'ENBU!', 'DEWA API!', 'TARIAN NAGA!', 'HINOKAMI!'],
     ultName: 'HINOKAMI: ENBU',
     ultBanner: 'HINOKAMI KAGURA: ENBU!',
+    kanji: '竈門 炭治郎',
+    kanjiWatermark: '炎',
+    glowColor: '#ef4444',
+    stats: { atk: 94, spd: 86, ult: 96, crit: 82 },
   },
   nezuko: {
     id: 'nezuko',
     name: 'SMOL NEZUKO',
     badgeName: 'NEZUKO',
-    title: 'Iblis Imut',
+    title: 'Iblis Imut - Kimono Pink & Bambu',
     element: 'LUCU',
     elementColor: 'bg-pink-400 text-black',
-    desc: 'Kotak Kayu - Meme Sprint & Tendangan',
+    desc: 'Adik iblis imut bertopeng sumbat bambu dan kimono rami merah muda. Memiliki kelincahan luar biasa dan tendangan akrobatik super cepat.',
     quotes: ['NEZUKO RUN!', 'TENDANGAN!', 'NEZUKO RUSH!', 'KOTAK KAYU!'],
     ultName: 'MEGA SPRINT KICK',
     ultBanner: 'SMOL NEZUKO MEGA KICK!',
+    kanji: '竈門 禰豆子',
+    kanjiWatermark: '鬼',
+    glowColor: '#f43f5e',
+    stats: { atk: 84, spd: 96, ult: 88, crit: 90 },
   },
   inosuke: {
     id: 'inosuke',
     name: 'INOSUKE HASHIBIRA',
     badgeName: 'INOSUKE',
-    title: 'Pendekar Babi',
+    title: 'Pendekar Babi - Topeng Hutan & Dual Katana',
     element: 'SERUDUK',
     elementColor: 'bg-amber-500 text-black',
-    desc: 'Dual Katana - Inoshishi Totsugeki',
+    desc: 'Pendekar bertubuh kekar bertopeng kepala babi hutan dengan gading melengkung, mengayunkan sepasang pedang Nichirin bergerigi tajam.',
     quotes: ['INOSHISHI TOTSUGEKI!', 'KIRI SAKI!', 'DUAL KATANA!', 'MAJU TERUS!'],
     ultName: 'INOSHISHI TOTSUGEKI',
     ultBanner: 'INOSHISHI TOTSUGEKI: KIRI SAKI!',
+    kanji: '嘴平 伊之助',
+    kanjiWatermark: '獣',
+    glowColor: '#f59e0b',
+    stats: { atk: 95, spd: 91, ult: 89, crit: 88 },
   },
   zenitsu: {
     id: 'zenitsu',
     name: 'ZENITSU AGATSUMA',
     badgeName: 'ZENITSU',
-    title: 'Pendekar Petir',
+    title: 'Pendekar Petir - Jubah Kuning Segitiga',
     element: 'PETIR',
     elementColor: 'bg-yellow-400 text-black',
-    desc: 'Pernapasan Petir - Hekireki Issen',
+    desc: 'Pendekar kilat berselimut jubah segitiga emas. Melancarkan tebasan kilat Hekireki Issen dengan kecepatan supersonik dalam mode fokus.',
     quotes: ['HEKIREKI ISSEN!', 'ROKUREN!', 'KILAT PETIR!', 'TIDUR KILAT!'],
     ultName: 'HEKIREKI: ROKUREN',
     ultBanner: 'HEKIREKI ISSEN: ROKUREN!',
+    kanji: '我妻 善逸',
+    kanjiWatermark: '雷',
+    glowColor: '#eab308',
+    stats: { atk: 96, spd: 99, ult: 92, crit: 98 },
   },
   shinobu: {
     id: 'shinobu',
     name: 'SHINOBU KOCHO',
     badgeName: 'SHINOBU',
-    title: 'Pilar Serangga',
+    title: 'Pilar Serangga - Jubah Sayap Kupu-Kupu',
     element: 'SERANGGA',
     elementColor: 'bg-purple-400 text-black',
-    desc: 'Pernapasan Serangga - Chou no Mai',
+    desc: 'Hashira anggun bersenyum manis pengguna jubah sayap kupu-kupu dan pedang jarum suntik penyalur racun bunga wisteria mematikan.',
     quotes: ['CHOU NO MAI!', 'DOKU WISTERIA!', 'SAYAP KUPU!', 'RACUN SERANGGA!'],
     ultName: 'CHOU NO MAI',
     ultBanner: 'CHOU NO MAI: TAWAMURE!',
+    kanji: '胡蝶 しのぶ',
+    kanjiWatermark: '蟲',
+    glowColor: '#a855f7',
+    stats: { atk: 86, spd: 98, ult: 93, crit: 96 },
   },
 };
+
+/**
+ * Realistic Vector Character Showcase Art Component
+ */
+export function RealisticHeroArt({ heroId, className = '' }: { heroId: HeroId; className?: string }) {
+  if (heroId === 'tanjiro') {
+    return (
+      <svg width="150" height="150" viewBox="0 0 100 100" className={`overflow-visible drop-shadow-[4px_4px_0px_#000] ${className}`}>
+        <ellipse cx="50" cy="94" rx="36" ry="6" fill="#dc2626" opacity="0.35" />
+        <ellipse cx="50" cy="94" rx="22" ry="4" fill="#f97316" opacity="0.5" />
+        <rect x="38" y="70" width="8" height="18" fill="#0f172a" stroke="#000" strokeWidth="1.8" rx="1" />
+        <rect x="54" y="70" width="8" height="18" fill="#0f172a" stroke="#000" strokeWidth="1.8" rx="1" />
+        <rect x="37.5" y="79" width="9" height="7" fill="#ffffff" stroke="#000" strokeWidth="1.2" />
+        <line x1="38" y1="81" x2="46" y2="85" stroke="#000" strokeWidth="1" />
+        <rect x="53.5" y="79" width="9" height="7" fill="#ffffff" stroke="#000" strokeWidth="1.2" />
+        <line x1="54" y1="81" x2="62" y2="85" stroke="#000" strokeWidth="1" />
+        <rect x="36" y="86" width="11" height="5" fill="#d97706" stroke="#000" strokeWidth="1.4" rx="1" />
+        <rect x="53" y="86" width="11" height="5" fill="#d97706" stroke="#000" strokeWidth="1.4" rx="1" />
+        <path d="M34,44 L66,44 L63,72 L37,72 Z" fill="#0f172a" stroke="#000" strokeWidth="1.8" />
+        <rect x="37" y="66" width="26" height="4" fill="#ffffff" stroke="#000" strokeWidth="1.2" />
+        <rect x="48" y="65.5" width="4" height="5" fill="#eab308" stroke="#000" strokeWidth="1" />
+        <path d="M26,42 L74,42 L78,54 L74,73 L26,73 L22,54 Z" fill="#15803d" stroke="#000" strokeWidth="1.8" />
+        <rect x="28" y="44" width="7" height="7" fill="#0f172a" />
+        <rect x="42" y="44" width="7" height="7" fill="#0f172a" />
+        <rect x="56" y="44" width="7" height="7" fill="#0f172a" />
+        <rect x="35" y="51" width="7" height="7" fill="#0f172a" />
+        <rect x="49" y="51" width="7" height="7" fill="#0f172a" />
+        <rect x="63" y="51" width="7" height="7" fill="#0f172a" />
+        <rect x="28" y="58" width="7" height="7" fill="#0f172a" />
+        <rect x="42" y="58" width="7" height="7" fill="#0f172a" />
+        <rect x="56" y="58" width="7" height="7" fill="#0f172a" />
+        <rect x="35" y="65" width="7" height="7" fill="#0f172a" />
+        <rect x="49" y="65" width="7" height="7" fill="#0f172a" />
+        <rect x="63" y="65" width="7" height="7" fill="#0f172a" />
+        <line x1="22" y1="56" x2="38" y2="72" stroke="#000000" strokeWidth="4.5" strokeLinecap="round" />
+        <polygon points="21,54 26,52 24,59 19,58" fill="#f97316" stroke="#000" strokeWidth="1" />
+        <line x1="14" y1="48" x2="21" y2="55" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
+        <rect x="46" y="38" width="8" height="8" fill="#fde68a" stroke="#000" strokeWidth="1.4" />
+        <polygon points="38,24 62,24 61,34 50,42 39,34" fill="#fde68a" stroke="#000" strokeWidth="1.8" />
+        <rect x="34" y="32" width="3.5" height="8" fill="#ffffff" stroke="#000" strokeWidth="0.8" />
+        <circle cx="35.7" cy="35" r="1.2" fill="#dc2626" />
+        <line x1="34" y1="37" x2="37.5" y2="37" stroke="#000" strokeWidth="0.6" />
+        <path d="M41,23 Q44,20 42,26 Q45,24 43,28 Z" fill="#991b1b" stroke="#000" strokeWidth="0.5" />
+        <polygon points="42,28 47,27 46,31 43,31" fill="#b91c1c" stroke="#000" strokeWidth="1" />
+        <rect x="44" y="28" width="1.5" height="1.5" fill="#ffffff" />
+        <line x1="41" y1="26" x2="48" y2="25" stroke="#000" strokeWidth="1.6" />
+        <polygon points="53,27 58,28 57,31 54,31" fill="#b91c1c" stroke="#000" strokeWidth="1" />
+        <rect x="54.5" y="28" width="1.5" height="1.5" fill="#ffffff" />
+        <line x1="52" y1="25" x2="59" y2="26" stroke="#000" strokeWidth="1.6" />
+        <line x1="47" y1="36" x2="53" y2="36" stroke="#7f1d1d" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M35,23 C36,10 64,10 65,23 C68,18 64,28 62,30 L58,23 L53,30 L50,21 L46,29 L42,22 L37,28 Z" fill="#450a0a" stroke="#000" strokeWidth="1.8" strokeLinejoin="round" />
+        <circle cx="24" cy="36" r="2" fill="#f97316" />
+        <circle cx="76" cy="40" r="2.5" fill="#ef4444" />
+      </svg>
+    );
+  }
+
+  if (heroId === 'nezuko') {
+    return (
+      <svg width="150" height="150" viewBox="0 0 100 100" className={`overflow-visible drop-shadow-[4px_4px_0px_#000] ${className}`}>
+        <ellipse cx="50" cy="94" rx="32" ry="5.5" fill="#fb7185" opacity="0.4" />
+        <ellipse cx="50" cy="94" rx="20" ry="3.5" fill="#f43f5e" opacity="0.6" />
+        <path d="M30,30 C20,40 18,65 24,84 C30,78 32,68 34,58 Z" fill="#0f172a" stroke="#000" strokeWidth="1.8" />
+        <path d="M24,72 C22,78 20,84 25,86 C28,84 28,78 26,72 Z" fill="#f97316" stroke="#000" strokeWidth="1" />
+        <path d="M70,30 C80,40 82,65 76,84 C70,78 68,68 66,58 Z" fill="#0f172a" stroke="#000" strokeWidth="1.8" />
+        <path d="M76,72 C78,78 80,84 75,86 C72,84 72,78 74,72 Z" fill="#f97316" stroke="#000" strokeWidth="1" />
+        <rect x="39" y="80" width="8" height="10" fill="#ffffff" stroke="#000" strokeWidth="1.4" rx="1" />
+        <rect x="53" y="80" width="8" height="10" fill="#ffffff" stroke="#000" strokeWidth="1.4" rx="1" />
+        <rect x="37.5" y="87" width="11" height="4.5" fill="#fbcfe8" stroke="#000" strokeWidth="1.4" rx="1" />
+        <rect x="51.5" y="87" width="11" height="4.5" fill="#fbcfe8" stroke="#000" strokeWidth="1.4" rx="1" />
+        <path d="M28,46 L72,46 L75,78 L25,78 Z" fill="#18181b" stroke="#000" strokeWidth="1.8" />
+        <path d="M34,44 L66,44 L64,79 L36,79 Z" fill="#f472b6" stroke="#000" strokeWidth="1.8" />
+        <line x1="42" y1="48" x2="50" y2="56" stroke="#fbcfe8" strokeWidth="1.2" />
+        <line x1="50" y1="56" x2="58" y2="48" stroke="#fbcfe8" strokeWidth="1.2" />
+        <line x1="50" y1="48" x2="50" y2="56" stroke="#fbcfe8" strokeWidth="1.2" />
+        <line x1="42" y1="62" x2="50" y2="70" stroke="#fbcfe8" strokeWidth="1.2" />
+        <line x1="50" y1="70" x2="58" y2="62" stroke="#fbcfe8" strokeWidth="1.2" />
+        <rect x="35" y="58" width="30" height="7" fill="#ffffff" stroke="#000" strokeWidth="1.4" />
+        <rect x="35" y="58" width="6" height="7" fill="#dc2626" />
+        <rect x="47" y="58" width="6" height="7" fill="#dc2626" />
+        <rect x="59" y="58" width="6" height="7" fill="#dc2626" />
+        <line x1="35" y1="61.5" x2="65" y2="61.5" stroke="#15803d" strokeWidth="1.2" />
+        <polygon points="38,24 62,24 61,35 50,43 39,35" fill="#fef08a" stroke="#000" strokeWidth="1.8" />
+        <ellipse cx="44" cy="28" rx="4" ry="4.5" fill="#f43f5e" stroke="#000" strokeWidth="1.2" />
+        <circle cx="45" cy="27" r="1.8" fill="#ffffff" />
+        <ellipse cx="56" cy="28" rx="4" ry="4.5" fill="#f43f5e" stroke="#000" strokeWidth="1.2" />
+        <circle cx="57" cy="27" r="1.8" fill="#ffffff" />
+        <line x1="37" y1="36" x2="63" y2="36" stroke="#dc2626" strokeWidth="1.5" />
+        <rect x="42" y="33" width="16" height="6.5" fill="#22c55e" stroke="#000" strokeWidth="1.4" rx="2" />
+        <line x1="47" y1="33" x2="47" y2="39.5" stroke="#15803d" strokeWidth="1" />
+        <line x1="53" y1="33" x2="53" y2="39.5" stroke="#15803d" strokeWidth="1" />
+        <rect x="58" y="16" width="6" height="6" fill="#f43f5e" stroke="#000" strokeWidth="1" rx="1" />
+        <path d="M36,22 C40,12 60,12 64,22 C60,26 58,20 54,23 C50,20 46,24 42,20 C38,24 36,22 36,22 Z" fill="#0f172a" stroke="#000" strokeWidth="1.8" />
+        <polygon points="22,46 25,40 28,46 25,52" fill="#fb7185" />
+        <polygon points="78,48 81,42 84,48 81,54" fill="#fb7185" />
+      </svg>
+    );
+  }
+
+  if (heroId === 'inosuke') {
+    return (
+      <svg width="150" height="150" viewBox="0 0 100 100" className={`overflow-visible drop-shadow-[4px_4px_0px_#000] ${className}`}>
+        <ellipse cx="50" cy="94" rx="36" ry="6" fill="#b45309" opacity="0.35" />
+        <ellipse cx="50" cy="94" rx="22" ry="4" fill="#f59e0b" opacity="0.5" />
+        <rect x="36" y="66" width="10" height="20" fill="#1e293b" stroke="#000" strokeWidth="1.8" rx="2" />
+        <rect x="54" y="66" width="10" height="20" fill="#1e293b" stroke="#000" strokeWidth="1.8" rx="2" />
+        <rect x="35" y="78" width="12" height="7" fill="#78350f" stroke="#000" strokeWidth="1.4" rx="1.5" />
+        <rect x="53" y="78" width="12" height="7" fill="#78350f" stroke="#000" strokeWidth="1.4" rx="1.5" />
+        <rect x="35" y="85" width="12" height="6" fill="#1e293b" stroke="#000" strokeWidth="1.4" rx="1" />
+        <rect x="53" y="85" width="12" height="6" fill="#1e293b" stroke="#000" strokeWidth="1.4" rx="1" />
+        <path d="M30,58 L70,58 L74,68 L64,68 L60,65 L50,68 L40,65 L36,68 L26,68 Z" fill="#92400e" stroke="#000" strokeWidth="1.8" />
+        <rect x="32" y="56" width="36" height="4" fill="#78350f" stroke="#000" strokeWidth="1.2" />
+        <path d="M36,38 L64,38 L62,58 L38,58 Z" fill="#fed7aa" stroke="#000" strokeWidth="1.8" />
+        <line x1="39" y1="46" x2="48" y2="47" stroke="#ea580c" strokeWidth="1.4" />
+        <line x1="61" y1="46" x2="52" y2="47" stroke="#ea580c" strokeWidth="1.4" />
+        <line x1="50" y1="42" x2="50" y2="58" stroke="#ea580c" strokeWidth="1.4" />
+        <line x1="44" y1="52" x2="56" y2="52" stroke="#ea580c" strokeWidth="1.2" />
+        <path d="M22,30 L10,65 L14,66 L26,31 Z" fill="#94a3b8" stroke="#000" strokeWidth="1.6" />
+        <polygon points="17,45 13,47 16,50" fill="#000" />
+        <polygon points="14,53 10,55 13,58" fill="#000" />
+        <line x1="24" y1="26" x2="28" y2="16" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" />
+        <line x1="24" y1="26" x2="28" y2="16" stroke="#000000" strokeWidth="1" strokeDasharray="1.5,1.5" />
+        <path d="M78,30 L90,65 L86,66 L74,31 Z" fill="#94a3b8" stroke="#000" strokeWidth="1.6" />
+        <polygon points="83,45 87,47 84,50" fill="#000" />
+        <polygon points="86,53 90,55 87,58" fill="#000" />
+        <line x1="76" y1="26" x2="72" y2="16" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" />
+        <line x1="76" y1="26" x2="72" y2="16" stroke="#000000" strokeWidth="1" strokeDasharray="1.5,1.5" />
+        <ellipse cx="50" cy="26" rx="16" ry="14" fill="#94a3b8" stroke="#000" strokeWidth="1.8" />
+        <polygon points="37,16 32,8 41,12" fill="#64748b" stroke="#000" strokeWidth="1.5" />
+        <polygon points="63,16 68,8 59,12" fill="#64748b" stroke="#000" strokeWidth="1.5" />
+        <ellipse cx="50" cy="31" rx="6.5" ry="4.5" fill="#f472b6" stroke="#000" strokeWidth="1.5" />
+        <circle cx="48" cy="31" r="1.2" fill="#000" />
+        <circle cx="52" cy="31" r="1.2" fill="#000" />
+        <path d="M43,33 C37,34 38,27 41,25" fill="#ffffff" stroke="#000" strokeWidth="1.5" />
+        <path d="M57,33 C63,34 62,27 59,25" fill="#ffffff" stroke="#000" strokeWidth="1.5" />
+        <ellipse cx="42" cy="23" rx="3.5" ry="3" fill="#0284c7" stroke="#000" strokeWidth="1.2" />
+        <circle cx="43" cy="22.5" r="1" fill="#ffffff" />
+        <ellipse cx="58" cy="23" rx="3.5" ry="3" fill="#0284c7" stroke="#000" strokeWidth="1.2" />
+        <circle cx="59" cy="22.5" r="1" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  if (heroId === 'zenitsu') {
+    return (
+      <svg width="150" height="150" viewBox="0 0 100 100" className={`overflow-visible drop-shadow-[4px_4px_0px_#000] ${className}`}>
+        <ellipse cx="50" cy="94" rx="36" ry="6" fill="#eab308" opacity="0.4" />
+        <ellipse cx="50" cy="94" rx="20" ry="3.5" fill="#fde047" opacity="0.6" />
+        <rect x="38" y="70" width="8" height="18" fill="#0f172a" stroke="#000" strokeWidth="1.8" rx="1" />
+        <rect x="54" y="70" width="8" height="18" fill="#0f172a" stroke="#000" strokeWidth="1.8" rx="1" />
+        <rect x="37.5" y="79" width="9" height="7" fill="#facc15" stroke="#000" strokeWidth="1.2" />
+        <polygon points="42,81 39,85 45,85" fill="#ffffff" />
+        <rect x="53.5" y="79" width="9" height="7" fill="#facc15" stroke="#000" strokeWidth="1.2" />
+        <polygon points="58,81 55,85 61,85" fill="#ffffff" />
+        <rect x="36" y="86" width="11" height="5" fill="#ca8a04" stroke="#000" strokeWidth="1.4" rx="1" />
+        <rect x="53" y="86" width="11" height="5" fill="#ca8a04" stroke="#000" strokeWidth="1.4" rx="1" />
+        <path d="M34,44 L66,44 L63,72 L37,72 Z" fill="#0f172a" stroke="#000" strokeWidth="1.8" />
+        <rect x="37" y="66" width="26" height="4" fill="#ffffff" stroke="#000" strokeWidth="1.2" />
+        <rect x="48" y="65.5" width="4" height="5" fill="#eab308" stroke="#000" strokeWidth="1" />
+        <path d="M26,42 L74,42 L78,54 L74,73 L26,73 L22,54 Z" fill="#eab308" stroke="#000" strokeWidth="1.8" />
+        <path d="M24,65 L76,65 L74,73 L26,73 Z" fill="#ea580c" />
+        <polygon points="34,45 31,50 37,50" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+        <polygon points="46,45 43,50 49,50" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+        <polygon points="58,45 55,50 61,50" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+        <polygon points="70,45 67,50 73,50" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+        <polygon points="40,54 37,59 43,59" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+        <polygon points="52,54 49,59 55,59" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+        <polygon points="64,54 61,59 67,59" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+        <polygon points="34,63 31,68 37,68" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+        <polygon points="46,63 43,68 49,68" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+        <polygon points="58,63 55,68 61,68" fill="#ffffff" stroke="#000" strokeWidth="0.7" />
+        <line x1="20" y1="58" x2="38" y2="70" stroke="#000000" strokeWidth="4.5" strokeLinecap="round" />
+        <line x1="20" y1="58" x2="38" y2="70" stroke="#facc15" strokeWidth="2.8" strokeLinecap="round" />
+        <circle cx="21" cy="56" r="3" fill="#fde68a" stroke="#000" strokeWidth="1.2" />
+        <line x1="12" y1="52" x2="20" y2="56" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+        <rect x="46" y="38" width="8" height="8" fill="#fde68a" stroke="#000" strokeWidth="1.4" />
+        <polygon points="38,24 62,24 61,34 50,42 39,34" fill="#fde68a" stroke="#000" strokeWidth="1.8" />
+        <line x1="41" y1="29" x2="48" y2="29" stroke="#000" strokeWidth="2" strokeLinecap="round" />
+        <line x1="41" y1="26" x2="48" y2="28" stroke="#ca8a04" strokeWidth="1.4" />
+        <line x1="52" y1="29" x2="59" y2="29" stroke="#000" strokeWidth="2" strokeLinecap="round" />
+        <line x1="52" y1="28" x2="59" y2="26" stroke="#ca8a04" strokeWidth="1.4" />
+        <line x1="47" y1="36" x2="53" y2="36" stroke="#000" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M34,22 C35,8 65,8 66,22 C68,16 66,26 64,28 L59,20 L55,27 L50,18 L45,27 L41,20 L36,28 Z" fill="#facc15" stroke="#000" strokeWidth="1.8" strokeLinejoin="round" />
+        <polygon points="36,26 40,23 37,28" fill="#ea580c" />
+        <polygon points="44,25 47,22 45,27" fill="#ea580c" />
+        <polygon points="53,25 56,22 55,27" fill="#ea580c" />
+        <polygon points="62,26 65,23 64,28" fill="#ea580c" />
+        <polygon points="26,30 20,38 24,38 18,48 28,40 24,40" fill="#facc15" stroke="#000" strokeWidth="0.8" />
+        <polygon points="74,32 80,40 76,40 82,50 72,42 76,42" fill="#facc15" stroke="#000" strokeWidth="0.8" />
+      </svg>
+    );
+  }
+
+  if (heroId === 'shinobu') {
+    return (
+      <svg width="150" height="150" viewBox="0 0 100 100" className={`overflow-visible drop-shadow-[4px_4px_0px_#000] ${className}`}>
+        <ellipse cx="50" cy="94" rx="36" ry="6" fill="#a855f7" opacity="0.35" />
+        <ellipse cx="50" cy="94" rx="22" ry="4" fill="#c084fc" opacity="0.5" />
+        <rect x="38" y="70" width="8" height="18" fill="#0f172a" stroke="#000" strokeWidth="1.8" rx="1" />
+        <rect x="54" y="70" width="8" height="18" fill="#0f172a" stroke="#000" strokeWidth="1.8" rx="1" />
+        <rect x="37.5" y="79" width="9" height="7" fill="#ffffff" stroke="#000" strokeWidth="1.2" />
+        <path d="M38,82 Q42,86 46,82" stroke="#06b6d4" strokeWidth="1.2" fill="none" />
+        <rect x="53.5" y="79" width="9" height="7" fill="#ffffff" stroke="#000" strokeWidth="1.2" />
+        <path d="M54,82 Q58,86 62,82" stroke="#06b6d4" strokeWidth="1.2" fill="none" />
+        <rect x="36" y="86" width="11" height="5" fill="#fbcfe8" stroke="#000" strokeWidth="1.4" rx="1" />
+        <rect x="53" y="86" width="11" height="5" fill="#fbcfe8" stroke="#000" strokeWidth="1.4" rx="1" />
+        <line x1="41" y1="86" x2="41" y2="90" stroke="#a855f7" strokeWidth="1.5" />
+        <line x1="58" y1="86" x2="58" y2="90" stroke="#a855f7" strokeWidth="1.5" />
+        <path d="M34,44 L66,44 L63,72 L37,72 Z" fill="#0f172a" stroke="#000" strokeWidth="1.8" />
+        <rect x="37" y="66" width="26" height="4" fill="#ffffff" stroke="#000" strokeWidth="1.2" />
+        <circle cx="50" cy="50" r="1.2" fill="#facc15" />
+        <circle cx="50" cy="56" r="1.2" fill="#facc15" />
+        <circle cx="50" cy="62" r="1.2" fill="#facc15" />
+        <path d="M22,42 C28,40 38,42 50,44 C62,42 72,40 78,42 C82,54 86,66 80,74 C72,70 65,72 50,75 C35,72 28,70 20,74 C14,66 18,54 22,42 Z" fill="#ffffff" stroke="#000" strokeWidth="1.8" />
+        <path d="M20,68 Q35,66 50,68 Q65,66 80,68 L80,74 Q65,72 50,75 Q35,72 20,74 Z" fill="#06b6d4" />
+        <path d="M20,71 Q35,69 50,71 Q65,69 80,71 L80,74 Q65,72 50,75 Q35,72 20,74 Z" fill="#ec4899" />
+        <path d="M28,46 Q34,60 36,70" stroke="#000" strokeWidth="1" fill="none" />
+        <path d="M72,46 Q66,60 64,70" stroke="#000" strokeWidth="1" fill="none" />
+        <line x1="22" y1="56" x2="38" y2="72" stroke="#000000" strokeWidth="3" strokeLinecap="round" />
+        <line x1="22" y1="56" x2="38" y2="72" stroke="#c084fc" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="21" cy="55" r="2.5" fill="#06b6d4" stroke="#000" strokeWidth="0.8" />
+        <rect x="46" y="38" width="8" height="8" fill="#fde68a" stroke="#000" strokeWidth="1.4" />
+        <polygon points="38,24 62,24 61,34 50,42 39,34" fill="#fde68a" stroke="#000" strokeWidth="1.8" />
+        <path d="M50,14 C42,8 40,16 48,18 C40,20 44,26 50,20 C56,26 60,20 52,18 C60,16 58,8 50,14 Z" fill="#06b6d4" stroke="#000" strokeWidth="1.2" />
+        <circle cx="50" cy="17" r="1.5" fill="#a855f7" />
+        <polygon points="42,28 47,27 46,31 43,31" fill="#7c3aed" stroke="#000" strokeWidth="1" />
+        <rect x="44" y="28" width="1.5" height="1.5" fill="#ffffff" />
+        <line x1="41" y1="26" x2="48" y2="26" stroke="#000" strokeWidth="1.4" />
+        <polygon points="53,27 58,28 57,31 54,31" fill="#7c3aed" stroke="#000" strokeWidth="1" />
+        <rect x="54.5" y="28" width="1.5" height="1.5" fill="#ffffff" />
+        <line x1="52" y1="26" x2="59" y2="26" stroke="#000" strokeWidth="1.4" />
+        <path d="M47,35 Q50,37 53,35" stroke="#9333ea" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+        <path d="M35,22 C38,14 62,14 65,22 C67,26 62,28 60,30 L55,24 L50,22 L45,24 L40,30 Z" fill="#1e1b4b" stroke="#000" strokeWidth="1.8" />
+        <path d="M16,36 Q20,32 24,36 Q20,40 16,36 Z" fill="#c084fc" stroke="#000" strokeWidth="0.8" />
+        <path d="M80,32 Q84,28 88,32 Q84,36 80,32 Z" fill="#06b6d4" stroke="#000" strokeWidth="0.8" />
+      </svg>
+    );
+  }
+
+  // Default: Giyu Tomioka
+  return (
+    <svg width="150" height="150" viewBox="0 0 100 100" className={`overflow-visible drop-shadow-[4px_4px_0px_#000] ${className}`}>
+      <ellipse cx="50" cy="94" rx="36" ry="6" fill="#0891b2" opacity="0.3" />
+      <ellipse cx="50" cy="94" rx="24" ry="4" fill="#06b6d4" opacity="0.5" />
+      <ellipse cx="50" cy="94" rx="14" ry="2.5" fill="#000000" opacity="0.6" />
+      <path d="M42,22 C34,16 26,22 18,34 C26,32 32,36 38,38 Z" fill="#0f172a" stroke="#000" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M38,32 C28,34 22,44 16,52 C24,48 30,50 36,46 Z" fill="#090d16" stroke="#000" strokeWidth="1.5" />
+      <rect x="37" y="33" width="3.5" height="4.5" fill="#0284c7" stroke="#000" strokeWidth="1" rx="0.5" />
+      <rect x="38" y="70" width="8" height="18" fill="#0f172a" stroke="#000" strokeWidth="1.8" rx="1" />
+      <rect x="54" y="70" width="8" height="18" fill="#0f172a" stroke="#000" strokeWidth="1.8" rx="1" />
+      <rect x="37.5" y="79" width="9" height="7" fill="#ffffff" stroke="#000" strokeWidth="1.2" />
+      <line x1="38" y1="82.5" x2="46" y2="82.5" stroke="#d97706" strokeWidth="1" />
+      <rect x="53.5" y="79" width="9" height="7" fill="#ffffff" stroke="#000" strokeWidth="1.2" />
+      <line x1="54" y1="82.5" x2="62" y2="82.5" stroke="#d97706" strokeWidth="1" />
+      <rect x="36" y="86" width="11" height="5" fill="#d97706" stroke="#000" strokeWidth="1.4" rx="1" />
+      <rect x="53" y="86" width="11" height="5" fill="#d97706" stroke="#000" strokeWidth="1.4" rx="1" />
+      <path d="M36,44 L64,44 L62,72 L38,72 Z" fill="#0f172a" stroke="#000" strokeWidth="1.8" />
+      <rect x="37" y="66" width="26" height="4" fill="#ffffff" stroke="#000" strokeWidth="1.2" />
+      <rect x="48" y="65.5" width="4" height="5" fill="#eab308" stroke="#000" strokeWidth="1" />
+      <path d="M30,42 L50,42 L50,75 L26,73 L24,52 Z" fill="#991b1b" stroke="#000" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M50,42 L70,42 L76,52 L74,73 L50,75 Z" fill="#15803d" stroke="#000" strokeWidth="1.8" strokeLinejoin="round" />
+      <polygon points="53,46 59,43 65,46 59,50" fill="#eab308" stroke="#000" strokeWidth="0.8" />
+      <polygon points="59,50 65,46 65,54 59,58" fill="#ea580c" stroke="#000" strokeWidth="0.8" />
+      <polygon points="53,46 59,50 59,58 53,54" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+      <polygon points="63,56 69,53 75,56 69,60" fill="#eab308" stroke="#000" strokeWidth="0.8" />
+      <polygon points="69,60 75,56 75,64 69,68" fill="#ea580c" stroke="#000" strokeWidth="0.8" />
+      <polygon points="63,56 69,60 69,68 63,64" fill="#15803d" stroke="#000" strokeWidth="0.8" />
+      <polygon points="46,44 54,44 52,56 48,56" fill="#ffffff" stroke="#000" strokeWidth="1" />
+      <circle cx="50" cy="59" r="1.2" fill="#facc15" stroke="#000" strokeWidth="0.6" />
+      <circle cx="50" cy="63" r="1.2" fill="#facc15" stroke="#000" strokeWidth="0.6" />
+      <line x1="22" y1="56" x2="38" y2="72" stroke="#000000" strokeWidth="4.5" strokeLinecap="round" />
+      <line x1="22" y1="56" x2="38" y2="72" stroke="#0284c7" strokeWidth="2.8" strokeLinecap="round" />
+      <polygon points="21,54 26,52 24,59 19,58" fill="#a855f7" stroke="#000" strokeWidth="1" />
+      <line x1="14" y1="48" x2="21" y2="55" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+      <line x1="14" y1="48" x2="21" y2="55" stroke="#0f172a" strokeWidth="1.2" strokeDasharray="1.5,1.5" />
+      <rect x="46" y="38" width="8" height="8" fill="#fde68a" stroke="#000" strokeWidth="1.4" />
+      <polygon points="38,24 62,24 61,34 50,42 39,34" fill="#fde68a" stroke="#000" strokeWidth="1.8" />
+      <polygon points="42,28 47,27 46,31 43,31" fill="#0369a1" stroke="#000" strokeWidth="1" />
+      <rect x="44" y="28" width="1.5" height="1.5" fill="#ffffff" />
+      <line x1="41" y1="26" x2="48" y2="26" stroke="#000" strokeWidth="1.5" />
+      <polygon points="53,27 58,28 57,31 54,31" fill="#0369a1" stroke="#000" strokeWidth="1" />
+      <rect x="54.5" y="28" width="1.5" height="1.5" fill="#ffffff" />
+      <line x1="52" y1="26" x2="59" y2="26" stroke="#000" strokeWidth="1.5" />
+      <line x1="47" y1="36" x2="53" y2="36" stroke="#991b1b" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M35,22 C38,12 62,12 65,22 C67,26 63,30 63,30 L57,25 L54,32 L50,24 L46,32 L43,25 L37,30 Z" fill="#0f172a" stroke="#000" strokeWidth="1.8" strokeLinejoin="round" />
+      <circle cx="28" cy="38" r="2" fill="#38bdf8" opacity="0.75" />
+      <circle cx="74" cy="44" r="2.5" fill="#38bdf8" opacity="0.6" />
+    </svg>
+  );
+}
 
 interface EmailCardProps {
   currentEmail: string;
@@ -232,6 +558,10 @@ export default function EmailCard({
   // Interactive Strip Runner & Character Select States
   const [activeHero, setActiveHero] = useState<HeroId>('giyu');
   const [isCharModalOpen, setIsCharModalOpen] = useState<boolean>(false);
+  const [previewHero, setPreviewHero] = useState<HeroId>('giyu');
+  const [isModalSlashing, setIsModalSlashing] = useState<boolean>(false);
+  const [modalQuote, setModalQuote] = useState<string | null>(null);
+  const modalQuoteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [runnerQuote, setRunnerQuote] = useState<string | null>(null);
   const [isRunnerSlashing, setIsRunnerSlashing] = useState<boolean>(false);
   const [isDemonHit, setIsDemonHit] = useState<boolean>(false);
@@ -436,6 +766,55 @@ export default function EmailCard({
       playSound('pop');
     }
   };
+
+  const handlePrevHero = () => {
+    const idx = HERO_KEYS.indexOf(previewHero);
+    const prevIdx = (idx - 1 + HERO_KEYS.length) % HERO_KEYS.length;
+    setPreviewHero(HERO_KEYS[prevIdx]);
+    if (isSoundEnabled) {
+      playSound('click');
+    }
+  };
+
+  const handleNextHero = () => {
+    const idx = HERO_KEYS.indexOf(previewHero);
+    const nextIdx = (idx + 1) % HERO_KEYS.length;
+    setPreviewHero(HERO_KEYS[nextIdx]);
+    if (isSoundEnabled) {
+      playSound('click');
+    }
+  };
+
+  const handleModalTestJurus = () => {
+    if (isModalSlashing) return;
+    setIsModalSlashing(true);
+    const heroData = HERO_ROSTER[previewHero];
+    const picked = heroData.quotes[Math.floor(Math.random() * heroData.quotes.length)];
+    setModalQuote(picked);
+    if (isSoundEnabled) {
+      playKatanaSlashSound(true);
+    }
+    if (modalQuoteTimeoutRef.current) clearTimeout(modalQuoteTimeoutRef.current);
+    modalQuoteTimeoutRef.current = setTimeout(() => {
+      setModalQuote(null);
+      setIsModalSlashing(false);
+    }, 1400);
+  };
+
+  useEffect(() => {
+    if (!isCharModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        handlePrevHero();
+      } else if (e.key === 'ArrowRight') {
+        handleNextHero();
+      } else if (e.key === 'Escape') {
+        setIsCharModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCharModalOpen, previewHero]);
 
   const handleRunnerClick = () => {
     if (isRunnerSlashing || isUltActive) return;
@@ -869,6 +1248,7 @@ export default function EmailCard({
         <button
           onClick={() => {
             playSound('pop');
+            setPreviewHero(activeHero);
             setIsCharModalOpen(true);
           }}
           className="brutal-btn bg-pink-500 text-white hover:bg-pink-600 px-3 xs:px-3.5 py-2 sm:py-2.5 text-[11px] xs:text-xs font-bold font-mono-custom flex items-center justify-center gap-1.5 sm:gap-2 uppercase group shadow-[2px_2px_0px_var(--shadow-color)] sm:shadow-[3px_3px_0px_var(--shadow-color)]"
@@ -1658,59 +2038,229 @@ export default function EmailCard({
               </button>
             </div>
 
-            {/* 6 Character Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 mb-4">
-              {(Object.keys(HERO_ROSTER) as HeroId[]).map((heroKey) => {
-                const hero = HERO_ROSTER[heroKey];
-                const isSelected = activeHero === heroKey;
-
-                return (
+            {/* Main Arcade Fighter Select Layout: 2 Columns */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4 items-start mb-3">
+              {/* Left Column: Stage with Big Left/Right Nav Buttons + Ribbon */}
+              <div className="md:col-span-7 flex flex-col space-y-2.5">
+                {/* Character Stage Box */}
+                <div className="relative w-full aspect-[4/3] xs:aspect-[16/11] bg-zinc-100 dark:bg-zinc-950 border-2 border-[var(--border-color)] overflow-hidden flex items-center justify-center select-none shadow-[2px_2px_0px_var(--shadow-color)]">
+                  {/* Elemental Dynamic Glow Circle */}
                   <div
-                    key={hero.id}
-                    onClick={() => handleSelectHero(hero.id)}
-                    className={`p-3 border-2 text-left cursor-pointer brutal-card transition-all ${
-                      isSelected
-                        ? 'border-[var(--color-blue)] bg-cyan-500/10 dark:bg-cyan-950/30 ring-2 ring-[var(--color-blue)]'
-                        : 'border-[var(--border-color)] bg-white dark:bg-zinc-900 hover:border-[var(--color-yellow)]'
-                    }`}
+                    className="absolute w-44 h-44 rounded-full blur-2xl opacity-35 pointer-events-none transition-all duration-500"
+                    style={{ backgroundColor: HERO_ROSTER[previewHero].glowColor || '#06b6d4' }}
+                  />
+
+                  {/* Corner Watermarks */}
+                  <div className="absolute top-2 left-2.5 font-pixel text-[7px] text-[var(--text-muted)] pointer-events-none">
+                    ARCADE // ROSTER
+                  </div>
+                  <div className="absolute top-2 right-2.5 font-pixel text-[7px] text-[var(--text-muted)] pointer-events-none">
+                    0{HERO_KEYS.indexOf(previewHero) + 1} / 0{HERO_KEYS.length}
+                  </div>
+                  <div className="absolute bottom-1 right-2 font-black text-4xl sm:text-5xl opacity-10 pointer-events-none font-serif">
+                    {HERO_ROSTER[previewHero].kanjiWatermark || '水'}
+                  </div>
+
+                  {/* Left Carousel Button (<) */}
+                  <button
+                    type="button"
+                    onClick={handlePrevHero}
+                    className="brutal-btn absolute left-2 sm:left-3 z-30 bg-white dark:bg-zinc-800 text-black dark:text-white w-8 h-8 sm:w-9 sm:h-9 font-pixel text-xs font-black flex items-center justify-center hover:bg-[var(--color-yellow)] dark:hover:bg-yellow-500 transition-transform active:scale-90 shadow-[2px_2px_0px_var(--shadow-color)]"
+                    title="Pahlawan Sebelumnya (Tombol Panah Kiri)"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`px-1.5 py-0.5 font-pixel text-[7px] font-black border border-black ${hero.elementColor}`}>
-                        {hero.element}
-                      </span>
-                      {isSelected ? (
-                        <span className="font-pixel text-[7px] text-[var(--color-blue)] font-bold flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 inline text-[var(--color-blue)]" />
-                          <span>AKTIF</span>
-                        </span>
-                      ) : (
-                        <span className="font-pixel text-[7px] text-[var(--text-muted)] font-bold">
-                          PILIH
-                        </span>
-                      )}
+                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-black dark:text-white" />
+                  </button>
+
+                  {/* Right Carousel Button (>) */}
+                  <button
+                    type="button"
+                    onClick={handleNextHero}
+                    className="brutal-btn absolute right-2 sm:right-3 z-30 bg-white dark:bg-zinc-800 text-black dark:text-white w-8 h-8 sm:w-9 sm:h-9 font-pixel text-xs font-black flex items-center justify-center hover:bg-[var(--color-yellow)] dark:hover:bg-yellow-500 transition-transform active:scale-90 shadow-[2px_2px_0px_var(--shadow-color)]"
+                    title="Pahlawan Berikutnya (Tombol Panah Kanan)"
+                  >
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-black dark:text-white" />
+                  </button>
+
+                  {/* Speech Callout Balloon */}
+                  {modalQuote && (
+                    <div className="absolute top-4 z-20 transition-all duration-200 animate-in fade-in zoom-in-95 pointer-events-none">
+                      <div className="bg-black text-white px-2.5 py-1 font-pixel text-[8px] sm:text-[9px] border-2 border-yellow-300 shadow-[2px_2px_0px_#000] font-bold uppercase tracking-wider">
+                        {modalQuote}
+                      </div>
                     </div>
-                    <div className="font-pixel text-xs text-[var(--text-main)] font-bold mb-0.5">
-                      {hero.name}
+                  )}
+
+                  {/* Realistic Character Art */}
+                  <div
+                    onClick={handleModalTestJurus}
+                    className="relative z-10 flex flex-col items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95"
+                    title="Klik karakter untuk jurus & suara!"
+                  >
+                    <RealisticHeroArt heroId={previewHero} />
+                  </div>
+
+                  {/* Action Slash FX Overlay */}
+                  {isModalSlashing && (
+                    <div className="absolute inset-0 pointer-events-none z-25 flex items-center justify-center">
+                      <svg width="220" height="150" viewBox="0 0 200 140" className="anim-action-slash overflow-visible">
+                        <path
+                          d="M20,110 Q100,10 180,60"
+                          fill="none"
+                          stroke={HERO_ROSTER[previewHero].glowColor || '#38bdf8'}
+                          strokeWidth="10"
+                          strokeLinecap="round"
+                          opacity="0.9"
+                        />
+                        <path d="M20,110 Q100,10 180,60" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+                        <circle cx="100" cy="40" r="3.5" fill="#ffffff" />
+                        <circle cx="140" cy="50" r="3" fill={HERO_ROSTER[previewHero].glowColor || '#38bdf8'} />
+                      </svg>
                     </div>
-                    <p className="text-[11px] font-mono-custom text-[var(--text-muted)] mb-2">
-                      {hero.title}
-                    </p>
-                    <div className="bg-zinc-100 dark:bg-black/50 p-1.5 border border-zinc-300 dark:border-zinc-800 font-mono-custom text-[10px] text-[var(--text-main)]">
-                      {hero.desc}
+                  )}
+                </div>
+
+                {/* Quick Selection Thumbnail Ribbon (6 Characters) */}
+                <div>
+                  <div className="font-pixel text-[7px] text-[var(--text-muted)] font-bold mb-1 uppercase">
+                    PILIH CEPAT (6 PAHLAWAN):
+                  </div>
+                  <div className="grid grid-cols-6 gap-1 sm:gap-1.5">
+                    {HERO_KEYS.map((k) => {
+                      const item = HERO_ROSTER[k];
+                      const isCurrent = previewHero === k;
+                      const isEquipped = activeHero === k;
+                      return (
+                        <button
+                          key={k}
+                          type="button"
+                          onClick={() => {
+                            setPreviewHero(k);
+                            if (isSoundEnabled) playSound('click');
+                          }}
+                          className={`brutal-btn p-1 flex flex-col items-center justify-center transition-all ${
+                            isCurrent
+                              ? 'bg-[var(--color-yellow)] border-black ring-2 ring-[var(--color-blue)] scale-105 shadow-[2px_2px_0px_#000]'
+                              : 'bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 shadow-[1px_1px_0px_var(--shadow-color)]'
+                          }`}
+                        >
+                          <span className="font-pixel text-[6.5px] font-black text-black dark:text-white truncate max-w-full">
+                            {item.badgeName}
+                          </span>
+                          <span className={`font-pixel text-[5px] px-1 py-0.2 border border-black mt-0.5 truncate w-full ${item.elementColor}`}>
+                            {item.element}
+                          </span>
+                          {isEquipped && (
+                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full border border-black mt-0.5" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Lore, Technique, Stats & Confirm Button */}
+              <div className="md:col-span-5 flex flex-col space-y-2.5">
+                {/* Hero Identity */}
+                <div className="bg-white dark:bg-zinc-900 p-3 border-2 border-[var(--border-color)]">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className={`px-2 py-0.5 font-pixel text-[7.5px] font-black border border-black uppercase shadow-[1px_1px_0px_#000] ${HERO_ROSTER[previewHero].elementColor}`}>
+                      ELEMEN {HERO_ROSTER[previewHero].element}
+                    </span>
+                    <span className="font-pixel text-[9px] text-[var(--text-muted)] font-bold tracking-widest">
+                      {HERO_ROSTER[previewHero].kanji}
+                    </span>
+                  </div>
+                  <h4 className="font-pixel text-xs sm:text-sm text-[var(--text-main)] font-black uppercase">
+                    {HERO_ROSTER[previewHero].name}
+                  </h4>
+                  <div className="font-mono-custom text-[11px] text-[var(--color-blue)] font-bold mb-1.5">
+                    {HERO_ROSTER[previewHero].title}
+                  </div>
+                  <p className="font-mono-custom text-[10.5px] text-[var(--text-muted)] leading-relaxed border-t border-zinc-200 dark:border-zinc-800 pt-1.5">
+                    {HERO_ROSTER[previewHero].desc}
+                  </p>
+                </div>
+
+                {/* Ultimate Technique Card */}
+                <div className="bg-zinc-100 dark:bg-black/50 p-2.5 border border-zinc-300 dark:border-zinc-800 flex items-center justify-between">
+                  <div>
+                    <div className="font-pixel text-[7px] text-[var(--text-muted)] font-bold uppercase">JURUS PAMUNGKAS:</div>
+                    <div className="font-pixel text-[9.5px] text-[var(--text-main)] font-black uppercase">
+                      {HERO_ROSTER[previewHero].ultName}
                     </div>
                   </div>
-                );
-              })}
+                  <button
+                    type="button"
+                    onClick={handleModalTestJurus}
+                    className="brutal-btn px-2 py-1 bg-pink-500 hover:bg-pink-600 text-white font-mono-custom text-[9px] font-bold uppercase shadow-[1px_1px_0px_#000]"
+                  >
+                    TES JURUS
+                  </button>
+                </div>
+
+                {/* Arcade Combat Stats */}
+                <div className="space-y-1.5 bg-white dark:bg-zinc-900 p-2.5 border border-[var(--border-color)]">
+                  <div className="font-pixel text-[7.5px] text-[var(--text-main)] font-black uppercase mb-1">
+                    STATISTIK TEMPUR
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-[10px] font-mono-custom font-bold">
+                      <span className="text-[var(--text-muted)]">ATK:</span>
+                      <span className="text-red-500 font-pixel text-[7.5px]">{HERO_ROSTER[previewHero].stats?.atk || 85} / 100</span>
+                    </div>
+                    <div className="w-full h-2 bg-zinc-200 dark:bg-zinc-800 border border-black p-0.5">
+                      <div className="h-full bg-red-500 transition-all duration-300" style={{ width: `${HERO_ROSTER[previewHero].stats?.atk || 85}%` }} />
+                    </div>
+
+                    <div className="flex justify-between items-center text-[10px] font-mono-custom font-bold">
+                      <span className="text-[var(--text-muted)]">SPD:</span>
+                      <span className="text-yellow-500 font-pixel text-[7.5px]">{HERO_ROSTER[previewHero].stats?.spd || 90} / 100</span>
+                    </div>
+                    <div className="w-full h-2 bg-zinc-200 dark:bg-zinc-800 border border-black p-0.5">
+                      <div className="h-full bg-yellow-400 transition-all duration-300" style={{ width: `${HERO_ROSTER[previewHero].stats?.spd || 90}%` }} />
+                    </div>
+
+                    <div className="flex justify-between items-center text-[10px] font-mono-custom font-bold">
+                      <span className="text-[var(--text-muted)]">ULT:</span>
+                      <span className="text-cyan-500 font-pixel text-[7.5px]">{HERO_ROSTER[previewHero].stats?.ult || 92} / 100</span>
+                    </div>
+                    <div className="w-full h-2 bg-zinc-200 dark:bg-zinc-800 border border-black p-0.5">
+                      <div className="h-full bg-cyan-400 transition-all duration-300" style={{ width: `${HERO_ROSTER[previewHero].stats?.ult || 92}%` }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Confirm / Select Button */}
+                {activeHero === previewHero ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="brutal-btn w-full py-2.5 bg-green-500 text-black font-mono-custom font-black uppercase border-2 border-black text-xs shadow-[2px_2px_0px_var(--shadow-color)] flex items-center justify-center gap-1.5 cursor-default"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-black" />
+                    <span>SUDAH AKTIF SEBAGAI PAHLAWAN</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleSelectHero(previewHero)}
+                    className="brutal-btn w-full py-2.5 bg-[var(--color-yellow)] hover:bg-yellow-400 text-black font-mono-custom font-black uppercase border-2 border-[var(--border-color)] text-xs shadow-[2px_2px_0px_var(--shadow-color)] transition-all"
+                  >
+                    JADIKAN {HERO_ROSTER[previewHero].name} PAHLAWAN AKTIF
+                  </button>
+                )}
+              </div>
             </div>
 
-            <p className="text-xs font-mono-custom text-[var(--text-muted)] mb-4 text-center sm:text-left">
-              Pilihan pahlawan Anda tersimpan otomatis di perangkat dan langsung aktif di strip pelari setiap kali Anda membuka kotak surat.
+            <p className="text-[11px] font-mono-custom text-[var(--text-muted)] mb-3 text-center sm:text-left">
+              Pilihan pahlawan Anda tersimpan otomatis di perangkat dan langsung aktif di strip pelari setiap kali Anda membuka kotak surat. Gunakan tombol panah kiri / kanan pada keyboard untuk beralih cepat.
             </p>
 
             <button
               type="button"
               onClick={() => setIsCharModalOpen(false)}
-              className="brutal-btn w-full py-2.5 bg-[var(--color-yellow)] hover:bg-yellow-400 text-black font-mono-custom font-black uppercase border-2 border-[var(--border-color)] text-xs shadow-[2px_2px_0px_var(--shadow-color)]"
+              className="brutal-btn w-full py-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[var(--text-main)] font-mono-custom font-bold uppercase border-2 border-[var(--border-color)] text-xs shadow-[2px_2px_0px_var(--shadow-color)]"
             >
               TUTUP ROSTER
             </button>
