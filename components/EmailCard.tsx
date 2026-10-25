@@ -470,11 +470,11 @@ export default function EmailCard({
   return (
     <div className="brutal-card px-4 pb-4 pt-5 xs:px-5 xs:pb-5 xs:pt-6 sm:p-7 mt-14 xs:mt-16 sm:mt-20 mb-5 sm:mb-7 relative bg-[var(--card-bg)]">
       {/* ======================================================== */}
-      {/* SQUAD DIORAMA OVER TOP BORDER (GIYU + NEKO + SHIBA)     */}
-      {/* CENTERED SQUAD COMPOSITION: Never overlaps corner buttons */}
+      {/* SQUAD DIORAMA: SOLO GIYU CENTER + CORNER PET GUARDIANS   */}
+      {/* BALANCED TRIPOD COMPOSITION: Spacious, zero crowding     */}
       {/* ======================================================== */}
-      <div className="absolute -top-[48px] xs:-top-[54px] sm:-top-[58px] left-0 right-0 w-full flex items-end justify-center gap-4 xs:gap-7 sm:gap-12 md:gap-16 px-12 xs:px-14 sm:px-16 pointer-events-none z-20 select-none">
-        {/* 1. Left: Pixel Neko Gamer (Interactive) */}
+      <div className="absolute -top-[48px] xs:-top-[54px] sm:-top-[58px] left-0 right-0 w-full flex items-end justify-between px-10 xs:px-14 sm:px-20 md:px-24 pointer-events-none z-20 select-none">
+        {/* 1. Left: Pixel Neko Gamer (Corner Shoulder Companion) */}
         <div
           onClick={handleNekoClick}
           onTouchEnd={(e) => {
@@ -485,12 +485,12 @@ export default function EmailCard({
           className={`flex flex-col items-center anim-char-bob pointer-events-auto cursor-pointer group transition-transform ${
             nekoState === 'meow' ? '-translate-y-2' : ''
           }`}
-          title="Neko Gamer"
+          title="Neko Gamer (Klik untuk Meow!)"
         >
-          <div className="bg-[#ff007f] text-white font-pixel text-[5.5px] xs:text-[6px] px-1.5 py-0.2 border border-black shadow-[1px_1px_0px_#000] -mb-1 z-10 font-bold group-hover:scale-105 transition-transform">
+          <div className="bg-[#ff007f] text-white font-pixel text-[5px] xs:text-[6px] px-1.5 py-0.2 border border-black shadow-[1px_1px_0px_#000] -mb-1 z-10 font-bold group-hover:scale-105 transition-transform">
             {nekoState === 'meow' ? 'PURR!' : 'MEOW!'}
           </div>
-          <svg width="42" height="42" viewBox="0 0 32 32" className="xs:w-[46px] xs:h-[46px] drop-shadow-[2px_2px_0px_#000] group-hover:scale-105 transition-transform">
+          <svg width="38" height="38" viewBox="0 0 32 32" className="w-[36px] h-[36px] xs:w-[44px] xs:h-[44px] drop-shadow-[2px_2px_0px_#000] group-hover:scale-105 transition-transform">
             <g className="anim-tail">
               <rect x="23" y="16" width="3" height="3" fill="#ff9900" stroke="#000" strokeWidth="0.75" />
               <rect x="25" y="13" width="3" height="4" fill="#ffffff" stroke="#000" strokeWidth="0.75" />
@@ -603,7 +603,7 @@ export default function EmailCard({
           </div>
         </div>
 
-        {/* 3. Right: Shiba Mail Courier & Mini Ghost (Interactive) */}
+        {/* 3. Right: Shiba Mail Courier & Mini Ghost (Corner Shoulder Companion) */}
         <div
           onClick={handleShibaClick}
           onTouchEnd={(e) => {
@@ -614,13 +614,13 @@ export default function EmailCard({
           className={`flex items-end gap-1 anim-char-bob pointer-events-auto cursor-pointer group transition-transform ${
             shibaState === 'bark' ? '-translate-y-2' : ''
           }`}
-          title="Shiba Courier"
+          title="Shiba Courier (Klik untuk Woof!)"
         >
           <div className="flex flex-col items-center">
-            <div className="bg-[#ffe600] text-black font-pixel text-[5.5px] xs:text-[6px] px-1.5 py-0.2 border border-black shadow-[1px_1px_0px_#000] -mb-1 z-10 font-bold group-hover:scale-105 transition-transform">
+            <div className="bg-[#ffe600] text-black font-pixel text-[5px] xs:text-[6px] px-1.5 py-0.2 border border-black shadow-[1px_1px_0px_#000] -mb-1 z-10 font-bold group-hover:scale-105 transition-transform">
               {shibaState === 'bark' ? 'WOOF!' : 'MAIL!'}
             </div>
-            <svg width="42" height="42" viewBox="0 0 32 32" className="xs:w-[46px] xs:h-[46px] drop-shadow-[2px_2px_0px_#000] group-hover:scale-105 transition-transform">
+            <svg width="38" height="38" viewBox="0 0 32 32" className="w-[36px] h-[36px] xs:w-[44px] xs:h-[44px] drop-shadow-[2px_2px_0px_#000] group-hover:scale-105 transition-transform">
               <polygon points="7,4 12,4 9,10" fill="#d97706" stroke="#000" strokeWidth="0.8" />
               <polygon points="25,4 20,4 23,10" fill="#d97706" stroke="#000" strokeWidth="0.8" />
               <rect x="8" y="6" width="16" height="4" fill="#1e3a8a" stroke="#000" strokeWidth="0.7" rx="1" />
