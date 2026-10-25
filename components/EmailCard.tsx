@@ -459,6 +459,126 @@ export function RealisticHeroArt({ heroId, className = '' }: { heroId: HeroId; c
   );
 }
 
+/**
+ * Cinematic Signature Skill FX Component for each Hero
+ */
+export function CinematicSkillFX({ heroId }: { heroId: HeroId }) {
+  if (heroId === 'giyu') {
+    return (
+      <svg width="270" height="190" viewBox="0 0 240 160" className="anim-water-surge overflow-visible">
+        {/* Giant Water Dragon Tidal Surge */}
+        <path d="M10,130 Q70,10 140,70 T230,50" fill="none" stroke="#0284c7" strokeWidth="24" strokeLinecap="round" opacity="0.85" />
+        <path d="M10,130 Q70,10 140,70 T230,50" fill="none" stroke="#38bdf8" strokeWidth="15" strokeLinecap="round" opacity="0.95" />
+        <path d="M10,130 Q70,10 140,70 T230,50" fill="none" stroke="#ffffff" strokeWidth="5.5" strokeLinecap="round" />
+        {/* Wave Dragon Crests */}
+        <polygon points="120,45 135,25 145,48" fill="#ffffff" />
+        <polygon points="175,45 190,20 200,50" fill="#ffffff" />
+        <polygon points="70,55 80,35 95,60" fill="#ffffff" />
+        {/* Water Droplets */}
+        <circle cx="130" cy="20" r="4" fill="#38bdf8" />
+        <circle cx="150" cy="15" r="3" fill="#ffffff" />
+        <circle cx="195" cy="18" r="4.5" fill="#ffffff" />
+        <circle cx="215" cy="35" r="3" fill="#38bdf8" />
+      </svg>
+    );
+  }
+
+  if (heroId === 'tanjiro') {
+    return (
+      <svg width="270" height="190" viewBox="0 0 240 180" className="anim-flame-wheel overflow-visible">
+        {/* Blazing Solar Flame Wheel 360 */}
+        <ellipse cx="120" cy="90" rx="90" ry="70" fill="none" stroke="#7f1d1d" strokeWidth="24" opacity="0.8" />
+        <ellipse cx="120" cy="90" rx="90" ry="70" fill="none" stroke="#dc2626" strokeWidth="15" opacity="0.95" />
+        <ellipse cx="120" cy="90" rx="90" ry="70" fill="none" stroke="#facc15" strokeWidth="6.5" />
+        {/* Solar Spikes */}
+        <polygon points="120,20 135,2 145,22" fill="#f97316" />
+        <polygon points="190,50 215,35 200,68" fill="#facc15" />
+        <polygon points="205,100 230,110 200,120" fill="#dc2626" />
+        <polygon points="120,160 105,178 95,158" fill="#f97316" />
+        <polygon points="50,130 25,145 40,112" fill="#facc15" />
+        <circle cx="150" cy="40" r="4" fill="#facc15" />
+        <circle cx="75" cy="50" r="3" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  if (heroId === 'nezuko') {
+    return (
+      <svg width="250" height="190" viewBox="0 0 200 160" className="anim-blood-burst overflow-visible">
+        {/* Blood Demon Pyrokinesis Concentric Shockwave */}
+        <circle cx="100" cy="80" r="70" fill="none" stroke="#f43f5e" strokeWidth="16" opacity="0.6" />
+        <circle cx="100" cy="80" r="50" fill="none" stroke="#fb7185" strokeWidth="11" opacity="0.85" />
+        <circle cx="100" cy="80" r="30" fill="none" stroke="#ffffff" strokeWidth="5.5" />
+        <polygon points="100,10 108,35 92,35" fill="#f43f5e" />
+        <polygon points="100,150 108,125 92,125" fill="#f43f5e" />
+        <polygon points="20,80 45,72 45,88" fill="#f43f5e" />
+        <polygon points="180,80 155,72 155,88" fill="#f43f5e" />
+        {/* Crystal Sparkles */}
+        <polygon points="40,30 46,40 56,40 48,46 51,56 40,50 29,56 32,46 24,40 34,40" fill="#fbcfe8" />
+        <polygon points="160,30 166,40 176,40 168,46 171,56 160,50 149,56 152,46 144,40 154,40" fill="#fbcfe8" />
+      </svg>
+    );
+  }
+
+  if (heroId === 'inosuke') {
+    return (
+      <svg width="270" height="190" viewBox="0 0 240 180" className="anim-beast-slash overflow-visible">
+        {/* Heavy Beast X-Slash */}
+        <line x1="20" y1="20" x2="220" y2="160" stroke="#f59e0b" strokeWidth="20" strokeLinecap="round" opacity="0.85" />
+        <line x1="20" y1="20" x2="220" y2="160" stroke="#ffffff" strokeWidth="5.5" strokeLinecap="round" />
+        <line x1="220" y1="20" x2="20" y2="160" stroke="#f59e0b" strokeWidth="20" strokeLinecap="round" opacity="0.85" />
+        <line x1="220" y1="20" x2="20" y2="160" stroke="#ffffff" strokeWidth="5.5" strokeLinecap="round" />
+        <polygon points="120,70 140,90 100,90" fill="#ffffff" />
+        <polygon points="70,50 90,60 80,75" fill="#92400e" />
+        <polygon points="170,50 150,60 160,75" fill="#92400e" />
+        <rect x="50" y="110" width="7" height="7" fill="#78350f" transform="rotate(45 54 114)" />
+        <rect x="190" y="110" width="6" height="6" fill="#78350f" transform="rotate(25 193 113)" />
+      </svg>
+    );
+  }
+
+  if (heroId === 'zenitsu') {
+    return (
+      <svg width="270" height="190" viewBox="0 0 240 180" className="anim-thunder-flash overflow-visible">
+        {/* 6-Fold Branching Electric Lightning */}
+        <path d="M10,90 L60,30 L90,100 L140,20 L170,120 L230,60" fill="none" stroke="#eab308" strokeWidth="13" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
+        <path d="M10,90 L60,30 L90,100 L140,20 L170,120 L230,60" fill="none" stroke="#38bdf8" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10,90 L60,30 L90,100 L140,20 L170,120 L230,60" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M60,30 L50,80 L30,110" fill="none" stroke="#fde047" strokeWidth="3.5" />
+        <circle cx="60" cy="30" r="7" fill="#ffffff" />
+        <circle cx="140" cy="20" r="9" fill="#ffffff" />
+        <circle cx="170" cy="120" r="6" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  if (heroId === 'shinobu') {
+    return (
+      <svg width="270" height="190" viewBox="0 0 240 180" className="anim-butterfly-swarm overflow-visible">
+        {/* Needle Stinger Puncture & Swarm */}
+        <circle cx="120" cy="90" r="16" fill="none" stroke="#c084fc" strokeWidth="7" opacity="0.75" />
+        <circle cx="120" cy="90" r="6" fill="#ffffff" />
+        <g transform="translate(60, 40) rotate(-15)">
+          <path d="M0,0 Q15,-15 25,0 Q15,15 0,0" fill="#a855f7" stroke="#ffffff" strokeWidth="1" />
+          <path d="M0,0 Q-15,-15 -25,0 Q-15,15 0,0" fill="#06b6d4" stroke="#ffffff" strokeWidth="1" />
+        </g>
+        <g transform="translate(180, 50) rotate(25)">
+          <path d="M0,0 Q18,-18 30,0 Q18,18 0,0" fill="#06b6d4" stroke="#ffffff" strokeWidth="1" />
+          <path d="M0,0 Q-18,-18 -30,0 Q-18,18 0,0" fill="#c084fc" stroke="#ffffff" strokeWidth="1" />
+        </g>
+        <g transform="translate(80, 130) rotate(-35)">
+          <path d="M0,0 Q14,-14 24,0 Q14,14 0,0" fill="#c084fc" stroke="#ffffff" strokeWidth="1" />
+          <path d="M0,0 Q-14,-14 -24,0 Q-14,14 0,0" fill="#a855f7" stroke="#ffffff" strokeWidth="1" />
+        </g>
+        <circle cx="100" cy="60" r="3" fill="#e9d5ff" />
+        <circle cx="140" cy="70" r="4" fill="#c084fc" />
+      </svg>
+    );
+  }
+
+  return null;
+}
+
 interface EmailCardProps {
   currentEmail: string;
   currentPrefix: string;
@@ -559,6 +679,8 @@ export default function EmailCard({
   const [activeHero, setActiveHero] = useState<HeroId>('giyu');
   const [isCharModalOpen, setIsCharModalOpen] = useState<boolean>(false);
   const [previewHero, setPreviewHero] = useState<HeroId>('giyu');
+  const [transitionState, setTransitionState] = useState<'idle' | 'out-left' | 'in-right' | 'out-right' | 'in-left'>('idle');
+  const [showBurstRing, setShowBurstRing] = useState<boolean>(false);
   const [isModalSlashing, setIsModalSlashing] = useState<boolean>(false);
   const [modalQuote, setModalQuote] = useState<string | null>(null);
   const modalQuoteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -768,21 +890,64 @@ export default function EmailCard({
   };
 
   const handlePrevHero = () => {
-    const idx = HERO_KEYS.indexOf(previewHero);
-    const prevIdx = (idx - 1 + HERO_KEYS.length) % HERO_KEYS.length;
-    setPreviewHero(HERO_KEYS[prevIdx]);
+    if (transitionState !== 'idle') return;
+    setTransitionState('out-right');
     if (isSoundEnabled) {
       playSound('click');
     }
+
+    setTimeout(() => {
+      const idx = HERO_KEYS.indexOf(previewHero);
+      const prevIdx = (idx - 1 + HERO_KEYS.length) % HERO_KEYS.length;
+      setPreviewHero(HERO_KEYS[prevIdx]);
+      setTransitionState('in-left');
+      setShowBurstRing(true);
+
+      setTimeout(() => {
+        setTransitionState('idle');
+        setShowBurstRing(false);
+      }, 260);
+    }, 220);
   };
 
   const handleNextHero = () => {
-    const idx = HERO_KEYS.indexOf(previewHero);
-    const nextIdx = (idx + 1) % HERO_KEYS.length;
-    setPreviewHero(HERO_KEYS[nextIdx]);
+    if (transitionState !== 'idle') return;
+    setTransitionState('out-left');
     if (isSoundEnabled) {
       playSound('click');
     }
+
+    setTimeout(() => {
+      const idx = HERO_KEYS.indexOf(previewHero);
+      const nextIdx = (idx + 1) % HERO_KEYS.length;
+      setPreviewHero(HERO_KEYS[nextIdx]);
+      setTransitionState('in-right');
+      setShowBurstRing(true);
+
+      setTimeout(() => {
+        setTransitionState('idle');
+        setShowBurstRing(false);
+      }, 260);
+    }, 220);
+  };
+
+  const handleThumbnailSelect = (targetHero: HeroId) => {
+    if (targetHero === previewHero || transitionState !== 'idle') return;
+    const currentIdx = HERO_KEYS.indexOf(previewHero);
+    const targetIdx = HERO_KEYS.indexOf(targetHero);
+    if (targetIdx > currentIdx) {
+      handleNextHero();
+    } else {
+      handlePrevHero();
+    }
+  };
+
+  const getRosterTransitionClass = () => {
+    if (transitionState === 'out-left') return 'anim-roster-out-left';
+    if (transitionState === 'in-right') return 'anim-roster-in-right';
+    if (transitionState === 'out-right') return 'anim-roster-out-right';
+    if (transitionState === 'in-left') return 'anim-roster-in-left';
+    return 'anim-char-bob';
   };
 
   const handleModalTestJurus = () => {
@@ -2050,6 +2215,16 @@ export default function EmailCard({
                     style={{ backgroundColor: HERO_ROSTER[previewHero].glowColor || '#06b6d4' }}
                   />
 
+                  {/* Elemental Burst Ring on Character Arrival */}
+                  {showBurstRing && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                      <div
+                        className="w-44 h-44 rounded-full border-4 anim-roster-burst pointer-events-none"
+                        style={{ borderColor: HERO_ROSTER[previewHero].glowColor || '#06b6d4' }}
+                      />
+                    </div>
+                  )}
+
                   {/* Corner Watermarks */}
                   <div className="absolute top-2 left-2.5 font-pixel text-[7px] text-[var(--text-muted)] pointer-events-none">
                     ARCADE // ROSTER
@@ -2083,38 +2258,26 @@ export default function EmailCard({
 
                   {/* Speech Callout Balloon */}
                   {modalQuote && (
-                    <div className="absolute top-4 z-20 transition-all duration-200 animate-in fade-in zoom-in-95 pointer-events-none">
+                    <div className="absolute top-4 z-25 transition-all duration-200 animate-in fade-in zoom-in-95 pointer-events-none">
                       <div className="bg-black text-white px-2.5 py-1 font-pixel text-[8px] sm:text-[9px] border-2 border-yellow-300 shadow-[2px_2px_0px_#000] font-bold uppercase tracking-wider">
                         {modalQuote}
                       </div>
                     </div>
                   )}
 
-                  {/* Realistic Character Art */}
+                  {/* Realistic Character Art with Directional Transition */}
                   <div
                     onClick={handleModalTestJurus}
-                    className="relative z-10 flex flex-col items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95"
+                    className={`relative z-10 flex flex-col items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 ${getRosterTransitionClass()}`}
                     title="Klik karakter untuk jurus & suara!"
                   >
                     <RealisticHeroArt heroId={previewHero} />
                   </div>
 
-                  {/* Action Slash FX Overlay */}
+                  {/* Cinematic Signature Skill FX Overlay */}
                   {isModalSlashing && (
-                    <div className="absolute inset-0 pointer-events-none z-25 flex items-center justify-center">
-                      <svg width="220" height="150" viewBox="0 0 200 140" className="anim-action-slash overflow-visible">
-                        <path
-                          d="M20,110 Q100,10 180,60"
-                          fill="none"
-                          stroke={HERO_ROSTER[previewHero].glowColor || '#38bdf8'}
-                          strokeWidth="10"
-                          strokeLinecap="round"
-                          opacity="0.9"
-                        />
-                        <path d="M20,110 Q100,10 180,60" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
-                        <circle cx="100" cy="40" r="3.5" fill="#ffffff" />
-                        <circle cx="140" cy="50" r="3" fill={HERO_ROSTER[previewHero].glowColor || '#38bdf8'} />
-                      </svg>
+                    <div className="absolute inset-0 pointer-events-none z-30 flex items-center justify-center overflow-hidden">
+                      <CinematicSkillFX heroId={previewHero} />
                     </div>
                   )}
                 </div>
@@ -2133,10 +2296,7 @@ export default function EmailCard({
                         <button
                           key={k}
                           type="button"
-                          onClick={() => {
-                            setPreviewHero(k);
-                            if (isSoundEnabled) playSound('click');
-                          }}
+                          onClick={() => handleThumbnailSelect(k)}
                           className={`brutal-btn p-1 flex flex-col items-center justify-center transition-all ${
                             isCurrent
                               ? 'bg-[var(--color-yellow)] border-black ring-2 ring-[var(--color-blue)] scale-105 shadow-[2px_2px_0px_#000]'
