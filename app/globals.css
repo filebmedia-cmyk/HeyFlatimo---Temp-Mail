@@ -1443,6 +1443,30 @@ pre {
   transform-origin: right center;
 }
 
+/* 2b. Blood Demon Shockwave Blast (Kurochigami) */
+@keyframes shockwaveBlast {
+  0% { transform: scale(0.3) translateX(20px); opacity: 0; }
+  30% { transform: scale(1.1) translateX(-10px); opacity: 1; filter: drop-shadow(0 0 14px #991b1b); }
+  70% { transform: scale(1.25) translateX(-25px); opacity: 0.85; }
+  100% { transform: scale(1.4) translateX(-40px); opacity: 0; }
+}
+.anim-shockwave-strike {
+  animation: shockwaveBlast 0.55s ease-out forwards;
+  transform-origin: right center;
+}
+
+/* 2c. Ground Flesh Spikes Eruption */
+@keyframes groundSpikesErupt {
+  0% { transform: scaleY(0.1) translateY(12px); opacity: 0; }
+  35% { transform: scaleY(1.2) translateY(-4px); opacity: 1; filter: drop-shadow(0 0 12px #b91c1c); }
+  70% { transform: scaleY(1.0) translateY(0); opacity: 0.95; }
+  100% { transform: scaleY(0.4) translateY(6px); opacity: 0; }
+}
+.anim-spikes-strike {
+  animation: groundSpikesErupt 0.55s ease-out forwards;
+  transform-origin: bottom center;
+}
+
 /* 3. Hero Parry Guard */
 @keyframes heroParryGuard {
   0% { transform: translateX(0); }

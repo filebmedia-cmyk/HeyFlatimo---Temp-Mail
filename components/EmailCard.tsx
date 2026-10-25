@@ -711,6 +711,9 @@ export default function EmailCard({
   const respawnIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Muzan Counter-Attack & Parry Mechanics
+  const MUZAN_ATTACK_TYPES = ['whip', 'shockwave', 'spikes'] as const;
+  type MuzanAttackType = typeof MUZAN_ATTACK_TYPES[number];
+  const [muzanAttackType, setMuzanAttackType] = useState<MuzanAttackType>('whip');
   const [isMuzanWarning, setIsMuzanWarning] = useState<boolean>(false);
   const [isMuzanAttacking, setIsMuzanAttacking] = useState<boolean>(false);
   const [isHeroParrying, setIsHeroParrying] = useState<boolean>(false);
@@ -888,6 +891,10 @@ export default function EmailCard({
 
   const triggerMuzanAttack = () => {
     if (isMuzanWarning || isMuzanAttacking || isBossKO || isUltActive) return;
+
+    // Pick random Blood Demon Art
+    const chosen = MUZAN_ATTACK_TYPES[Math.floor(Math.random() * MUZAN_ATTACK_TYPES.length)];
+    setMuzanAttackType(chosen);
     setIsMuzanWarning(true);
 
     if (muzanWarningTimeoutRef.current) clearTimeout(muzanWarningTimeoutRef.current);
@@ -899,12 +906,19 @@ export default function EmailCard({
         playKatanaSlashSound(true);
       }
 
-      // At 200ms, whip strikes the hero if not parried
+      // At 200ms, attack strikes the hero if not parried
       if (muzanAttackTimeoutRef.current) clearTimeout(muzanAttackTimeoutRef.current);
       muzanAttackTimeoutRef.current = setTimeout(() => {
         setIsHeroStaggered(true);
         setUltEnergy((prev) => Math.max(0, prev - 10));
-        setRunnerQuote('TERKENA CAMBUK!');
+
+        const hitQuote =
+          chosen === 'shockwave'
+            ? 'TERKENA SHOCKWAVE!'
+            : chosen === 'spikes'
+            ? 'TERTUSUK DURI BUMI!'
+            : 'TERKENA CAMBUK!';
+        setRunnerQuote(hitQuote);
         setComboCount(0);
 
         setTimeout(() => {
@@ -971,15 +985,22 @@ export default function EmailCard({
     };
   }, []);
 
-  // Periodic Muzan Counter-Attack Interval (Every 12 seconds during battle)
+  // Periodic Muzan Counter-Attack Interval (Randomized between 9s and 14s during battle)
   useEffect(() => {
-    const muzanAttackTimer = setInterval(() => {
-      if (!isBossKO && !isUltActive && !isMuzanWarning && !isMuzanAttacking) {
-        triggerMuzanAttack();
-      }
-    }, 12000);
+    let timer: NodeJS.Timeout;
+    const scheduleNext = () => {
+      const delay = Math.floor(Math.random() * 5000) + 9000;
+      timer = setTimeout(() => {
+        if (!isBossKO && !isUltActive && !isMuzanWarning && !isMuzanAttacking) {
+          triggerMuzanAttack();
+        }
+        scheduleNext();
+      }, delay);
+    };
 
-    return () => clearInterval(muzanAttackTimer);
+    scheduleNext();
+
+    return () => clearTimeout(timer);
   }, [isBossKO, isUltActive, isMuzanWarning, isMuzanAttacking]);
 
   const handleSelectHero = (hero: HeroId) => {
@@ -1622,8 +1643,8 @@ export default function EmailCard({
       <div className="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 xs:gap-2.5 sm:gap-4 pt-2.5 xs:pt-3 pb-2.5 border-b border-dashed border-[var(--border-color)]">
         {/* Row 1 / Sisi Kiri: Boss Muzan HP & Combo Counter (Wide, Anti-Collapse) */}
         <div className="flex items-center gap-1.5 xs:gap-2 w-full sm:flex-1 sm:max-w-[320px]">
-          <span className="font-pixel text-[6.5px] xs:text-[7.5px] sm:text-[8px] text-red-600 dark:text-red-400 font-bold whitespace-nowrap flex-shrink-0">
-            MUZAN HP:
+          <span className="font-pixel text-[6px] xs:text-[7px] sm:text-[7.5px] bg-red-600 text-white px-2 py-0.5 border-2 border-black dark:border-zinc-700 shadow-[1.5px_1.5px_0px_#000] font-black uppercase tracking-wider whitespace-nowrap flex-shrink-0">
+            MUZAN HP
           </span>
           <div className="flex-1 min-w-[90px] xs:min-w-[120px] h-4 xs:h-4.5 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000]">
             <div
@@ -1651,8 +1672,8 @@ export default function EmailCard({
 
         {/* Row 2 / Sisi Kanan: Ultimate Meter Gauge & Tombol Jurus / Charge (Wide, Anti-Collapse) */}
         <div className="flex items-center gap-1.5 xs:gap-2 w-full sm:flex-1 sm:max-w-[340px] sm:justify-end">
-          <span className="font-pixel text-[6.5px] xs:text-[7.5px] sm:text-[8px] text-[var(--color-blue)] font-bold whitespace-nowrap flex-shrink-0">
-            ULT:
+          <span className="font-pixel text-[6px] xs:text-[7px] sm:text-[7.5px] bg-[var(--color-blue)] text-white px-2 py-0.5 border-2 border-black dark:border-zinc-700 shadow-[1.5px_1.5px_0px_#000] font-black uppercase tracking-wider whitespace-nowrap flex-shrink-0">
+            ULT METER
           </span>
           <div className={`flex-1 min-w-[90px] xs:min-w-[120px] h-4 xs:h-4.5 bg-black border-2 border-black dark:border-zinc-700 relative overflow-hidden shadow-[1px_1px_0px_#000] transition-all duration-200 ${isCharging ? 'ring-2 ring-cyan-400' : ''}`}>
             <div
@@ -1738,7 +1759,11 @@ export default function EmailCard({
                   ! AWAS !
                 </span>
                 <span className="font-pixel text-[7.5px] xs:text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider text-white">
-                  MUZAN AKAN MENYERANG!
+                  {muzanAttackType === 'shockwave'
+                    ? 'MUZAN: GELOMBANG DARAH HITAM!'
+                    : muzanAttackType === 'spikes'
+                    ? 'MUZAN: DURI DARAH BUMI!'
+                    : 'MUZAN: CAMBUK DAGING DARAH!'}
                 </span>
                 <span className="font-pixel text-[6px] xs:text-[7px] bg-black text-yellow-300 px-1.5 py-0.5 border border-yellow-300 font-bold hidden xs:inline-block">
                   KLIK TANGKIS
@@ -1800,7 +1825,7 @@ export default function EmailCard({
                   : isHeroParrying
                   ? 'PERFECT PARRY!'
                   : isHeroStaggered
-                  ? 'TERKENA CAMBUK!'
+                  ? runnerQuote || 'TERKENA SERANGAN!'
                   : isUltActive
                   ? runnerQuote || HERO_ROSTER[activeHero].ultName
                   : isRunnerSlashing
@@ -2195,19 +2220,19 @@ export default function EmailCard({
               className="relative flex items-end cursor-pointer group pointer-events-auto select-none min-w-[44px] flex-shrink-0 overflow-visible"
               title="Kibutsuji Muzan (Raja Iblis) - Klik untuk menyerang!"
             >
-              {/* Muzan Badge Tag (Anchored on Right, Staggered Floor Level - NEVER COLLIDES) */}
+              {/* Muzan Badge Tag (Centered above fedora, Level with Hero Tag - Clean Neo-Brutalist Box) */}
               <div
-                className={`absolute -top-10 xs:-top-11 sm:-top-10 right-0 xs:-right-1 sm:left-1/2 sm:-translate-x-1/2 font-pixel text-[5px] xs:text-[5.5px] sm:text-[6px] px-1.5 xs:px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-40 pointer-events-none transition-all duration-200 ${
+                className={`absolute -top-6 xs:-top-7 left-1/2 -translate-x-1/2 font-pixel text-[5px] xs:text-[5.5px] sm:text-[6.5px] px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-30 pointer-events-none transition-all duration-200 ${
                   demonQuote || isDemonHit || isBossHurt || isBossKO
                     ? 'opacity-100 scale-100 bg-red-600 text-white font-black'
-                    : 'opacity-85 group-hover:opacity-100 scale-95 bg-black text-red-400 border-red-600 font-bold'
+                    : 'opacity-90 group-hover:opacity-100 scale-95 sm:scale-100 bg-red-600 text-white font-bold'
                 }`}
               >
                 {demonQuote || (isBossKO ? 'K.O.!' : isBossHurt ? 'KISAMA!' : isDemonHit ? 'KISAMA!' : 'MUZAN')}
               </div>
 
-              {/* Muzan Blood Demon Whip (Thorny Crimson Tendril Lashing towards Hero) */}
-              {isMuzanAttacking && (
+              {/* Muzan Blood Demon Art Attack FX (Randomized: Whip, Shockwave, or Spikes) */}
+              {isMuzanAttacking && muzanAttackType === 'whip' && (
                 <div className="absolute bottom-1 right-7 xs:right-9 sm:right-11 pointer-events-none z-35 w-[115px] xs:w-[140px] sm:w-[170px] anim-whip-strike">
                   <svg viewBox="0 0 150 45" className="w-full filter drop-shadow-[0_0_12px_rgba(220,38,38,0.95)]">
                     <path d="M145,22 Q90,2 45,28 T5,20" fill="none" stroke="#7f1d1d" strokeWidth="6" strokeLinecap="round" />
@@ -2218,6 +2243,37 @@ export default function EmailCard({
                     <circle cx="115" cy="12" r="3" fill="#dc2626" />
                     <circle cx="70" cy="20" r="2.5" fill="#f87171" />
                     <circle cx="30" cy="24" r="3" fill="#ffffff" />
+                  </svg>
+                </div>
+              )}
+
+              {isMuzanAttacking && muzanAttackType === 'shockwave' && (
+                <div className="absolute bottom-0 right-7 xs:right-9 sm:right-11 pointer-events-none z-35 w-[120px] xs:w-[145px] sm:w-[175px] anim-shockwave-strike">
+                  <svg viewBox="0 0 160 50" className="w-full filter drop-shadow-[0_0_14px_rgba(153,27,27,0.95)]">
+                    <path d="M150,5 A 40 40 0 0 0 150,45" fill="none" stroke="#581c87" strokeWidth="7" strokeLinecap="round" opacity="0.6" />
+                    <path d="M110,3 A 50 50 0 0 0 110,47" fill="none" stroke="#991b1b" strokeWidth="5.5" strokeLinecap="round" />
+                    <path d="M70,2 A 60 60 0 0 0 70,48" fill="none" stroke="#dc2626" strokeWidth="4" strokeLinecap="round" />
+                    <path d="M30,4 A 70 70 0 0 0 30,46" fill="none" stroke="#f87171" strokeWidth="2.5" strokeLinecap="round" />
+                    <circle cx="110" cy="25" r="4" fill="#ffffff" />
+                    <circle cx="70" cy="15" r="3" fill="#ffffff" />
+                    <circle cx="70" cy="35" r="3" fill="#ffffff" />
+                    <circle cx="30" cy="25" r="3.5" fill="#ffffff" />
+                  </svg>
+                </div>
+              )}
+
+              {isMuzanAttacking && muzanAttackType === 'spikes' && (
+                <div className="absolute bottom-0 right-6 xs:right-8 sm:right-10 pointer-events-none z-35 w-[120px] xs:w-[145px] sm:w-[175px] anim-spikes-strike">
+                  <svg viewBox="0 0 160 45" className="w-full filter drop-shadow-[0_0_12px_rgba(220,38,38,0.95)]">
+                    <polygon points="140,45 146,12 152,45" fill="#991b1b" stroke="#000" strokeWidth="1" />
+                    <polygon points="115,45 122,6 129,45" fill="#dc2626" stroke="#000" strokeWidth="1" />
+                    <polygon points="85,45 92,2 99,45" fill="#ef4444" stroke="#000" strokeWidth="1" />
+                    <polygon points="55,45 61,10 68,45" fill="#dc2626" stroke="#000" strokeWidth="1" />
+                    <polygon points="25,45 31,4 38,45" fill="#b91c1c" stroke="#000" strokeWidth="1" />
+                    <polygon points="5,45 10,16 16,45" fill="#991b1b" stroke="#000" strokeWidth="1" />
+                    <line x1="122" y1="8" x2="124" y2="40" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" />
+                    <line x1="92" y1="4" x2="94" y2="40" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
+                    <line x1="31" y1="6" x2="33" y2="40" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" />
                   </svg>
                 </div>
               )}
