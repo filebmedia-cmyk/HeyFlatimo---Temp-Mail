@@ -940,12 +940,14 @@ pre {
 }
 
 @keyframes tailWagAnim {
-  0%, 100% { transform: rotate(-8deg); }
-  50% { transform: rotate(14deg); }
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(12deg); }
 }
 .anim-tail {
-  transform-origin: bottom left;
-  animation: tailWagAnim 1.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 15% 90%;
+  animation: tailWagAnim 1.5s ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes waterFlowAnim {

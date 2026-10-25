@@ -342,12 +342,18 @@ export default function WelcomeScreen({
           {/* Left: Pixel Neko Gamer */}
           <div className="flex flex-col items-center anim-char-bob">
             <div className="bg-[#ff007f] text-white font-pixel text-[5.5px] xs:text-[6px] px-1 py-0.2 border border-black shadow-[1px_1px_0px_#000] -mb-1 z-10">
-              MEOW! 🎧
+              MEOW!
             </div>
             <svg width="42" height="42" viewBox="0 0 32 32" className="xs:w-[46px] xs:h-[46px] drop-shadow-[2px_2px_0px_#000]">
               <g className="anim-tail">
-                <rect x="23" y="16" width="3" height="3" fill="#ff9900" stroke="#000" strokeWidth="0.75" />
-                <rect x="25" y="13" width="3" height="4" fill="#ffffff" stroke="#000" strokeWidth="0.75" />
+                <path
+                  d="M21,20 H24 V17 H26 V12 H23 V15 H21 Z"
+                  fill="#ff9900"
+                  stroke="#000000"
+                  strokeWidth="0.8"
+                  strokeLinejoin="miter"
+                />
+                <polygon points="23,12 26,12 26,14.5 23,14.5" fill="#ffffff" />
               </g>
               <polygon points="7,4 12,4 7,10" fill="#ff9900" stroke="#000" strokeWidth="0.8" />
               <polygon points="25,4 20,4 25,10" fill="#ff9900" stroke="#000" strokeWidth="0.8" />

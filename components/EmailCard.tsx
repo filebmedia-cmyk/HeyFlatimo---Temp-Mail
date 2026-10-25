@@ -1358,8 +1358,14 @@ export default function EmailCard({
           </div>
           <svg width="38" height="38" viewBox="0 0 32 32" className="w-[36px] h-[36px] xs:w-[44px] xs:h-[44px] drop-shadow-[2px_2px_0px_#000] group-hover:scale-105 transition-transform">
             <g className="anim-tail">
-              <rect x="23" y="16" width="3" height="3" fill="#ff9900" stroke="#000" strokeWidth="0.75" />
-              <rect x="25" y="13" width="3" height="4" fill="#ffffff" stroke="#000" strokeWidth="0.75" />
+              <path
+                d="M21,20 H24 V17 H26 V12 H23 V15 H21 Z"
+                fill="#ff9900"
+                stroke="#000000"
+                strokeWidth="0.8"
+                strokeLinejoin="miter"
+              />
+              <polygon points="23,12 26,12 26,14.5 23,14.5" fill="#ffffff" />
             </g>
             <polygon points="7,4 12,4 7,10" fill="#ff9900" stroke="#000" strokeWidth="0.8" />
             <polygon points="25,4 20,4 25,10" fill="#ff9900" stroke="#000" strokeWidth="0.8" />
