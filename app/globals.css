@@ -160,6 +160,16 @@ pre {
   user-select: none;
 }
 
+.brutal-btn.absolute,
+.brutal-btn.\!absolute {
+  position: absolute !important;
+}
+
+.brutal-btn.fixed,
+.brutal-btn.\!fixed {
+  position: fixed !important;
+}
+
 @media (min-width: 640px) {
   .brutal-btn {
     border-width: 3px;

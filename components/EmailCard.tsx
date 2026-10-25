@@ -684,6 +684,8 @@ export default function EmailCard({
   const [isModalSlashing, setIsModalSlashing] = useState<boolean>(false);
   const [modalQuote, setModalQuote] = useState<string | null>(null);
   const modalQuoteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const rosterTransitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const rosterBurstTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [runnerQuote, setRunnerQuote] = useState<string | null>(null);
   const [isRunnerSlashing, setIsRunnerSlashing] = useState<boolean>(false);
   const [isDemonHit, setIsDemonHit] = useState<boolean>(false);
@@ -876,6 +878,10 @@ export default function EmailCard({
         }
       }
     }
+    return () => {
+      if (rosterTransitionTimeoutRef.current) clearTimeout(rosterTransitionTimeoutRef.current);
+      if (rosterBurstTimeoutRef.current) clearTimeout(rosterBurstTimeoutRef.current);
+    };
   }, []);
 
   const handleSelectHero = (hero: HeroId) => {
@@ -890,56 +896,90 @@ export default function EmailCard({
   };
 
   const handlePrevHero = () => {
-    if (transitionState !== 'idle') return;
-    setTransitionState('out-right');
+    if (rosterTransitionTimeoutRef.current) {
+      clearTimeout(rosterTransitionTimeoutRef.current);
+    }
+    if (rosterBurstTimeoutRef.current) {
+      clearTimeout(rosterBurstTimeoutRef.current);
+    }
+
     if (isSoundEnabled) {
       playSound('click');
     }
 
-    setTimeout(() => {
-      const idx = HERO_KEYS.indexOf(previewHero);
-      const prevIdx = (idx - 1 + HERO_KEYS.length) % HERO_KEYS.length;
-      setPreviewHero(HERO_KEYS[prevIdx]);
-      setTransitionState('in-left');
-      setShowBurstRing(true);
+    const currentIdx = HERO_KEYS.indexOf(previewHero);
+    const prevIdx = (currentIdx - 1 + HERO_KEYS.length) % HERO_KEYS.length;
+    const prevHero = HERO_KEYS[prevIdx];
 
-      setTimeout(() => {
-        setTransitionState('idle');
-        setShowBurstRing(false);
-      }, 260);
-    }, 220);
+    setPreviewHero(prevHero);
+    setTransitionState('in-left');
+    setShowBurstRing(true);
+
+    rosterBurstTimeoutRef.current = setTimeout(() => {
+      setShowBurstRing(false);
+    }, 320);
+
+    rosterTransitionTimeoutRef.current = setTimeout(() => {
+      setTransitionState('idle');
+    }, 260);
   };
 
   const handleNextHero = () => {
-    if (transitionState !== 'idle') return;
-    setTransitionState('out-left');
+    if (rosterTransitionTimeoutRef.current) {
+      clearTimeout(rosterTransitionTimeoutRef.current);
+    }
+    if (rosterBurstTimeoutRef.current) {
+      clearTimeout(rosterBurstTimeoutRef.current);
+    }
+
     if (isSoundEnabled) {
       playSound('click');
     }
 
-    setTimeout(() => {
-      const idx = HERO_KEYS.indexOf(previewHero);
-      const nextIdx = (idx + 1) % HERO_KEYS.length;
-      setPreviewHero(HERO_KEYS[nextIdx]);
-      setTransitionState('in-right');
-      setShowBurstRing(true);
+    const currentIdx = HERO_KEYS.indexOf(previewHero);
+    const nextIdx = (currentIdx + 1) % HERO_KEYS.length;
+    const nextHero = HERO_KEYS[nextIdx];
 
-      setTimeout(() => {
-        setTransitionState('idle');
-        setShowBurstRing(false);
-      }, 260);
-    }, 220);
+    setPreviewHero(nextHero);
+    setTransitionState('in-right');
+    setShowBurstRing(true);
+
+    rosterBurstTimeoutRef.current = setTimeout(() => {
+      setShowBurstRing(false);
+    }, 320);
+
+    rosterTransitionTimeoutRef.current = setTimeout(() => {
+      setTransitionState('idle');
+    }, 260);
   };
 
   const handleThumbnailSelect = (targetHero: HeroId) => {
-    if (targetHero === previewHero || transitionState !== 'idle') return;
+    if (targetHero === previewHero) return;
     const currentIdx = HERO_KEYS.indexOf(previewHero);
     const targetIdx = HERO_KEYS.indexOf(targetHero);
-    if (targetIdx > currentIdx) {
-      handleNextHero();
-    } else {
-      handlePrevHero();
+
+    if (rosterTransitionTimeoutRef.current) {
+      clearTimeout(rosterTransitionTimeoutRef.current);
     }
+    if (rosterBurstTimeoutRef.current) {
+      clearTimeout(rosterBurstTimeoutRef.current);
+    }
+
+    if (isSoundEnabled) {
+      playSound('click');
+    }
+
+    setPreviewHero(targetHero);
+    setTransitionState(targetIdx > currentIdx ? 'in-right' : 'in-left');
+    setShowBurstRing(true);
+
+    rosterBurstTimeoutRef.current = setTimeout(() => {
+      setShowBurstRing(false);
+    }, 320);
+
+    rosterTransitionTimeoutRef.current = setTimeout(() => {
+      setTransitionState('idle');
+    }, 260);
   };
 
   const getRosterTransitionClass = () => {
@@ -2240,25 +2280,29 @@ export default function EmailCard({
                   <button
                     type="button"
                     onClick={handlePrevHero}
-                    className="brutal-btn absolute left-2 sm:left-3 z-30 bg-white dark:bg-zinc-800 text-black dark:text-white w-8 h-8 sm:w-9 sm:h-9 font-pixel text-xs font-black flex items-center justify-center hover:bg-[var(--color-yellow)] dark:hover:bg-yellow-500 transition-transform active:scale-90 shadow-[2px_2px_0px_var(--shadow-color)]"
+                    style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', zIndex: 35 }}
+                    className="brutal-btn !absolute left-2 xs:left-3 top-1/2 -translate-y-1/2 w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 bg-white dark:bg-zinc-800 text-black dark:text-white font-pixel text-xs font-black flex items-center justify-center hover:bg-[var(--color-yellow)] dark:hover:bg-yellow-500 transition-transform active:scale-90 shadow-[2px_2px_0px_var(--shadow-color)]"
                     title="Pahlawan Sebelumnya (Tombol Panah Kiri)"
+                    aria-label="Pahlawan Sebelumnya"
                   >
-                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-black dark:text-white" />
+                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-black dark:text-white stroke-[2.5]" />
                   </button>
 
                   {/* Right Carousel Button (>) */}
                   <button
                     type="button"
                     onClick={handleNextHero}
-                    className="brutal-btn absolute right-2 sm:right-3 z-30 bg-white dark:bg-zinc-800 text-black dark:text-white w-8 h-8 sm:w-9 sm:h-9 font-pixel text-xs font-black flex items-center justify-center hover:bg-[var(--color-yellow)] dark:hover:bg-yellow-500 transition-transform active:scale-90 shadow-[2px_2px_0px_var(--shadow-color)]"
+                    style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', zIndex: 35 }}
+                    className="brutal-btn !absolute right-2 xs:right-3 top-1/2 -translate-y-1/2 w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 bg-white dark:bg-zinc-800 text-black dark:text-white font-pixel text-xs font-black flex items-center justify-center hover:bg-[var(--color-yellow)] dark:hover:bg-yellow-500 transition-transform active:scale-90 shadow-[2px_2px_0px_var(--shadow-color)]"
                     title="Pahlawan Berikutnya (Tombol Panah Kanan)"
+                    aria-label="Pahlawan Berikutnya"
                   >
-                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-black dark:text-white" />
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-black dark:text-white stroke-[2.5]" />
                   </button>
 
                   {/* Speech Callout Balloon */}
                   {modalQuote && (
-                    <div className="absolute top-4 z-25 transition-all duration-200 animate-in fade-in zoom-in-95 pointer-events-none">
+                    <div className="absolute top-4 z-20 transition-all duration-200 animate-in fade-in zoom-in-95 pointer-events-none">
                       <div className="bg-black text-white px-2.5 py-1 font-pixel text-[8px] sm:text-[9px] border-2 border-yellow-300 shadow-[2px_2px_0px_#000] font-bold uppercase tracking-wider">
                         {modalQuote}
                       </div>
@@ -2267,6 +2311,7 @@ export default function EmailCard({
 
                   {/* Realistic Character Art with Directional Transition */}
                   <div
+                    key={previewHero}
                     onClick={handleModalTestJurus}
                     className={`relative z-10 flex flex-col items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 ${getRosterTransitionClass()}`}
                     title="Klik karakter untuk jurus & suara!"
@@ -2280,6 +2325,35 @@ export default function EmailCard({
                       <CinematicSkillFX heroId={previewHero} />
                     </div>
                   )}
+                </div>
+
+                {/* Dedicated Navigation Strip (Between Stage and Thumbnails) */}
+                <div className="flex items-center justify-between gap-1.5 p-1.5 bg-zinc-100 dark:bg-zinc-900 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_var(--shadow-color)]">
+                  <button
+                    type="button"
+                    onClick={handlePrevHero}
+                    className="brutal-btn flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-white dark:bg-zinc-800 text-black dark:text-white hover:bg-[var(--color-yellow)] active:scale-95 text-[8.5px] sm:text-[9.5px] font-pixel shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                    title="Pahlawan Sebelumnya"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>SEBELUMNYA</span>
+                  </button>
+
+                  <div className="px-2 py-0.5 text-center shrink-0">
+                    <span className="font-pixel text-[8.5px] sm:text-[9.5px] font-black text-black dark:text-white">
+                      0{HERO_KEYS.indexOf(previewHero) + 1} / 0{HERO_KEYS.length}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleNextHero}
+                    className="brutal-btn flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-white dark:bg-zinc-800 text-black dark:text-white hover:bg-[var(--color-yellow)] active:scale-95 text-[8.5px] sm:text-[9.5px] font-pixel shadow-[1.5px_1.5px_0px_var(--shadow-color)]"
+                    title="Pahlawan Berikutnya"
+                  >
+                    <span>BERIKUTNYA</span>
+                    <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </button>
                 </div>
 
                 {/* Quick Selection Thumbnail Ribbon (6 Characters) */}
