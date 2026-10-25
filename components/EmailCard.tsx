@@ -2045,7 +2045,7 @@ export default function EmailCard({
                     : 'opacity-85 group-hover:opacity-100 scale-95 bg-black text-red-400 border-red-600 font-bold'
                 }`}
               >
-                {demonQuote || (isBossKO ? 'K.O.!' : isBossHurt ? 'KISAMA!' : isDemonHit ? 'KISAMA!' : 'TARGET: MUZAN')}
+                {demonQuote || (isBossKO ? 'K.O.!' : isBossHurt ? 'KISAMA!' : isDemonHit ? 'KISAMA!' : 'MUZAN')}
               </div>
 
               {/* Panic Sweat Drop */}
