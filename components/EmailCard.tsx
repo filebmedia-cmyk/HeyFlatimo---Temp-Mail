@@ -1009,25 +1009,27 @@ export default function EmailCard({
 
         {/* Ultimate Banner Floating Notification (Mobile Screen Safe & Centered) */}
         {isUltActive && (
-          <div className="absolute -top-6 xs:-top-7 sm:-top-8 left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-in fade-in zoom-in duration-150 max-w-[90vw]">
-            <div className="font-pixel text-[7.5px] xs:text-[8.5px] sm:text-xs text-yellow-300 bg-black/95 border-2 border-yellow-400 px-2.5 xs:px-3 py-0.5 xs:py-1 shadow-[2px_2px_0px_#ff0055] whitespace-nowrap truncate animate-pulse">
+          <div className="absolute -top-6 xs:-top-7 sm:-top-8 left-0 right-0 z-40 flex justify-center pointer-events-none px-2">
+            <div className="font-pixel text-[7.5px] xs:text-[8.5px] sm:text-xs text-yellow-300 bg-black/95 border-2 border-yellow-400 px-2.5 xs:px-3 py-0.5 xs:py-1 shadow-[2px_2px_0px_#ff0055] whitespace-nowrap truncate animate-pulse max-w-[90vw]">
               {HERO_ROSTER[activeHero].ultBanner}
             </div>
           </div>
         )}
 
-        {/* Arcade K.O.! Splash Overlay - Enhanced Stage Clear, Kill Counter & Respawn Countdown */}
+        {/* Arcade K.O.! Splash Overlay - Centered Position Wrapper (Immune to Shift & Clipping) */}
         {isBossKO && (
-          <div className="absolute -top-8 xs:-top-10 sm:-top-14 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none anim-arcade-ko whitespace-nowrap">
-            <div className="font-pixel text-xl xs:text-2xl sm:text-4xl text-yellow-300 bg-red-600 border-2 sm:border-4 border-black px-4 xs:px-6 sm:px-8 py-1 xs:py-1.5 sm:py-2 shadow-[3px_3px_0px_#000] sm:shadow-[5px_5px_0px_#000] tracking-widest animate-bounce">
-              K.O.!
-            </div>
-            <div className="font-pixel text-[6px] xs:text-[7.5px] sm:text-[9px] text-white bg-black px-2.5 xs:px-3 py-0.5 xs:py-1 mt-0.5 sm:mt-1 border sm:border-2 border-yellow-400 font-bold uppercase shadow-[1.5px_1.5px_0px_#000] flex items-center gap-1.5 xs:gap-2">
-              <span className="text-yellow-400 font-black">VICTORY!</span>
-              <span>TOTAL DIBASMI: {demonKills}</span>
-            </div>
-            <div className="font-pixel text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] text-black bg-yellow-300 px-2 py-0.5 mt-0.5 border border-black font-bold shadow-[1px_1px_0px_#000]">
-              RESPAWN: <span className="font-black text-red-600">{respawnCountdown}s</span>
+          <div className="absolute -top-8 xs:-top-10 sm:-top-14 left-0 right-0 z-50 flex justify-center pointer-events-none px-2">
+            <div className="flex flex-col items-center anim-arcade-ko whitespace-nowrap max-w-[95vw]">
+              <div className="font-pixel text-xl xs:text-2xl sm:text-4xl text-yellow-300 bg-red-600 border-2 sm:border-4 border-black px-4 xs:px-6 sm:px-8 py-1 xs:py-1.5 sm:py-2 shadow-[3px_3px_0px_#000] sm:shadow-[5px_5px_0px_#000] tracking-widest animate-bounce">
+                K.O.!
+              </div>
+              <div className="font-pixel text-[6px] xs:text-[7.5px] sm:text-[9px] text-white bg-black px-2.5 xs:px-3 py-0.5 xs:py-1 mt-0.5 sm:mt-1 border sm:border-2 border-yellow-400 font-bold uppercase shadow-[1.5px_1.5px_0px_#000] flex items-center gap-1.5 xs:gap-2">
+                <span className="text-yellow-400 font-black">VICTORY!</span>
+                <span>TOTAL DIBASMI: {demonKills}</span>
+              </div>
+              <div className="font-pixel text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] text-black bg-yellow-300 px-2 py-0.5 mt-0.5 border border-black font-bold shadow-[1px_1px_0px_#000]">
+                RESPAWN: <span className="font-black text-red-600">{respawnCountdown}s</span>
+              </div>
             </div>
           </div>
         )}
