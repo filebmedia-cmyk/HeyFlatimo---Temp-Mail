@@ -1971,31 +1971,35 @@ export default function EmailCard({
           </div>
         )}
 
-        {/* Telegraph Warning Notification: Muzan Counter-Attack (Centered, High-Impact & Interactive) */}
+        {/* Telegraph Warning Notification: Muzan Counter-Attack (2 Baris Terstruktur, Bebas Dempet) */}
         {isMuzanWarning && !isBossKO && (
           <div
             onClick={handleParryHero}
-            className="absolute top-1.5 xs:top-2 left-0 right-0 z-40 flex justify-center pointer-events-auto cursor-pointer px-2 select-none"
+            className="absolute -top-1 xs:top-0 sm:top-1 left-0 right-0 z-40 flex justify-center pointer-events-auto cursor-pointer px-2 select-none"
             title="Klik sekarang untuk Tangkis (Parry)!"
           >
-            <div className="bg-red-600 dark:bg-red-700 text-white border-2 border-black shadow-[3px_3px_0px_#000] px-3 py-1 xs:py-1.5 flex flex-col items-center gap-1 max-w-[94vw] hover:bg-red-700 active:scale-95 transition-transform">
-              <div className="flex items-center gap-1.5 xs:gap-2">
-                <span className="font-pixel text-[6px] xs:text-[7px] bg-yellow-400 text-black px-1.5 py-0.5 border border-black font-black animate-pulse">
+            <div className="bg-red-600 dark:bg-red-700 text-white border-2 border-black shadow-[3px_3px_0px_#000] px-3 py-1.5 xs:px-4 xs:py-2 flex flex-col items-center gap-1 xs:gap-1.5 max-w-[95vw] sm:max-w-md hover:bg-red-700 active:scale-95 transition-transform">
+              {/* Baris 1: Status Peringatan & Petunjuk Aksi Tangkis */}
+              <div className="flex items-center justify-center gap-1.5 xs:gap-2 w-full">
+                <span className="font-pixel text-[6px] xs:text-[7px] bg-yellow-400 text-black px-1.5 py-0.5 border border-black font-black animate-pulse shadow-[1px_1px_0px_#000]">
                   ! AWAS !
                 </span>
-                <span className="font-pixel text-[7.5px] xs:text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider text-white">
-                  {muzanAttackType === 'shockwave'
-                    ? 'MUZAN: GELOMBANG DARAH HITAM!'
-                    : muzanAttackType === 'spikes'
-                    ? 'MUZAN: DURI DARAH BUMI!'
-                    : 'MUZAN: CAMBUK DAGING DARAH!'}
-                </span>
-                <span className="font-pixel text-[6px] xs:text-[7px] bg-black text-yellow-300 px-1.5 py-0.5 border border-yellow-300 font-bold hidden xs:inline-block">
-                  KLIK TANGKIS
+                <span className="font-pixel text-[6px] xs:text-[7px] bg-black text-yellow-300 px-2 py-0.5 border border-yellow-400 font-bold tracking-wider shadow-[1px_1px_0px_#000]">
+                  KLIK UNTUK TANGKIS (PARRY)
                 </span>
               </div>
+
+              {/* Baris 2: Nama Serangan Jurus Muzan (Terbaca Jelas, Lega & Tidak Dempet) */}
+              <div className="text-center font-pixel text-[7px] xs:text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-white drop-shadow-[1px_1px_0px_#000] px-1 whitespace-nowrap">
+                {muzanAttackType === 'shockwave'
+                  ? 'MUZAN: GELOMBANG DARAH HITAM!'
+                  : muzanAttackType === 'spikes'
+                  ? 'MUZAN: DURI DARAH BUMI!'
+                  : 'MUZAN: CAMBUK DAGING DARAH!'}
+              </div>
+
               {/* Reaction Shrinking Countdown Progress Bar (0.95s window) */}
-              <div className="w-full h-1 bg-black/40 border border-black/50 overflow-hidden">
+              <div className="w-full h-1 xs:h-1.5 bg-black/50 border border-black/60 overflow-hidden mt-0.5">
                 <div className="h-full bg-yellow-300 anim-parry-timer" />
               </div>
             </div>
