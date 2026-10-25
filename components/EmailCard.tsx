@@ -843,18 +843,12 @@ export default function EmailCard({
           setActiveSpideyAction(null);
           setSpideyPopBadge(null);
           setSpideyActionQuote(null);
-        }, 650);
-      }, 1300);
+        }, 750);
+      }, 1500);
     } else if (action === 'yoink') {
       if (isSoundEnabled) playSpideyThwipSound(true);
-      setSpideyPopBadge('YOINK!');
-      setSpideyActionQuote('YOINK! EMAIL COPIED!');
-
-      if (currentEmail) {
-        onCopy(currentEmail);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
+      setSpideyPopBadge('THWIP!');
+      setSpideyActionQuote('THWIP! WEB SLING!');
 
       spideyActionTimeoutRef.current = setTimeout(() => {
         setActiveSpideyAction(null);
@@ -1632,19 +1626,35 @@ export default function EmailCard({
             </div>
           )}
 
-          {/* 4. Spider-Drone Flying Graphic */}
+          {/* 4. Spider-Drone Flying Graphic (High-Tech Holographic Scanner) */}
           {activeSpideyAction === 'drone' && (
-            <div className="absolute top-4 left-0 pointer-events-none z-40 anim-spidey-drone">
-              <svg width="22" height="22" viewBox="0 0 24 24" className="drop-shadow-[0_0_6px_#38bdf8]">
-                <ellipse cx="12" cy="12" rx="4" ry="5" fill="#0f172a" stroke="#38bdf8" strokeWidth="1" />
-                <circle cx="12" cy="12" r="2" fill="#ef4444" />
-                <line x1="6" y1="6" x2="18" y2="18" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
-                <line x1="6" y1="18" x2="18" y2="6" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
+            <div className="absolute top-2 -left-2 pointer-events-none z-50 anim-spidey-drone">
+              <div className="relative">
+                {/* Holographic Blue Scanner Cone Beam */}
+                <div
+                  className="absolute -bottom-5 -left-3 w-12 h-6 bg-gradient-to-b from-cyan-400/40 via-cyan-400/15 to-transparent pointer-events-none"
+                  style={{ clipPath: 'polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%)' }}
+                />
+                <svg width="24" height="24" viewBox="0 0 28 28" className="drop-shadow-[0_0_8px_#38bdf8] overflow-visible">
+                  {/* Drone Chassis Arms */}
+                  <line x1="5" y1="5" x2="23" y2="23" stroke="#0f172a" strokeWidth="2.2" strokeLinecap="round" />
+                  <line x1="5" y1="23" x2="23" y2="5" stroke="#0f172a" strokeWidth="2.2" strokeLinecap="round" />
+                  {/* Quad Propeller Rings */}
+                  <circle cx="5" cy="5" r="3.5" fill="none" stroke="#38bdf8" strokeWidth="1.2" strokeDasharray="3,2" />
+                  <circle cx="23" cy="5" r="3.5" fill="none" stroke="#38bdf8" strokeWidth="1.2" strokeDasharray="3,2" />
+                  <circle cx="5" cy="23" r="3.5" fill="none" stroke="#38bdf8" strokeWidth="1.2" strokeDasharray="3,2" />
+                  <circle cx="23" cy="23" r="3.5" fill="none" stroke="#38bdf8" strokeWidth="1.2" strokeDasharray="3,2" />
+                  {/* Drone Core Body */}
+                  <ellipse cx="14" cy="14" rx="5" ry="6" fill="#0f172a" stroke="#38bdf8" strokeWidth="1.2" />
+                  {/* Glowing Red Sensor Eye */}
+                  <circle cx="14" cy="14" r="2.2" fill="#ef4444" />
+                  <circle cx="14.8" cy="13.2" r="0.7" fill="#ffffff" />
+                </svg>
+              </div>
             </div>
           )}
 
-          {/* 5. Web Yoink Line to Email Box */}
+          {/* 5. Web Sling Line Graphic (Visual Shoot, No Auto-Copy) */}
           {activeSpideyAction === 'yoink' && (
             <div className="absolute bottom-1 right-3 h-[2.5px] bg-white border border-black shadow-[0_0_4px_#fff] origin-right pointer-events-none z-30 anim-web-yoink" />
           )}
