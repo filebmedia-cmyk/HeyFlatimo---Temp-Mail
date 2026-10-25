@@ -539,6 +539,31 @@ export function playSpideyThwipSound(force: boolean = false): void {
   } catch (e) {}
 }
 
+export function playVictoryFanfareSound(force: boolean = false): void {
+  if (!force && !getSoundEnabled()) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state !== 'running') {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+    const notes = [392, 523.25, 659.25, 783.99];
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+      gain.gain.setValueAtTime(0.25, now + idx * 0.09);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + idx * 0.09);
+      osc.stop(now + idx * 0.09 + 0.36);
+    });
+  } catch (e) {}
+}
+
 /**
  * Check if sound FX is enabled in localStorage.
  * Defaults to TRUE (Sound ON) unless explicitly muted by the user.

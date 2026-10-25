@@ -31,6 +31,7 @@ import {
   playShibaSound,
   playArcadeKOSound,
   playSpideyThwipSound,
+  playVictoryFanfareSound,
 } from '@/lib/sound';
 
 export const SPIDEY_QUOTES = [
@@ -250,6 +251,11 @@ export default function EmailCard({
   const bossRespawnTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const ultTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Demon Defeated Kill Counter & Respawn Countdown Timer
+  const [demonKills, setDemonKills] = useState<number>(0);
+  const [respawnCountdown, setRespawnCountdown] = useState<number>(3);
+  const respawnIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   // Spiderman Hanging on VIP Crown States
   const [spideyQuoteIdx, setSpideyQuoteIdx] = useState<number>(0);
   const [isSpideyFlipping, setIsSpideyFlipping] = useState<boolean>(false);
@@ -287,15 +293,38 @@ export default function EmailCard({
         setIsBossKO(true);
         setIsBossHurt(false);
         setDemonQuote('K.O.!');
+
+        // Increment kill count and save to localStorage
+        setDemonKills((prevKills) => {
+          const updated = prevKills + 1;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('flatimo_demon_kills', String(updated));
+          }
+          return updated;
+        });
+
+        // Play Arcade KO and Victory Fanfare chimes
         if (isSoundEnabled) {
           playArcadeKOSound(true);
+          setTimeout(() => {
+            playVictoryFanfareSound(true);
+          }, 320);
         }
+
+        // Reset and trigger 3-second respawn countdown
+        setRespawnCountdown(3);
+        if (respawnIntervalRef.current) clearInterval(respawnIntervalRef.current);
+        respawnIntervalRef.current = setInterval(() => {
+          setRespawnCountdown((c) => Math.max(1, c - 1));
+        }, 1000);
+
         if (bossRespawnTimeoutRef.current) clearTimeout(bossRespawnTimeoutRef.current);
         bossRespawnTimeoutRef.current = setTimeout(() => {
           setIsBossKO(false);
           setBossHp(100);
           setDemonQuote(null);
           setComboCount(0);
+          if (respawnIntervalRef.current) clearInterval(respawnIntervalRef.current);
         }, 3000);
       } else {
         setIsBossHurt(true);
@@ -380,12 +409,19 @@ export default function EmailCard({
     }
   };
 
-  // Restore saved hero from localStorage on mount
+  // Restore saved hero & demon kills from localStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('flatimo_runner_hero') as HeroId;
       if (saved && ['giyu', 'tanjiro', 'nezuko', 'inosuke', 'zenitsu', 'shinobu'].includes(saved)) {
         setActiveHero(saved);
+      }
+      const savedKills = localStorage.getItem('flatimo_demon_kills');
+      if (savedKills) {
+        const parsed = parseInt(savedKills, 10);
+        if (!isNaN(parsed) && parsed >= 0) {
+          setDemonKills(parsed);
+        }
       }
     }
   }, []);
@@ -912,6 +948,14 @@ export default function EmailCard({
               x{comboCount}
             </span>
           )}
+          {demonKills > 0 && (
+            <span
+              className="font-pixel text-[5px] xs:text-[6px] sm:text-[6.5px] bg-yellow-400 text-black px-1.5 py-0.5 border border-black font-bold shadow-[1px_1px_0px_#000] flex-shrink-0 ml-auto sm:ml-0"
+              title={`Total Iblis yang dikalahkan: ${demonKills}`}
+            >
+              {demonKills} KILLS
+            </span>
+          )}
         </div>
 
         {/* Row 2 / Sisi Kanan: Ultimate Meter Gauge & Tombol Jurus / Charge (Wide, Anti-Collapse) */}
@@ -972,14 +1016,18 @@ export default function EmailCard({
           </div>
         )}
 
-        {/* Arcade K.O.! Splash Overlay - Mobile Proportional, Never Blocks Runner Actions */}
+        {/* Arcade K.O.! Splash Overlay - Enhanced Stage Clear, Kill Counter & Respawn Countdown */}
         {isBossKO && (
-          <div className="absolute -top-7 xs:-top-9 sm:-top-12 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none anim-arcade-ko whitespace-nowrap">
-            <div className="font-pixel text-xl xs:text-2xl sm:text-4xl text-yellow-300 bg-red-600 border-2 sm:border-4 border-black px-4 xs:px-5 sm:px-7 py-1 xs:py-1.5 sm:py-2 shadow-[3px_3px_0px_#000] sm:shadow-[5px_5px_0px_#000] tracking-widest animate-bounce">
+          <div className="absolute -top-8 xs:-top-10 sm:-top-14 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none anim-arcade-ko whitespace-nowrap">
+            <div className="font-pixel text-xl xs:text-2xl sm:text-4xl text-yellow-300 bg-red-600 border-2 sm:border-4 border-black px-4 xs:px-6 sm:px-8 py-1 xs:py-1.5 sm:py-2 shadow-[3px_3px_0px_#000] sm:shadow-[5px_5px_0px_#000] tracking-widest animate-bounce">
               K.O.!
             </div>
-            <div className="font-pixel text-[6px] xs:text-[7px] sm:text-[8.5px] text-black bg-yellow-400 px-2 xs:px-2.5 py-0.5 mt-0.5 sm:mt-1 border sm:border-2 border-black font-black uppercase shadow-[1.5px_1.5px_0px_#000]">
-              TARGET IBLIS TERKALAHKAN!
+            <div className="font-pixel text-[6px] xs:text-[7.5px] sm:text-[9px] text-white bg-black px-2.5 xs:px-3 py-0.5 xs:py-1 mt-0.5 sm:mt-1 border sm:border-2 border-yellow-400 font-bold uppercase shadow-[1.5px_1.5px_0px_#000] flex items-center gap-1.5 xs:gap-2">
+              <span className="text-yellow-400 font-black">VICTORY!</span>
+              <span>TOTAL DIBASMI: {demonKills}</span>
+            </div>
+            <div className="font-pixel text-[5.5px] xs:text-[6.5px] sm:text-[7.5px] text-black bg-yellow-300 px-2 py-0.5 mt-0.5 border border-black font-bold shadow-[1px_1px_0px_#000]">
+              RESPAWN: <span className="font-black text-red-600">{respawnCountdown}s</span>
             </div>
           </div>
         )}
@@ -1002,11 +1050,15 @@ export default function EmailCard({
               {/* Speech / Action Bubble (Anchored on Left for Mobile, Staggered Floor Level) */}
               <div
                 className={`absolute -top-6 xs:-top-7 left-0 xs:-left-1 sm:left-1/2 sm:-translate-x-1/2 font-pixel text-[5px] xs:text-[5.5px] sm:text-[6.5px] px-1.5 xs:px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000] whitespace-nowrap z-30 pointer-events-none transition-all duration-200 ${
-                  runnerQuote || isRefreshing || isRunnerSlashing || isUltActive
+                  isBossKO
+                    ? 'opacity-100 scale-100 bg-emerald-400 text-black font-black animate-pulse'
+                    : runnerQuote || isRefreshing || isRunnerSlashing || isUltActive
                     ? 'opacity-100 scale-100'
                     : 'opacity-85 group-hover:opacity-100 scale-95'
                 } ${
-                  isUltActive
+                  isBossKO
+                    ? ''
+                    : isUltActive
                     ? 'bg-red-500 text-white font-black animate-pulse'
                     : isRunnerSlashing
                     ? 'bg-cyan-400 text-black font-black'
@@ -1015,7 +1067,9 @@ export default function EmailCard({
                     : 'bg-[var(--color-yellow)] text-black font-bold'
                 }`}
               >
-                {isUltActive
+                {isBossKO
+                  ? 'VICTORY!'
+                  : isUltActive
                   ? runnerQuote || HERO_ROSTER[activeHero].ultName
                   : isRunnerSlashing
                   ? runnerQuote || HERO_ROSTER[activeHero].quotes[0]
@@ -1097,7 +1151,9 @@ export default function EmailCard({
               {/* Character Sprite Container (With Dynamic Procedural Physics) */}
               <div
                 className={`relative z-20 overflow-visible ${
-                  isUltActive
+                  isBossKO
+                    ? 'anim-victory-hop'
+                    : isUltActive
                     ? 'anim-ult-lunge-sprint'
                     : isRunnerSlashing
                     ? 'anim-slash-lunge-action'
