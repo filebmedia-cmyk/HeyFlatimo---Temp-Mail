@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { Message } from '@/lib/models/Message';
 import { checkRateLimit } from '@/lib/rateLimiter';
+import { hasApiKeyProvided, validateApiKeyDetailed } from '@/lib/auth';
+import { checkIsVipDomain, extractDomainFromEmail, getAllDomainDetails, normalizeDomain } from '@/lib/domains';
+import { recordBotLog } from '@/lib/botLogger';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +13,8 @@ function escapeRegex(str: string): string {
 }
 
 export async function GET(req: NextRequest) {
+  const startTime = Date.now();
+
   // Public Rate Limit (120 req/minute per IP)
   const rateLimit = checkRateLimit(req, { maxRequests: 120, windowMs: 60 * 1000, keyPrefix: 'messages_get' });
   if (!rateLimit.allowed) {
@@ -21,7 +26,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const emailRaw = searchParams.get('email')?.trim().toLowerCase();
+    const emailRaw = (searchParams.get('email') || searchParams.get('address'))?.trim().toLowerCase();
 
     if (!emailRaw) {
       return NextResponse.json(
@@ -32,11 +37,45 @@ export async function GET(req: NextRequest) {
 
     const email = emailRaw.replace(/[^a-z0-9.@_-]/g, '');
 
-    // 1. Validasi Global Access Gate (jika diaktifkan di admin)
+    // 0. Autentikasi API Key (Jika request membawa API Key)
+    const apiKeyProvided = hasApiKeyProvided(req);
+    let isApiKeyValid = false;
+    let apiKeyAuthResult: any = null;
+
+    if (apiKeyProvided) {
+      apiKeyAuthResult = await validateApiKeyDetailed(req);
+      if (!apiKeyAuthResult.valid) {
+        try {
+          recordBotLog({
+            action: 'inbox',
+            req,
+            auth: apiKeyAuthResult,
+            email: email || '',
+            status: apiKeyAuthResult.status === 403 ? 'blocked' : 'error',
+            statusCode: apiKeyAuthResult.status || 401,
+            message: apiKeyAuthResult.error || 'Ditolak: API Key tidak valid / terikat',
+            responseTimeMs: Date.now() - startTime,
+          });
+        } catch {}
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: apiKeyAuthResult.error || 'Unauthorized: API Key tidak valid.',
+            data: [],
+            messages: [],
+          },
+          { status: apiKeyAuthResult.status || 401 }
+        );
+      }
+      isApiKeyValid = true;
+    }
+
+    // 1. Validasi Global Access Gate (Bypass jika membawa API Key yang valid)
     const { getAccessSettings } = await import('@/lib/settings');
     const access = await getAccessSettings();
-    if (access.enabled) {
-      const accessToken = req.headers.get('x-access-token') || new URL(req.url).searchParams.get('access_token') || '';
+    if (access.enabled && !isApiKeyValid) {
+      const accessToken = req.headers.get('x-access-token') || searchParams.get('access_token') || '';
       const { verifyAccessToken } = await import('@/lib/auth');
       const isAccessValid = verifyAccessToken(accessToken, access.key) || accessToken === access.key;
       if (!isAccessValid) {
@@ -46,17 +85,17 @@ export async function GET(req: NextRequest) {
             error: 'Akses ditolak. Layanan email dikunci oleh Access Gate.',
             isAccessLocked: true,
             data: [],
+            messages: [],
           },
           { status: 403 }
         );
       }
     }
 
-    // 2. Validasi Domain VIP (mencegah bypass direct slug URL)
-    const { checkIsVipDomain, extractDomainFromEmail, getAllDomainDetails, normalizeDomain } = await import('@/lib/domains');
+    // 2. Validasi Domain VIP (API Key yang valid mendapat FULL AKSES ke seluruh domain VIP)
     const { verifyVipSessionToken } = await import('@/lib/auth');
-    const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
-    const isVipTokenValid = verifyVipSessionToken(vipToken);
+    const vipToken = req.headers.get('x-vip-token') || searchParams.get('vip_token') || '';
+    const isVipTokenValid = isApiKeyValid || verifyVipSessionToken(vipToken);
 
     if (email.includes('@')) {
       const isVip = await checkIsVipDomain(email);
@@ -70,6 +109,7 @@ export async function GET(req: NextRequest) {
             isVipRequired: true,
             domain: domainPart,
             data: [],
+            messages: [],
           },
           { status: 403 }
         );
@@ -83,7 +123,7 @@ export async function GET(req: NextRequest) {
     if (email.includes('@')) {
       query.recipient = email;
     } else {
-      // Jika query tanpa domain (@) dan token VIP tidak ada, kecualikan domain VIP
+      // Jika query tanpa domain (@) dan token VIP / API Key tidak ada, kecualikan domain VIP
       if (!isVipTokenValid) {
         const allDetails = await getAllDomainDetails();
         const vipDomains = allDetails.filter((d) => d.isVip).map((d) => normalizeDomain(d.domain));
@@ -120,10 +160,26 @@ export async function GET(req: NextRequest) {
       attachments: m.attachments || [],
     }));
 
+    if (isApiKeyValid && apiKeyAuthResult) {
+      try {
+        recordBotLog({
+          action: 'inbox',
+          req,
+          auth: apiKeyAuthResult,
+          email,
+          status: 'success',
+          statusCode: 200,
+          message: `Membaca inbox untuk ${email} via API (${formattedMessages.length} pesan)`,
+          responseTimeMs: Date.now() - startTime,
+        });
+      } catch {}
+    }
+
     return NextResponse.json({
       success: true,
       count: formattedMessages.length,
       data: formattedMessages,
+      messages: formattedMessages,
     });
   } catch (error: any) {
     console.warn('MongoDB connection note:', error.message);
@@ -131,12 +187,14 @@ export async function GET(req: NextRequest) {
       success: true,
       count: 0,
       data: [],
+      messages: [],
       dbStatus: 'offline_or_connecting',
     });
   }
 }
 
 export async function DELETE(req: NextRequest) {
+  const startTime = Date.now();
   const rateLimit = checkRateLimit(req, { maxRequests: 30, windowMs: 60 * 1000, keyPrefix: 'messages_delete' });
   if (!rateLimit.allowed) {
     return NextResponse.json(
@@ -147,7 +205,7 @@ export async function DELETE(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const emailRaw = searchParams.get('email')?.trim().toLowerCase();
+    const emailRaw = (searchParams.get('email') || searchParams.get('address'))?.trim().toLowerCase();
 
     if (!emailRaw) {
       return NextResponse.json(
@@ -158,11 +216,27 @@ export async function DELETE(req: NextRequest) {
 
     const email = emailRaw.replace(/[^a-z0-9.@_-]/g, '');
 
+    // 0. Autentikasi API Key
+    const apiKeyProvided = hasApiKeyProvided(req);
+    let isApiKeyValid = false;
+    let apiKeyAuthResult: any = null;
+
+    if (apiKeyProvided) {
+      apiKeyAuthResult = await validateApiKeyDetailed(req);
+      if (!apiKeyAuthResult.valid) {
+        return NextResponse.json(
+          { error: apiKeyAuthResult.error || 'Unauthorized: API Key tidak valid.' },
+          { status: apiKeyAuthResult.status || 401 }
+        );
+      }
+      isApiKeyValid = true;
+    }
+
     // 1. Validasi Global Access Gate
     const { getAccessSettings } = await import('@/lib/settings');
     const access = await getAccessSettings();
-    if (access.enabled) {
-      const accessToken = req.headers.get('x-access-token') || new URL(req.url).searchParams.get('access_token') || '';
+    if (access.enabled && !isApiKeyValid) {
+      const accessToken = req.headers.get('x-access-token') || searchParams.get('access_token') || '';
       const { verifyAccessToken } = await import('@/lib/auth');
       const isAccessValid = verifyAccessToken(accessToken, access.key) || accessToken === access.key;
       if (!isAccessValid) {
@@ -174,10 +248,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     // 2. Validasi Domain VIP jika email berada di domain VIP
-    const { checkIsVipDomain, extractDomainFromEmail, getAllDomainDetails, normalizeDomain } = await import('@/lib/domains');
     const { verifyVipSessionToken } = await import('@/lib/auth');
-    const vipToken = req.headers.get('x-vip-token') || new URL(req.url).searchParams.get('vip_token') || '';
-    const isVipTokenValid = verifyVipSessionToken(vipToken);
+    const vipToken = req.headers.get('x-vip-token') || searchParams.get('vip_token') || '';
+    const isVipTokenValid = isApiKeyValid || verifyVipSessionToken(vipToken);
 
     if (email.includes('@')) {
       const isVip = await checkIsVipDomain(email);
@@ -214,6 +287,21 @@ export async function DELETE(req: NextRequest) {
     }
 
     const result = await Message.deleteMany(query);
+
+    if (isApiKeyValid && apiKeyAuthResult) {
+      try {
+        recordBotLog({
+          action: 'inbox',
+          req,
+          auth: apiKeyAuthResult,
+          email,
+          status: 'success',
+          statusCode: 200,
+          message: `Menghapus pesan untuk ${email} via API (${result.deletedCount} pesan)`,
+          responseTimeMs: Date.now() - startTime,
+        });
+      } catch {}
+    }
 
     return NextResponse.json({
       success: true,

@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const emailRaw = searchParams.get('email')?.trim().toLowerCase();
+  const emailRaw = (searchParams.get('email') || searchParams.get('address'))?.trim().toLowerCase();
 
   if (!emailRaw) {
     recordBotLog({

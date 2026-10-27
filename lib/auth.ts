@@ -225,15 +225,56 @@ export interface ApiKeyValidationResult {
 }
 
 /**
+ * Check if a request contains an API Key in headers or query params
+ */
+export function hasApiKeyProvided(req: NextRequest, explicitKey?: string): boolean {
+  if (explicitKey && explicitKey.trim()) return true;
+
+  const headerKey =
+    req.headers.get('x-api-key') ||
+    req.headers.get('api-key') ||
+    req.headers.get('x-apikey');
+  if (headerKey && headerKey.trim()) return true;
+
+  const authHeader = req.headers.get('authorization');
+  if (authHeader && authHeader.trim()) return true;
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const queryKey =
+      searchParams.get('api_key') ||
+      searchParams.get('apikey') ||
+      searchParams.get('key') ||
+      searchParams.get('apiKey');
+    if (queryKey && queryKey.trim()) return true;
+  } catch {}
+
+  return false;
+}
+
+/**
  * Detailed API Key validation with Single-Bot / Instance Auto-Lock Protection
  */
-export async function validateApiKeyDetailed(req: NextRequest): Promise<ApiKeyValidationResult> {
+export async function validateApiKeyDetailed(
+  req: NextRequest,
+  explicitKey?: string
+): Promise<ApiKeyValidationResult> {
   let providedKey: string | null = null;
 
-  // 1. Cek header x-api-key
-  const headerKey = req.headers.get('x-api-key');
-  if (headerKey) {
-    providedKey = headerKey.trim();
+  // 0. Cek explicitKey jika dipassing langsung (misal dari URL path)
+  if (explicitKey && typeof explicitKey === 'string' && explicitKey.trim()) {
+    providedKey = explicitKey.trim();
+  }
+
+  // 1. Cek header x-api-key, api-key, x-apikey
+  if (!providedKey) {
+    const headerKey =
+      req.headers.get('x-api-key') ||
+      req.headers.get('api-key') ||
+      req.headers.get('x-apikey');
+    if (headerKey) {
+      providedKey = headerKey.trim();
+    }
   }
 
   // 2. Cek Authorization Bearer
@@ -244,13 +285,19 @@ export async function validateApiKeyDetailed(req: NextRequest): Promise<ApiKeyVa
     }
   }
 
-  // 3. Cek query parameter ?api_key=...
+  // 3. Cek query parameter ?api_key=... / ?apikey=... / ?key=... / ?apiKey=...
   if (!providedKey) {
-    const { searchParams } = new URL(req.url);
-    const queryKey = searchParams.get('api_key');
-    if (queryKey) {
-      providedKey = queryKey.trim();
-    }
+    try {
+      const { searchParams } = new URL(req.url);
+      const queryKey =
+        searchParams.get('api_key') ||
+        searchParams.get('apikey') ||
+        searchParams.get('key') ||
+        searchParams.get('apiKey');
+      if (queryKey) {
+        providedKey = queryKey.trim();
+      }
+    } catch {}
   }
 
   if (!providedKey) {

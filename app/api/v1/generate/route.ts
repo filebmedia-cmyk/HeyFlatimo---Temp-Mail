@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKeyDetailed } from '@/lib/auth';
 import { generateRandomPrefix } from '@/lib/generator';
-import { getAllDomains } from '@/lib/domains';
+import { getAllDomains, checkIsVipDomain, normalizeDomain } from '@/lib/domains';
 import { recordBotLog } from '@/lib/botLogger';
 
 export const dynamic = 'force-dynamic';
@@ -27,8 +27,11 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const customPrefix = searchParams.get('prefix')?.trim().toLowerCase();
-  const customDomain = searchParams.get('domain')?.trim().toLowerCase();
+  const rawPrefix = searchParams.get('prefix');
+  const rawDomain = searchParams.get('domain');
+
+  const customPrefix = rawPrefix ? rawPrefix.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '') : '';
+  const customDomain = rawDomain ? normalizeDomain(rawDomain) : '';
 
   const domains = await getAllDomains();
   const finalPrefix = customPrefix || generateRandomPrefix();
@@ -60,6 +63,7 @@ export async function GET(req: NextRequest) {
   }
 
   const fullEmail = `${finalPrefix}@${finalDomain}`;
+  const isVip = await checkIsVipDomain(finalDomain);
   const responseTimeMs = Date.now() - startTime;
 
   recordBotLog({
@@ -69,7 +73,7 @@ export async function GET(req: NextRequest) {
     email: fullEmail,
     status: 'success',
     statusCode: 200,
-    message: `Email dibuat: ${fullEmail}`,
+    message: `Email dibuat: ${fullEmail}${isVip ? ' (Domain VIP)' : ''}`,
     responseTimeMs,
   });
 
@@ -78,6 +82,7 @@ export async function GET(req: NextRequest) {
     email: fullEmail,
     prefix: finalPrefix,
     domain: finalDomain,
+    isVip,
     generatedAt: new Date().toISOString(),
   });
 }
